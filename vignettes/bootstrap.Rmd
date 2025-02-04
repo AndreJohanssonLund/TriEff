@@ -127,7 +127,7 @@ Convergence analysis helps verify that our bootstrap estimates are stable. When 
 
 Let's examine convergence for our analysis:
 
-```{r convergence}
+```{r convergencefig, fig.width=10, fig.height=5, fig.alt="Convergence plots for the bootstrap."}
 # Calculate TE with convergence checking
 te_convergence <- calc_te(data,
                          bootstrap = TRUE,

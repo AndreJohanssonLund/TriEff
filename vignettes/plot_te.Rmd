@@ -37,7 +37,7 @@ The `plot_te()` function provides flexible visualization of Triage Effectiveness
 
 Let's start with a basic overall TE plot:
 
-```{r basic-plot, fig.width=7, fig.height=1.2}
+```{r basic-plot, fig.width=7, fig.height=1.2, fig.alt="A simple Triage Effectiveness plot"}
 # Calculate TE metrics
 te_results <- calc_te(data, overall_only = TRUE)
 
@@ -51,7 +51,7 @@ By default, the plot shows both Theoretical TE (teal) and Observed TE (purple) v
 
 The `plot_te()` function automatically handles bootstrap results when they're available. Let's see how this changes the visualization:
 
-```{r bootstrap-plot, fig.width=7, fig.height=1.2}
+```{r bootstrap-plot, fig.width=7, fig.height=1.2, fig.alt="Triage Effectiveness plot with bootstrap"}
 # Calculate TE with bootstrap
 te_bootstrap <- calc_te(data,
                        bootstrap = TRUE,
@@ -67,7 +67,7 @@ Notice how the plot now includes variability intervals (lighter shaded areas) fo
 
 We can visualize TE patterns across subgroups. Let's use the age group example from the calc_te vignette:
 
-```{r subgroup-plot, fig.width=7, fig.height=2}
+```{r subgroup-plot, fig.width=7, fig.height=2, fig.alt="Triage Effectiveness based on subgroups with bootstrapping"}
 # Create age groups
 data <- data %>%
   mutate(age_group = cut(age_at_arrival, 
@@ -87,7 +87,7 @@ plot_te(te_age)
 
 In some cases, particularly when analyzing specific units, we might encounter negative TE values. This requires special handling of the plot's x-axis. Let's demonstrate this with two plots - one showing only orthopedic units (which in the SEM synthpop has negative values) and another showing all units:
 
-```{r negative-te-1, fig.width=7, fig.height=1.2}
+```{r negative-te-1, fig.width=7, fig.height=1.2, fig.alt="A Triage Effectiveness plot that has negative values naturally"}
 # First, let's get results for orthopedic unit only
 ortho_data <- data %>%
   filter(unit == "orthopedics")
@@ -104,7 +104,7 @@ te_all <- calc_te(data_other, bootstrap = TRUE)
 plot_te(te_ortho)
 ```
 
-```{r negative-te-2, fig.width=7, fig.height=2}
+```{r negative-te-2, fig.width=7, fig.height=2, fig.alt="A Triage Effectiveness plot that has negative values forced"}
 
 # Plot all units with adjusted x-axis
 plot_te(te_all, min_x = -0.4)
@@ -116,7 +116,7 @@ Notice how setting `min_x = -0.3` ensures consistent scale and alignment between
 
 While the default settings are suitable for most purposes, `plot_te()` offers several customization options:
 
-```{r customization, fig.width=7, fig.height=1.2}
+```{r customization, fig.width=7, fig.height=1.2, fig.alt="A Triage Effectiveness plot with custom arguments changing its appearance"}
 # Example with custom settings
 plot_te(te_bootstrap,
         var_alpha = 0.9,          # less transparent variability intervals

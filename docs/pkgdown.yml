@@ -1,0 +1,11 @@
+pandoc: '3.2'
+pkgdown: 2.1.1
+pkgdown_sha: ~
+articles:
+  bootstrap: bootstrap.html
+  calc_te: calc_te.html
+  getting_started: getting_started.html
+  heatmap: heatmap.html
+  plot_te: plot_te.html
+  sim_te: sim_te.html
+last_built: 2025-02-04T18:13Z

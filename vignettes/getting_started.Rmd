@@ -72,7 +72,7 @@ The results show us:
 
 Finally, we can visualize these results:
 
-```{r plot, fig.width=10, fig.height=2}
+```{r plot, fig.width=10, fig.height=2, fig.alt="A Triage Effectiveness dumbplot"}
 # Create a basic TE plot
 plot_te(te_results)
 ```
