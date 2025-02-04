@@ -1,0 +1,156 @@
+---
+title: "Plotting Triage Effectiveness Results"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Plotting Triage Effectiveness Results}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 10,
+  fig.height = 4
+)
+```
+
+```{r setup}
+library(trieff)
+library(dplyr)
+
+# Initialize and simulate data once at the start
+data <- init(sem_malmo_synth) %>% 
+  sim_te()
+```
+
+## Introduction
+
+The `plot_te()` function provides flexible visualization of Triage Effectiveness results. This vignette demonstrates how to create and customize these visualizations, building on the analyses shown in the calc_te and bootstrap vignettes.
+
+## Prerequisites
+- Calculated TE metrics (see `vignette("calc_te")`)
+- Optional: Bootstrap results for confidence intervals
+
+## Basic Plotting
+
+Let's start with a basic overall TE plot:
+
+```{r basic-plot, fig.width=7, fig.height=1.2}
+# Calculate TE metrics
+te_results <- calc_te(data, overall_only = TRUE)
+
+# Create basic plot
+plot_te(te_results)
+```
+
+By default, the plot shows both Theoretical TE (teal) and Observed TE (purple) values. The horizontal lines connecting these points represent the Observed-Theoretical Gap (OTG).
+
+## Plotting Bootstrap Results
+
+The `plot_te()` function automatically handles bootstrap results when they're available. Let's see how this changes the visualization:
+
+```{r bootstrap-plot, fig.width=7, fig.height=1.2}
+# Calculate TE with bootstrap
+te_bootstrap <- calc_te(data,
+                       bootstrap = TRUE,
+                       overall_only = TRUE)
+
+# Plot with confidence intervals
+plot_te(te_bootstrap)
+```
+
+Notice how the plot now includes variability intervals (lighter shaded areas) for both TTE and OTE. These intervals are derived from the bootstrap analysis and help visualize the uncertainty in our estimates.
+
+## Subgroup Analysis
+
+We can visualize TE patterns across subgroups. Let's use the age group example from the calc_te vignette:
+
+```{r subgroup-plot, fig.width=7, fig.height=2}
+# Create age groups
+data <- data %>%
+  mutate(age_group = cut(age_at_arrival, 
+                        breaks = c(0, 59, 79, Inf),
+                        labels = c("18-59", "60-79", "80+")))
+
+# Calculate and plot TE by age group
+te_age <- calc_te(data,
+                  var1 = "age_group",
+                  bootstrap = TRUE,
+                  overall_only = TRUE)
+
+plot_te(te_age)
+```
+
+## Handling Negative TE Values
+
+In some cases, particularly when analyzing specific units, we might encounter negative TE values. This requires special handling of the plot's x-axis. Let's demonstrate this with two plots - one showing only orthopedic units (which in the SEM synthpop has negative values) and another showing all units:
+
+```{r negative-te-1, fig.width=7, fig.height=1.2}
+# First, let's get results for orthopedic unit only
+ortho_data <- data %>%
+  filter(unit == "orthopedics")
+
+te_ortho <- calc_te(ortho_data, bootstrap = TRUE)
+
+data_other <- data %>% 
+    filter(!unit == "orthopedics")  
+
+# Then get results for all units minus orthopedics
+te_all <- calc_te(data_other, bootstrap = TRUE)
+
+# Plot orthopedic results
+plot_te(te_ortho)
+```
+
+```{r negative-te-2, fig.width=7, fig.height=2}
+
+# Plot all units with adjusted x-axis
+plot_te(te_all, min_x = -0.4)
+```
+
+Notice how setting `min_x = -0.3` ensures consistent scale and alignment between the plots, making it easier to compare results across different units.
+
+## Advanced Plot Customization
+
+While the default settings are suitable for most purposes, `plot_te()` offers several customization options:
+
+```{r customization, fig.width=7, fig.height=1.2}
+# Example with custom settings
+plot_te(te_bootstrap,
+        var_alpha = 0.9,          # less transparent variability intervals
+        dumbell_width = 1.5,      # Thicker connecting lines
+        label_style = "small",    # small text labels
+        title = "Custom TE Plot") # Custom title
+```
+
+Key customization parameters include:
+
+- `var_alpha`: Controls transparency of variability intervals (0-1)
+
+- `dumbell_width`: Width of lines connecting TTE and OTE points
+
+- `label_style`: Can be "none", "small", "full", or "half" (default)
+
+- `show_tte`/`show_ote`: Toggle display of specific metrics
+
+- `show_var`: Toggle display of variability intervals
+
+For more details on available parameters, see `?plot_te`.
+
+## Summary
+
+This vignette has demonstrated how to:
+
+1. Create basic TE plots
+
+2. Visualize bootstrap confidence intervals
+
+3. Handle subgroup analyses
+
+4. Deal with negative TE values
+
+5. Customize plot appearance
+
+For more complex analyses, consider combining these visualization techniques with the methods described in the calc_te and bootstrap vignettes.

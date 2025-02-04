@@ -1,0 +1,115 @@
+---
+title: "Getting Started with trieff"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with trieff}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(trieff)
+```
+
+## Introduction
+
+The trieff package provides tools for analyzing and evaluating triage effectiveness in emergency departments. At its core, it measures how well triage systems achieve their fundamental purpose: reducing waiting times for time-critical patients.
+
+The package uses two key reference points:
+1. The waiting time without any triage system (first-come, first-served), defined as the mean waiting time for all patients.
+2. The theoretical minimum waiting time achievable with perfect triage, defined as 0 waiting time.
+
+From these reference points, we calculate Triage Effectiveness (TE), which creates a scale where:
+- 0% indicates no improvement over first-come, first-served
+- 100% indicates perfect prioritization where time-critical patients experience no waiting
+- Negative values indicate longer waiting times than a system without triage
+
+## Basic Workflow
+
+Let's walk through a basic workflow using the included synthetic dataset `sem_malmo_synth`, which is based on emergency department visits at Malmö Hospital.
+
+### 1. Initialize Data
+
+First, we need to initialize our data, which prepares it for analysis by calculating wait times and setting up required variables:
+
+```{r init}
+# Initialize the data
+data <- init(sem_malmo_synth)
+```
+
+### 2. Simulate Theoretical Wait Times
+
+To understand how well the triage system performs without the effect of changes in priority that can happen after triage we simulate theoretical wait times. This shows what would happen if patients were seen strictly in order of their assigned priority:
+
+```{r simulate}
+# Run simulation for theoretical wait times
+data <- sim_te(data)
+```
+
+### 3. Calculate Triage Effectiveness
+
+Now we can calculate both Observed Triage Effectiveness (OTE) and Theoretical Triage Effectiveness (TTE):
+
+```{r calc_te}
+# Calculate TE metrics
+te_results <- calc_te(data, overall_only = TRUE)
+print(te_results)
+```
+
+The results show us:
+- OTE: How well the ED actually performed
+- TTE: How well it would have performed based on triage decisions alone
+- OTG (Observed-Theoretical Gap): The difference between OTE and TTE, indicating the impact of post-triage processes
+
+### 4. Visualize Results
+
+Finally, we can visualize these results:
+
+```{r plot, fig.width=10, fig.height=2}
+# Create a basic TE plot
+plot_te(te_results)
+```
+
+## Next Steps
+
+"See the individual vignettes for each component for detailed usage, error handling, and advanced features:
+
+- `vignette("sim_te")` for simulation details and performance considerations
+
+- `vignette("calc_te")` for analyzing TE metrics
+
+- `vignette("bootstrap")` for statistical validation
+
+- `vignette("plot_te")` for visualization options
+
+- `vignette("heatmap")` for research and theoretical analysis"
+
+## Data Requirements
+
+To use trieff, your data needs:
+
+- Arrival times - we recomend setting this to the time the patient gets its priority, named "arrival"
+
+- Times of physician contact, named "resolve"
+
+- Triage priorities, in numbers 1 being highest
+
+- Unit assignments (if applicable)
+
+- Time-critical status indicators, in the trieff package designated "loset"
+
+## Common Issues
+- Missing or incorrect column names -> Use init() to validate data structure
+- Long processing times -> Consider sim_te_fast() for large datasets
+- Unexpected TE values -> Check unit groupings and LOSET definitions
+
+See `?sem_malmo_synth` for an example of how to structure your data.
+
+For more detailed information about specific functions, see their respective vignettes or help pages.

@@ -1,0 +1,172 @@
+---
+title: "Bootstrap Analysis with trieff"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Bootstrap Analysis with trieff}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 10,
+  fig.height = 4
+)
+```
+
+```{r setup}
+library(trieff)
+library(dplyr)
+
+# Initialize data once at the start
+data <- init(sem_malmo_synth) %>% 
+  sim_te()
+```
+
+## Introduction
+
+Bootstrap analysis in trieff provides confidence intervals for Triage Effectiveness metrics and enables assessment of statistical stability. This vignette demonstrates how to use bootstrapping effectively and interpret the results.
+
+The confidence intervals calculated here can be visualized using the plotting functions described in `vignette("plot_te")`. The visualization provides an intuitive way to understand the uncertainty in TE estimates.
+
+## Prerequisites
+- Knowledge on basic TE calculation (see `vignette("calc_te")`)
+- Simulated theoretical wait times (see `vignette("sim_te")`)
+
+
+## Why Bootstrap?
+
+Bootstrapping helps us understand:
+
+- The reliability of our TE metrics
+
+- The stability of our estimates
+
+- The impact of rare events and outliers
+
+
+For reliable bootstrap analysis, we recommend using at least 3 months of ED data, though this guideline is based on preliminary analysis and may need adjustment for your specific context.
+
+## Basic Bootstrap Usage
+
+Let's start with a basic example using default bootstrap parameters. We'll use overall_only=TRUE to keep the output focused:
+
+```{r basic-bootstrap}
+# Calculate TE with bootstrap
+te_results <- calc_te(data, 
+                     bootstrap = TRUE, 
+                     overall_only = TRUE)
+
+# View results
+print(te_results)
+```
+
+The output now includes confidence intervals for each TE metric, showing the uncertainty in our estimates.
+
+## Advanced Bootstrap Configuration
+
+The bootstrap process can be customized using several parameters:
+
+```{r custom-bootstrap}
+# Custom bootstrap settings
+te_custom <- calc_te(data,
+                     bootstrap = TRUE,
+                     overall_only = TRUE,
+                     bootstrap_params = list(
+                       sample_percentage = 0.8,  # Use 80% of data per iteration
+                       n_iterations = 1000,      # decrease iterations
+                       distribution_span = 0.99, # Wider confidence intervals
+                       min_loset_warning = 10    # More stringent warning threshold
+                     ))
+
+print(te_custom)
+```
+
+Key parameters:
+
+- sample_percentage: Controls resample size (default = 1)
+
+- n_iterations: Number of bootstrap iterations (default = 2000)
+
+- distribution_span: Width of confidence intervals (default = 0.95)
+
+- min_loset_warning: Threshold for low LOSET count warnings (default = 5)
+
+## Convergence Analysis
+
+Convergence analysis helps verify that our bootstrap estimates are stable. When check_convergence=TRUE, calc_te generates three types of diagnostic plots:
+
+1. Running Mean Plot
+
+   - Shows how the average TE estimate evolves with more iterations
+   
+   - Should stabilize to a roughly horizontal line
+   
+   - Large fluctuations at the end suggest need for more iterations
+
+
+2. CI Width Plot
+
+   - Shows how confidence interval width changes with iterations
+   
+   - Should decrease and stabilize
+   
+   - Continued narrowing suggests potential for more precise estimates
+
+
+3. Standard Error Plot
+
+   - Shows how the standard error of estimates changes
+   
+   - Should decrease and stabilize
+   
+   - Helps assess estimate precision
+   
+
+Let's examine convergence for our analysis:
+
+```{r convergence}
+# Calculate TE with convergence checking
+te_convergence <- calc_te(data,
+                         bootstrap = TRUE,
+                         overall_only = TRUE,
+                         check_convergence = TRUE)
+
+# View convergence plots
+print(te_convergence$convergence)
+```
+
+Interpreting convergence plots:
+
+- Look for stabilization in all three metrics
+
+- Check if late iterations show systematic changes
+
+- Verify CI width has reached reasonable stability
+
+
+If convergence looks poor, consider:
+
+- Increasing n_iterations
+
+- Checking for data quality issues
+
+- Verifying sufficient sample size
+
+
+## Summary
+
+Bootstrap analysis in trieff provides valuable insights into the reliability of TE metrics. Key points:
+
+1. Use bootstrapping to get confidence intervals for TE metrics
+
+2. Verify convergence using diagnostic plots
+
+3. Adjust parameters based on dataset size and precision needs
+
+4. Consider computational resources for large datasets
+
+
+Remember that while bootstrapping provides valuable statistical information, it should be combined with domain knowledge and practical considerations when evaluating triage system performance.

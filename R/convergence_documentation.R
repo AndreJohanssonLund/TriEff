@@ -1,0 +1,43 @@
+#' Convergence Results Structure
+#'
+#' @description
+#' Detailed explanation of the structure of convergence analysis results
+#' returned by [calc_te()] when `check_convergence = TRUE`.
+#'
+#' @section Structure:
+#' A list containing:
+#' \itemize{
+#'   \item groups: Tibble with group-level results
+#'   \item summary: Overall convergence statistics
+#'   \item metrics_analyzed: Vector of analyzed metrics
+#'   \item calculation_time: Analysis timestamp
+#' }
+#'
+#' @section Accessing Results:
+#' \itemize{
+#'   \item Basic summary: `results$convergence$summary`
+#'   \item Group results: `results$convergence$groups`
+#'   \item Formatted summary: `get_convergence_summary(results$convergence)`
+#'   \item Diagnostic plots: `get_convergence_plots(results$convergence)`
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' # Calculate TE with convergence analysis
+#' results <- calc_te(data,
+#'                   bootstrap = TRUE,
+#'                   check_convergence = TRUE)
+#'
+#' # Access convergence results
+#' conv <- results$convergence
+#'
+#' # Get summary statistics
+#' summary <- get_convergence_summary(conv)
+#'
+#' # Generate diagnostic plots
+#' plots <- get_convergence_plots(conv)
+#' }
+#'
+#' @name convergence_results
+#' @keywords documentation
+NULL

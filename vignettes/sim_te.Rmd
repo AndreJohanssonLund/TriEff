@@ -1,0 +1,140 @@
+---
+title: "Simulation in trieff"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Simulation in trieff}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(trieff)
+library(dplyr)
+```
+
+## Introduction
+
+The trieff package uses simulation to calculate Theoretical Triage Effectiveness (TTE) by modeling how patients would be processed if strictly following their assigned priority levels. This vignette explains how the simulation works and demonstrates its efficient implementation.
+
+## Understanding the Simulation
+
+### Key Concepts
+
+The simulation calculates theoretical wait times that would occur if:
+1. Patients were seen strictly in order of priority
+2. Within the same priority level, patients were seen in order of arrival
+3. No post-triage priority changes occurred
+
+### Optimized Implementation
+
+The default simulation (`sim_te`) focuses only on segments containing time-critical (LOSET-positive) cases. This is due to that TE calculations are based on the mean wait of LOSET-positive devided by the mean wait time that we extract from the observed wait times - which we show further down is identical. 
+
+## Basic Usage
+
+Let's start with a basic example:
+
+```{r basic-example}
+# Initialize data
+data <- init(sem_malmo_synth)
+
+# Run simulation
+simulated_data <- sim_te(data)
+
+# Check first few rows
+simulated_data %>% 
+  select(loset, observed_wait_time, theoretical_wait_time) %>% 
+  head(10)
+
+```
+
+Notice that non-LOSET cases may have NA theoretical wait times - this is expected based on that they were part of a que-segment with no LOSET-positive cases.
+
+## Simulation Parameters
+
+The simulation accepts several parameters:
+
+```{r parameters}
+simulated_data <- sim_te(
+  data,
+  tte = TRUE,     # Calculate theoretical wait times (default)
+  btte = FALSE,   # Skip binary theoretical calculations
+  n_workers = 1   # Number of cores for parallel processing, generally this is faster on 1 core.
+)
+```
+
+### Full Simulation Option
+
+For research purposes or when all theoretical wait times are needed, you can use `sim_te_alt`:
+
+```{r full-simulation}
+# Run full simulation
+full_sim_data <- sim_te_alt(data)
+
+# First let's show that the mean observed and theoretical wait time is the same
+print(mean(full_sim_data$observed_wait_time))
+print(mean(full_sim_data$theoretical_wait_time))
+
+# Compare results
+full_sim_data %>% 
+  select(loset, observed_wait_time, theoretical_wait_time) %>% 
+  head(10)
+
+```
+
+The full simulation calculates theoretical wait times for all cases but takes slightly longer to run. A sharp eye might notice that the wait times look different than what is shown in the example above. This is because the theoretical_waiting time is set to the observed_waiting time for any segment without LOSET cases that are not simulated. This keeps the mean waiting time identical in the both columns.
+
+## Performance Considerations
+
+The optimized simulation offers significant performance benefits:
+
+1. Reduced computation by focusing on relevant segments
+2. Lower memory usage
+3. Faster parallel processing
+
+However, both approaches produce identical TE values:
+
+```{r compare-results}
+# Calculate TE with both methods
+te_opt <- calc_te(simulated_data, overall_only = TRUE)
+te_full <- calc_te(full_sim_data, overall_only = TRUE)
+
+# Compare results
+print(te_opt)
+print(te_full)
+```
+
+## When to Use Each Approach
+
+Use `sim_te` (default) when:
+- Calculating TE metrics
+- Processing large datasets
+
+Use `sim_te_alt` when:
+- Researching queue behavior
+- Analyzing non-LOSET wait patterns
+- Validating simulation methods
+
+## Technical Details
+
+The simulation uses a non-preemptive approach where:
+- Each physician contact becomes an available time slot
+- Patients are queued by priority and arrival time
+- Wait times are calculated from slot assignment
+
+This deterministic approach ensures reproducible results while accurately modeling priority-based queuing.
+
+## Summary
+
+Understanding simulation in trieff helps you:
+1. Choose the appropriate simulation method
+2. Interpret results correctly
+3. Optimize performance for your use case
+
+For most applications, the default `sim_te` provides the most efficient path to accurate TE calculation.

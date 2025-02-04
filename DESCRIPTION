@@ -1,0 +1,53 @@
+Package: trieff
+Type: Package
+Title: Triage Effectiveness Analysis for Emergency Departments
+Version: 0.8.5
+Authors@R: person("André", "Johansson",
+                  email = "andre.johansson@med.lu.se",
+                  role = c("aut", "cre"),
+                  comment = c(ORCID = "0000-0002-3500-4832"))
+Description: A comprehensive toolkit for analyzing and evaluating triage 
+    effectiveness in emergency departments. The package provides methods for 
+    calculating theoretical and observed triage effectiveness, simulating triage 
+    scenarios, and visualizing results through various metrics including 
+    sensitivity/specificity heatmaps.
+License: CC BY 4.0
+URL: https://github.com/yourusername/trieff
+BugReports: https://github.com/yourusername/trieff/issues
+Config/build/time-clock-linux: yes
+Depends:
+    R (>= 3.5.0)
+Imports:
+    dplyr (>= 1.0.0),
+    tidyr,
+    purrr,
+    ggplot2,
+    data.table,
+    furrr,
+    future,
+    progressr,
+    lubridate,
+    stats,
+    parallel,
+    scales,
+    patchwork,
+    tibble,
+    magrittr,
+    rlang,
+    callr
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    roxygen2,
+    devtools,
+    here,
+    progress,
+    remotes
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+
