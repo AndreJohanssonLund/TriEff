@@ -1,0 +1,18 @@
+---
+title: "Publications Using trieff"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Publications Using trieff}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This page (will) list publications that have used the Triage Effectiveness Framework or the trieff package.
+
+## Original Publication
+
+[Details of the original publication will be added upon publication]
+
+## Related Publications
+
+[This section will be updated as new publications emerge]

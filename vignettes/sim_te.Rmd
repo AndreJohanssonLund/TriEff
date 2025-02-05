@@ -28,8 +28,11 @@ The trieff package uses simulation to calculate Theoretical Triage Effectiveness
 ### Key Concepts
 
 The simulation calculates theoretical wait times that would occur if:
+
 1. Patients were seen strictly in order of priority
+
 2. Within the same priority level, patients were seen in order of arrival
+
 3. No post-triage priority changes occurred
 
 ### Optimized Implementation
@@ -53,8 +56,6 @@ simulated_data %>%
   head(10)
 
 ```
-
-Notice that non-LOSET cases may have NA theoretical wait times - this is expected based on that they were part of a que-segment with no LOSET-positive cases.
 
 ## Simulation Parameters
 
@@ -88,14 +89,16 @@ full_sim_data %>%
 
 ```
 
-The full simulation calculates theoretical wait times for all cases but takes slightly longer to run. A sharp eye might notice that the wait times look different than what is shown in the example above. This is because the theoretical_waiting time is set to the observed_waiting time for any segment without LOSET cases that are not simulated. This keeps the mean waiting time identical in the both columns.
+The full simulation calculates theoretical wait times for all cases but takes slightly longer to run. A sharp eye might notice that the wait times look different than what is shown in the example above. This is because in sim_te (not the alt version) the theoretical_waiting time is set to the observed_waiting time for any segment without LOSET cases that are not simulated. This keeps the mean waiting time identical in the both columns.
 
 ## Performance Considerations
 
 The optimized simulation offers significant performance benefits:
 
 1. Reduced computation by focusing on relevant segments
+
 2. Lower memory usage
+
 3. Faster parallel processing
 
 However, both approaches produce identical TE values:
@@ -113,19 +116,27 @@ print(te_full)
 ## When to Use Each Approach
 
 Use `sim_te` (default) when:
+
 - Calculating TE metrics
+
 - Processing large datasets
 
 Use `sim_te_alt` when:
+
 - Researching queue behavior
+
 - Analyzing non-LOSET wait patterns
+
 - Validating simulation methods
 
 ## Technical Details
 
 The simulation uses a non-preemptive approach where:
+
 - Each physician contact becomes an available time slot
+
 - Patients are queued by priority and arrival time
+
 - Wait times are calculated from slot assignment
 
 This deterministic approach ensures reproducible results while accurately modeling priority-based queuing.
@@ -133,8 +144,11 @@ This deterministic approach ensures reproducible results while accurately modeli
 ## Summary
 
 Understanding simulation in trieff helps you:
+
 1. Choose the appropriate simulation method
+
 2. Interpret results correctly
+
 3. Optimize performance for your use case
 
 For most applications, the default `sim_te` provides the most efficient path to accurate TE calculation.

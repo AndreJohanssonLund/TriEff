@@ -22,7 +22,7 @@ calc_te(
 \arguments{
 \item{df}{Data frame containing patient data (must be initialized through init())}
 
-\item{subgroup}{Optional list for subgroup analysis}
+\item{subgroup}{Optional list for subgroup analysis - an alternative to var1/2}
 
 \item{var1}{Optional string for first comparison variable}
 
@@ -41,19 +41,64 @@ calc_te(
 
 \item{overall_only}{Logical. If TRUE, only overall metrics are returned (default: FALSE)}
 
-\item{check_convergence}{Logical. If true will return a list with convergence plots (default: TRUE)}
+\item{check_convergence}{Logical. If true will return a list with convergence plots, if bootstrap is done (default: TRUE)}
 
-\item{min_loset_warning}{Numerical, when should the function warn for low loset prevalence? (default: TRUE)}
+\item{min_loset_warning}{Numerical, when should the function warn for low loset prevalence? (default: 5)}
 
-\item{seed}{Seed for reprorucible bootstrapping (default: null - no seed)}
+\item{seed}{Seed for reproducible bootstrapping (default: NULL - no seed)}
 }
 \value{
 A list containing:
 \itemize{
-\item results: Tibble with TE metrics
-\item metadata: List with calculation parameters
-\item bootstrap_distributions: If applicable, full bootstrap distributions
-\item convergence: convergence plots to check that bootstrap reached convergence
+\item results: Tibble with TE metrics:
+\itemize{
+\item unit: Medical specialty unit or "overall" for combined results
+\item n_patients: Total number of patients in the group
+\item n_patients_loset: Number of LOSET-positive (time-critical) patients
+\item loset_prevalence: Proportion of LOSET-positive patients
+\item mean_all: Mean waiting time for all patients
+\item ote_mean_loset: Mean observed waiting time for LOSET patients
+\item ote_te: Observed Triage Effectiveness
+\item tte_mean_loset: Mean theoretical waiting time for LOSET patients
+\item tte_te: Theoretical Triage Effectiveness
+\item btte_mean_loset: Mean binary theoretical waiting time for LOSET patients
+\item btte_te: Binary Theoretical Triage Effectiveness
+\item otg_te: Observed-Theoretical Gap (ote_te - tte_te)
+\item sensitivity: True positive rate for identifying time-critical patients
+\item specificity: True negative rate for identifying non-time-critical patients
+\item boot_ote_mean: Bootstrap mean for OTE (if bootstrap=TRUE)
+\item boot_ote_sd: Bootstrap standard deviation for OTE
+\item boot_ote_sd_q: Robust standard deviation for OTE based on IQR
+\item boot_ote_var_lower: Lower bound of OTE confidence interval
+\item boot_ote_var_upper: Upper bound of OTE confidence interval
+\item boot_tte_mean: Bootstrap mean for TTE
+\item boot_tte_sd: Bootstrap standard deviation for TTE
+\item boot_tte_sd_q: Robust standard deviation for TTE based on IQR
+\item boot_tte_var_lower: Lower bound of TTE confidence interval
+\item boot_tte_var_upper: Upper bound of TTE confidence interval
+\item boot_btte_mean: Bootstrap mean for BTTE
+\item boot_btte_sd: Bootstrap standard deviation for BTTE
+\item boot_btte_sd_q: Robust standard deviation for BTTE based on IQR
+\item boot_btte_var_lower: Lower bound of BTTE confidence interval
+\item boot_btte_var_upper: Upper bound of BTTE confidence interval
+\item boot_mean_n_patients: Mean number of patients across bootstrap samples
+\item boot_mean_n_loset: Mean number of LOSET patients across bootstrap samples
+}
+\item metadata: List containing calculation parameters:
+\itemize{
+\item calculation_time: Timestamp of when calculation was performed
+\item bootstrap_params: List of parameters used for bootstrap (if applicable):
+\itemize{
+\item sample_percentage: Fraction of data used in each bootstrap iteration
+\item n_iterations: Number of bootstrap iterations performed
+\item distribution_span: Width of confidence intervals (e.g., 0.95 for 95\% CI)
+}
+\item group_var1: First grouping variable used (if any)
+\item group_var2: Second grouping variable used (if any)
+\item subgr: Subgroup criteria used (if any)
+}
+\item bootstrap_distributions: Full bootstrap iteration data (if bootstrap=TRUE)
+\item convergence: Convergence analysis results (if check_convergence=TRUE)
 }
 }
 \description{

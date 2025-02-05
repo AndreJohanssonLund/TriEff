@@ -6,7 +6,7 @@
 #' Note the separate help section on convergence documentation.
 #'
 #' @param df Data frame containing patient data (must be initialized through init())
-#' @param subgroup Optional list for subgroup analysis
+#' @param subgroup Optional list for subgroup analysis - an alternative to var1/2
 #' @param var1 Optional string for first comparison variable
 #' @param var2 Optional string for second comparison variable
 #' @param bootstrap Logical. Whether to perform bootstrap calculations
@@ -18,16 +18,61 @@
 #'   }
 #' @param n_workers Number of workers for parallel processing (default: detectCores() - 1)
 #' @param overall_only Logical. If TRUE, only overall metrics are returned (default: FALSE)
-#' @param check_convergence Logical. If true will return a list with convergence plots (default: TRUE)
-#' @param min_loset_warning Numerical, when should the function warn for low loset prevalence? (default: TRUE)
-#' @param seed Seed for reprorucible bootstrapping (default: null - no seed)
+#' @param check_convergence Logical. If true will return a list with convergence plots, if bootstrap is done (default: TRUE)
+#' @param min_loset_warning Numerical, when should the function warn for low loset prevalence? (default: 5)
+#' @param seed Seed for reproducible bootstrapping (default: NULL - no seed)
 #'
 #' @return A list containing:
 #'   \itemize{
-#'     \item results: Tibble with TE metrics
-#'     \item metadata: List with calculation parameters
-#'     \item bootstrap_distributions: If applicable, full bootstrap distributions
-#'     \item convergence: convergence plots to check that bootstrap reached convergence
+#'     \item results: Tibble with TE metrics:
+#'       \itemize{
+#'         \item unit: Medical specialty unit or "overall" for combined results
+#'         \item n_patients: Total number of patients in the group
+#'         \item n_patients_loset: Number of LOSET-positive (time-critical) patients
+#'         \item loset_prevalence: Proportion of LOSET-positive patients
+#'         \item mean_all: Mean waiting time for all patients
+#'         \item ote_mean_loset: Mean observed waiting time for LOSET patients
+#'         \item ote_te: Observed Triage Effectiveness
+#'         \item tte_mean_loset: Mean theoretical waiting time for LOSET patients
+#'         \item tte_te: Theoretical Triage Effectiveness
+#'         \item btte_mean_loset: Mean binary theoretical waiting time for LOSET patients
+#'         \item btte_te: Binary Theoretical Triage Effectiveness
+#'         \item otg_te: Observed-Theoretical Gap (ote_te - tte_te)
+#'         \item sensitivity: True positive rate for identifying time-critical patients
+#'         \item specificity: True negative rate for identifying non-time-critical patients
+#'         \item boot_ote_mean: Bootstrap mean for OTE (if bootstrap=TRUE)
+#'         \item boot_ote_sd: Bootstrap standard deviation for OTE
+#'         \item boot_ote_sd_q: Robust standard deviation for OTE based on IQR
+#'         \item boot_ote_var_lower: Lower bound of OTE confidence interval
+#'         \item boot_ote_var_upper: Upper bound of OTE confidence interval
+#'         \item boot_tte_mean: Bootstrap mean for TTE
+#'         \item boot_tte_sd: Bootstrap standard deviation for TTE
+#'         \item boot_tte_sd_q: Robust standard deviation for TTE based on IQR
+#'         \item boot_tte_var_lower: Lower bound of TTE confidence interval
+#'         \item boot_tte_var_upper: Upper bound of TTE confidence interval
+#'         \item boot_btte_mean: Bootstrap mean for BTTE
+#'         \item boot_btte_sd: Bootstrap standard deviation for BTTE
+#'         \item boot_btte_sd_q: Robust standard deviation for BTTE based on IQR
+#'         \item boot_btte_var_lower: Lower bound of BTTE confidence interval
+#'         \item boot_btte_var_upper: Upper bound of BTTE confidence interval
+#'         \item boot_mean_n_patients: Mean number of patients across bootstrap samples
+#'         \item boot_mean_n_loset: Mean number of LOSET patients across bootstrap samples
+#'       }
+#'     \item metadata: List containing calculation parameters:
+#'       \itemize{
+#'         \item calculation_time: Timestamp of when calculation was performed
+#'         \item bootstrap_params: List of parameters used for bootstrap (if applicable):
+#'           \itemize{
+#'             \item sample_percentage: Fraction of data used in each bootstrap iteration
+#'             \item n_iterations: Number of bootstrap iterations performed
+#'             \item distribution_span: Width of confidence intervals (e.g., 0.95 for 95% CI)
+#'           }
+#'         \item group_var1: First grouping variable used (if any)
+#'         \item group_var2: Second grouping variable used (if any)
+#'         \item subgr: Subgroup criteria used (if any)
+#'       }
+#'     \item bootstrap_distributions: Full bootstrap iteration data (if bootstrap=TRUE)
+#'     \item convergence: Convergence analysis results (if check_convergence=TRUE)
 #'   }
 #'
 #' @importFrom dplyr filter select mutate arrange left_join bind_rows group_by group_split
@@ -383,7 +428,7 @@ calculate_te <- function(df, subgroup = NULL, var1 = NULL, var2 = NULL, min_lose
     # Create overall grouping and calculate overall metrics
     overall_grouping <- create_overall_grouping(unit_results, subgroup, var1, var2)
     overall_results <- calculate_overall_metrics(unit_results, overall_grouping)
-    results <- bind_rows(unit_results, overall_results)
+    results <- bind_rows(overall_results, unit_results)
   } else {
     results <- unit_results
   }
@@ -978,19 +1023,12 @@ print.calc_te <- function(x, ...) {
   cat("\nTriage Effectiveness Analysis Results\n")
   cat("===================================\n\n")
 
-  # Create groupings using existing functions
-  grouped_data <- create_grouping(results_df,
-                                  subgroup = metadata$subgr,
-                                  var1 = metadata$group_var1,
-                                  var2 = metadata$group_var2)
+  # Instead of using group_split(), process rows directly in their original order
+  for(i in 1:nrow(results_df)) {
+    row <- results_df[i,]
 
-  # Process each group
-  group_data <- grouped_data %>% group_split()
-
-  for(group in group_data) {
-    # Get grouping variables for this group
-    group_values <- group %>%
-      ungroup() %>%
+    # Get grouping variables for this row
+    group_values <- row %>%
       select(any_of(c("unit", metadata$group_var1, metadata$group_var2))) %>%
       distinct()
 
@@ -1006,7 +1044,7 @@ print.calc_te <- function(x, ...) {
     # Create header with variable names
     group_desc <- group_values %>%
       # First handle overall case
-      mutate(unit = if_else(unit == "overall", "Overall Results", paste0("unit: ", unit))) %>%
+      mutate(unit = if_else(unit == "overall", "Overall", paste0("unit: ", unit))) %>%
       # Add variable names to other columns if they exist
       rename(!!!setNames(names(var_names), var_names)) %>%
       tidyr::unite("desc", everything(), sep = ", ") %>%
@@ -1015,9 +1053,6 @@ print.calc_te <- function(x, ...) {
     header <- paste("Results for", group_desc)
     cat(header, "\n")
     cat(paste(rep("-", nchar(header)), collapse = ""), "\n")
-
-    # Get the first row since each group should have identical metrics
-    row <- group[1,]
 
     # Print sample sizes
     cat(sprintf("Total patients: %d (%.1f%% LOSET positive)\n",
@@ -1074,7 +1109,7 @@ print.calc_te <- function(x, ...) {
       }
     }
 
-    cat("\n")  # Add spacing between groups
+    cat("\n")  # Add spacing between rows
   }
 
   # Print computation information footer

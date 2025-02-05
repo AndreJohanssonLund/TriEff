@@ -4,103 +4,80 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Getting Started with trieff • trieff</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
-<script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Getting Started with trieff">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Getting Started with trieff">
 </head>
-<body data-spy="scroll" data-target="#toc">
+<body>
+    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <div class="container template-article">
-      <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <span class="navbar-brand">
-        <a class="navbar-link" href="../index.html">trieff</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.8.5</span>
-      </span>
-    </div>
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-<li>
-  <a href="../reference/index.html">Reference</a>
+    <a class="navbar-brand me-2" href="../index.html">trieff</a>
+
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.5</small>
+
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar" class="collapse navbar-collapse ms-3">
+      <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="active nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/getting_started.html">Getting Started</a></li>
+    <li><a class="dropdown-item" href="../articles/sim_te.html">Simulation in trieff</a></li>
+    <li><a class="dropdown-item" href="../articles/calc_te.html">Calculating Triage Effectiveness</a></li>
+    <li><a class="dropdown-item" href="../articles/bootstrap.html">Bootstrap Analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/plot_te.html">Plotting Results</a></li>
+    <li><a class="dropdown-item" href="../articles/heatmap.html">Heatmap Analysis</a></li>
+  </ul>
 </li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Articles
-
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-<li>
-      <a href="../articles/bootstrap.html">Bootstrap Analysis with trieff</a>
-    </li>
-    <li>
-      <a href="../articles/calc_te.html">Calculating Triage Effectiveness</a>
-    </li>
-    <li>
-      <a href="../articles/getting_started.html">Getting Started with trieff</a>
-    </li>
-    <li>
-      <a href="../articles/heatmap.html">Heatmap Analysis in trieff</a>
-    </li>
-    <li>
-      <a href="../articles/plot_te.html">Plotting Triage Effectiveness Results</a>
-    </li>
-    <li>
-      <a href="../articles/sim_te.html">Simulation in trieff</a>
-    </li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-research" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Research</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-research">
+<li><a class="dropdown-item" href="../articles/original_study.html">Original Study (Under Review)</a></li>
+    <li><a class="dropdown-item" href="../articles/publications.html">Publications Using trieff</a></li>
   </ul>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right">
-<li>
-  <a href="https://github.com/yourusername/trieff/" class="external-link">
-    <span class="fab fa-github fa-lg"></span>
-
-  </a>
-</li>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/AndreJohanssonLund/trieff/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
-<!--/.nav-collapse -->
+
+
   </div>
-<!--/.container -->
-</div>
-<!--/.navbar -->
+</nav><div class="container template-article">
 
 
 
-      </header><div class="row">
-  <div class="col-md-9 contents">
-    <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Getting Started with trieff</h1>
+
+<div class="row">
+  <main id="main" class="col-md-9"><div class="page-header">
+
+      <h1>Getting Started with trieff</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/yourusername/trieff/blob/HEAD/vignettes/getting_started.Rmd" class="external-link"><code>vignettes/getting_started.Rmd</code></a></small>
-      <div class="hidden name"><code>getting_started.Rmd</code></div>
-
+      <small class="dont-index">Source: <a href="https://github.com/AndreJohanssonLund/trieff/blob/HEAD/vignettes/getting_started.Rmd" class="external-link"><code>vignettes/getting_started.Rmd</code></a></small>
+      <div class="d-none name"><code>getting_started.Rmd</code></div>
     </div>
 
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/yourusername/trieff" class="external-link">trieff</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://AndreJohanssonLund.github.io/trieff/" class="external-link">trieff</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loaded trieff 0.8.5</span></span>
 <span><span class="co">#&gt; System capable of parallel processing with multisession backend</span></span>
 <span><span class="co">#&gt; Maximum available workers: 16</span></span>
@@ -112,22 +89,34 @@
 effectiveness in emergency departments. At its core, it measures how
 well triage systems achieve their fundamental purpose: reducing waiting
 times for time-critical patients.</p>
-<p>The package uses two key reference points: 1. The waiting time
-without any triage system (first-come, first-served), defined as the
-mean waiting time for all patients. 2. The theoretical minimum waiting
-time achievable with perfect triage, defined as 0 waiting time.</p>
+<p>The package uses two key reference points:</p>
+<ol style="list-style-type: decimal">
+<li><p>The waiting time without any triage system (first-come,
+first-served), defined as the mean waiting time for all
+patients.</p></li>
+<li><p>The theoretical minimum waiting time achievable with perfect
+triage, defined as 0 waiting time.</p></li>
+</ol>
 <p>From these reference points, we calculate Triage Effectiveness (TE),
-which creates a scale where: - 0% indicates no improvement over
-first-come, first-served - 100% indicates perfect prioritization where
-time-critical patients experience no waiting - Negative values indicate
-longer waiting times than a system without triage</p>
+which creates a scale where:</p>
+<ul>
+<li><p>0% indicates no improvement over first-come,
+first-served</p></li>
+<li><p>100% indicates perfect prioritization where time-critical
+patients experience no waiting</p></li>
+<li><p>Negative values indicate longer waiting times than a system
+without triage</p></li>
+</ul>
+<p>Triage Effectiveness is calculated: 1 - (mean waiting time for time
+critical patients/mean waiting time for all patients)</p>
 </div>
 <div class="section level2">
 <h2 id="basic-workflow">Basic Workflow<a class="anchor" aria-label="anchor" href="#basic-workflow"></a>
 </h2>
 <p>Let’s walk through a basic workflow using the included synthetic
 dataset <code>sem_malmo_synth</code>, which is based on emergency
-department visits at Malmö Hospital.</p>
+department visits at Malmö Hospital (See
+<code><a href="../reference/sem_malmo_synth.html">?sem_malmo_synth</a></code>).</p>
 <div class="section level3">
 <h3 id="initialize-data">1. Initialize Data<a class="anchor" aria-label="anchor" href="#initialize-data"></a>
 </h3>
@@ -147,13 +136,13 @@ seen strictly in order of their assigned priority:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Run simulation for theoretical wait times</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_te.html">sim_te</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-04 19:14:29.217967"</span></span>
+<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-05 12:40:03.573664"</span></span>
 <span><span class="co">#&gt; [1] "Initial segments: 3 Total patients: 124311"</span></span>
 <span><span class="co">#&gt; [1] "Filtered to 3 segments with LOSET cases"</span></span>
 <span><span class="co">#&gt; [1] "Total LOSET cases: 5491"</span></span>
-<span><span class="co">#&gt; [1] "Creating batches 2025-02-04 19:14:29.376185"</span></span>
-<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-02-04 19:14:29.376303"</span></span>
-<span><span class="co">#&gt; [1] "Simulations are done! 2025-02-04 19:15:17.605784"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Creating batches 2025-02-05 12:40:03.690045"</span></span>
+<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-02-05 12:40:03.69014"</span></span>
+<span><span class="co">#&gt; [1] "Simulations are done! 2025-02-05 12:40:53.268721"</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="calculate-triage-effectiveness">3. Calculate Triage Effectiveness<a class="anchor" aria-label="anchor" href="#calculate-triage-effectiveness"></a>
@@ -168,8 +157,8 @@ Theoretical Triage Effectiveness (TTE):</p>
 <span><span class="co">#&gt; Triage Effectiveness Analysis Results</span></span>
 <span><span class="co">#&gt; ===================================</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Results for Overall Results </span></span>
-<span><span class="co">#&gt; --------------------------- </span></span>
+<span><span class="co">#&gt; Results for Overall </span></span>
+<span><span class="co">#&gt; ------------------- </span></span>
 <span><span class="co">#&gt; Total patients: 124311 (4.4% LOSET positive)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Classification Metrics:</span></span>
@@ -184,7 +173,7 @@ Theoretical Triage Effectiveness (TTE):</p>
 <span><span class="co">#&gt; Computation Information</span></span>
 <span><span class="co">#&gt; =====================</span></span>
 <span><span class="co">#&gt; Method: Direct calculation</span></span>
-<span><span class="co">#&gt; Calculation time: 2025-02-04 19:15:17.66573</span></span></code></pre></div>
+<span><span class="co">#&gt; Calculation time: 2025-02-05 12:40:53.359302</span></span></code></pre></div>
 <p>The results show us: - OTE: How well the ED actually performed - TTE:
 How well it would have performed based on triage decisions alone - OTG
 (Observed-Theoretical Gap): The difference between OTE and TTE,
@@ -203,19 +192,19 @@ indicating the impact of post-triage processes</p>
 <div class="section level2">
 <h2 id="next-steps">Next Steps<a class="anchor" aria-label="anchor" href="#next-steps"></a>
 </h2>
-<p>“See the individual vignettes for each component for detailed usage,
+<p>See the individual vignettes for each component for detailed usage,
 error handling, and advanced features:</p>
 <ul>
 <li><p><code><a href="../articles/sim_te.html">vignette("sim_te")</a></code> for simulation details and
 performance considerations</p></li>
 <li><p><code><a href="../articles/calc_te.html">vignette("calc_te")</a></code> for analyzing TE
 metrics</p></li>
-<li><p><code><a href="../articles/bootstrap.html">vignette("bootstrap")</a></code> for statistical
-validation</p></li>
+<li><p><code><a href="../articles/bootstrap.html">vignette("bootstrap")</a></code> for statistical validation and
+variance calculation</p></li>
 <li><p><code><a href="../articles/plot_te.html">vignette("plot_te")</a></code> for visualization
 options</p></li>
 <li><p><code><a href="../articles/heatmap.html">vignette("heatmap")</a></code> for research and theoretical
-analysis”</p></li>
+analysis</p></li>
 </ul>
 </div>
 <div class="section level2">
@@ -238,8 +227,6 @@ gets its priority, named “arrival”</p></li>
 <ul>
 <li>Missing or incorrect column names -&gt; Use init() to validate data
 structure</li>
-<li>Long processing times -&gt; Consider sim_te_fast() for large
-datasets</li>
 <li>Unexpected TE values -&gt; Check unit groupings and LOSET
 definitions</li>
 </ul>
@@ -248,29 +235,22 @@ your data.</p>
 <p>For more detailed information about specific functions, see their
 respective vignettes or help pages.</p>
 </div>
-  </div>
-
-  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
-
-      </div>
-
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 
 
-      <footer><div class="copyright">
-  <p></p>
-<p>Developed by André Johansson.</p>
+    <footer><div class="pkgdown-footer-left">
+  <p>Developed by André Johansson.</p>
 </div>
 
-<div class="pkgdown">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+<div class="pkgdown-footer-right">
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
-      </footer>
+    </footer>
 </div>
-
 
 
 

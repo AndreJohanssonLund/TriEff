@@ -6,13 +6,13 @@
 \alias{trieff-package}
 \title{Internal package utilities and initialization}
 \description{
-A comprehensive toolkit for analyzing and evaluating triage effectiveness in emergency departments. The package provides methods for calculating theoretical and observed triage effectiveness, simulating triage scenarios, and visualizing results through various metrics including sensitivity/specificity heatmaps.
+A comprehensive toolkit for analyzing and evaluating triage effectiveness in emergency departments and other contexts. The package provides methods for calculating theoretical and observed triage effectiveness, simulating triage, and visualizing the results through dumbell plots and heatmaps.
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/yourusername/trieff}
-  \item Report bugs at \url{https://github.com/yourusername/trieff/issues}
+  \item \url{https://AndreJohanssonLund.github.io/trieff/}
+  \item Report bugs at \url{https://github.com/AndreJohanssonLund/trieff/issues}
 }
 
 }

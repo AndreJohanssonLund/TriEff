@@ -23,7 +23,7 @@ library(dplyr)
 
 This vignette demonstrates how to calculate Triage Effectiveness (TE) using the `calc_te` function from the trieff package. We'll use the included `sem_malmo_synth` dataset, which contains synthetic emergency department visit data based on Malmö Hospital statistics.
 
-It is recommended to run the simulation to generate Theoretical TE values before calculating TE, especially if you're interested in analyzing theoretical wait times (see the Simulation vignette for details).
+It is recommended to run the simulation to generate Theoretical TE values before calculating TE, especially if you're interested in analyzing theoretical wait times (see the Simulation vignette for details, `vignette("sim_te")`).
 
 ## Prerequisites
 - Initialized data (see `vignette("getting_started")`)
@@ -97,6 +97,6 @@ This vignette has demonstrated the main features of the `calc_te` function:
 2. Overall TE calculation
 3. Subgroup analysis with both detailed and overall results
 
-For more advanced topics such as bootstrap analysis and convergence checking, please see the Bootstrap and Convergence vignette. For visualizing these results, see the Plotting vignette.
+For more advanced topics such as bootstrap analysis and convergence checking, please see the Bootstrap (`vignette("bootstrap")`) vignette. For visualizing these results, see the Plotting vignette (`vignette("plot_te")`).
 
 For more details on specific parameters and advanced usage, refer to the function documentation (`?calc_te`) and the instructions for bootstrapping (`?bootstrap`).

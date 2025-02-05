@@ -1,0 +1,24 @@
+---
+title: "The Triage Effectiveness Framework"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{The Triage Effectiveness Framework}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Original Study
+
+This page describes the original study that introduced the Triage Effectiveness Framework.
+
+[Study details will be added upon publication]
+
+## Contact
+
+For questions about the framework or to discuss potential applications:
+
+andre.johansson@med.lu.se
+
+## Citation
+
+[Citation information will be added upon publication]

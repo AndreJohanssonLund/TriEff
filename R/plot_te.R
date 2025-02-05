@@ -19,11 +19,11 @@
 #' @param show_ote Logical, whether to display OTE values. Default is NULL. Will show if there is OTE data.
 #' @param show_var Logical, whether to display variability intervals. Default is null. Will show if there is variability data supplied.
 #' @param var_alpha Numeric between 0 and 1, specifying the transparency of variability interval lines. Default is 0.5.
-#' @param dumbell_width Numeric, specifying the width of the line connecting TTE and OTE points. Default is 1.
-#' @param var_width Numeric, specifying the width of the main variability interval lines. Default is 1.5.
-#' @param var_end_width Numeric, specifying the width of the variability interval end lines. Default is 1.
+#' @param dumbell_width Numeric, specifying the width of the line connecting TTE and OTE points. Default is 1. Note that since the line is horizontal, the "width" represents its thickness.
+#' @param var_width Numeric, specifying the width of the main variability interval lines - that is the vertical line at the end of the variability span. Default is 1.5.
+#' @param var_end_width Numeric, specifying the width (or thickness) of the variability interval end lines. Default is 1.
 #' @param var_end_height Numeric, specifying the height of variability interval end lines as offset from center. Default is 0.05.
-#' @param label_style categorical, valid inputs - "none", "small", "full" & "half". Decides the style of the label for TTE/OTE on the rights side of the graph. Default is half witch nets the label style as: "Theoretical TE"
+#' @param label_style categorical, valid inputs - "none", "small", "full" & "half". Decides the style of the label for TTE/OTE on the rights side of the graph. Default is half witch nets the label style as: "Theoretical TE". Small: "TTE", Full: "Theoretical Triage Effectiveness".
 #' @param min_x Percentual value that is the minimum value that the plot will stretch to. Default is null which uses the min value in the data rounded to the next 10%. Useful to set if you have several plots with one that has negative values to keep the same aspect ratio.
 #'
 #' @return A ggplot object representing the Triage Effectiveness plot.

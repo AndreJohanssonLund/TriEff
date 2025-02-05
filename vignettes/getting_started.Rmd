@@ -23,17 +23,24 @@ library(trieff)
 The trieff package provides tools for analyzing and evaluating triage effectiveness in emergency departments. At its core, it measures how well triage systems achieve their fundamental purpose: reducing waiting times for time-critical patients.
 
 The package uses two key reference points:
+
 1. The waiting time without any triage system (first-come, first-served), defined as the mean waiting time for all patients.
+
 2. The theoretical minimum waiting time achievable with perfect triage, defined as 0 waiting time.
 
 From these reference points, we calculate Triage Effectiveness (TE), which creates a scale where:
+
 - 0% indicates no improvement over first-come, first-served
+
 - 100% indicates perfect prioritization where time-critical patients experience no waiting
+
 - Negative values indicate longer waiting times than a system without triage
+
+Triage Effectiveness is calculated: 1 - (mean waiting time for time critical patients/mean waiting time for all patients)
 
 ## Basic Workflow
 
-Let's walk through a basic workflow using the included synthetic dataset `sem_malmo_synth`, which is based on emergency department visits at Malmö Hospital.
+Let's walk through a basic workflow using the included synthetic dataset `sem_malmo_synth`, which is based on emergency department visits at Malmö Hospital (See `?sem_malmo_synth`).
 
 ### 1. Initialize Data
 
@@ -79,17 +86,17 @@ plot_te(te_results)
 
 ## Next Steps
 
-"See the individual vignettes for each component for detailed usage, error handling, and advanced features:
+See the individual vignettes for each component for detailed usage, error handling, and advanced features:
 
 - `vignette("sim_te")` for simulation details and performance considerations
 
 - `vignette("calc_te")` for analyzing TE metrics
 
-- `vignette("bootstrap")` for statistical validation
+- `vignette("bootstrap")` for statistical validation and variance calculation
 
 - `vignette("plot_te")` for visualization options
 
-- `vignette("heatmap")` for research and theoretical analysis"
+- `vignette("heatmap")` for research and theoretical analysis
 
 ## Data Requirements
 
@@ -107,7 +114,6 @@ To use trieff, your data needs:
 
 ## Common Issues
 - Missing or incorrect column names -> Use init() to validate data structure
-- Long processing times -> Consider sim_te_fast() for large datasets
 - Unexpected TE values -> Check unit groupings and LOSET definitions
 
 See `?sem_malmo_synth` for an example of how to structure your data.

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sim_heat_alt.R
 \name{sim_heat_alt}
 \alias{sim_heat_alt}
-\title{Simulate Triage Effectiveness Across Sensitivity/Specificity Combinations}
+\title{Simulate Triage Effectiveness including potential normalization techniques - mainly for validation and methodological research}
 \usage{
 sim_heat_alt(
   df,
@@ -58,6 +58,9 @@ alternative TE calculations and can store complete simulation data for detailed 
 }
 \details{
 The function performs these key steps:
+0. Optional, (if alt_calc=TRUE) runs a simulation to evaluate median TE at
+sensitivity = 100\%, specificity = 0\% - i.e a first come, first serve ED. This
+acts like the denominator for the global median calculation.
 \enumerate{
 \item Creates combinations of sensitivity/specificity values based on step_size
 \item Identifies segments containing time-critical (LOSET) cases

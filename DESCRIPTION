@@ -7,13 +7,10 @@ Authors@R: person("André", "Johansson",
                   role = c("aut", "cre"),
                   comment = c(ORCID = "0000-0002-3500-4832"))
 Description: A comprehensive toolkit for analyzing and evaluating triage 
-    effectiveness in emergency departments. The package provides methods for 
-    calculating theoretical and observed triage effectiveness, simulating triage 
-    scenarios, and visualizing results through various metrics including 
-    sensitivity/specificity heatmaps.
+    effectiveness in emergency departments and other contexts. The package provides 
+    methods for calculating theoretical and observed triage effectiveness, simulating 
+    triage, and visualizing the results through dumbell plots and heatmaps. 
 License: CC BY 4.0
-URL: https://github.com/yourusername/trieff
-BugReports: https://github.com/yourusername/trieff/issues
 Config/build/time-clock-linux: yes
 Depends:
     R (>= 3.5.0)
@@ -50,4 +47,6 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-
+Config/Needs/website: pkgdown
+URL: https://AndreJohanssonLund.github.io/trieff/
+BugReports: https://github.com/AndreJohanssonLund/trieff/issues

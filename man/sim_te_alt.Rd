@@ -2,12 +2,21 @@
 % Please edit documentation in R/sim_te.R
 \name{sim_te_alt}
 \alias{sim_te_alt}
-\title{Optimized Triage Efficacy Simulation}
+\title{Full Triage Effectiveness Simulation for Research}
 \usage{
 sim_te_alt(df, tte = TRUE, btte = FALSE, n_workers = 1)
 }
 \arguments{
-\item{df}{A data frame containing patient data, including arrival times, resolve times, and priorities.}
+\item{df}{A data frame containing patient data, including:
+\itemize{
+\item id: Unique patient identifier
+\item arrival_minute: Minutes since start of study period until patient arrival
+\item resolve_minute: Minutes since start until patient sees physician
+\item priority: Original triage priority
+\item priority_binary: Binary priority (typically 1 for high, 2 for low)
+\item loset: Logical indicating if patient is time-critical per LOSET criteria
+\item observed_wait_time: Actual waiting time in minutes
+}}
 
 \item{tte}{Logical. If TRUE, calculates Theoretical Triage Efficacy (TTE). Default is TRUE.}
 
@@ -16,25 +25,53 @@ sim_te_alt(df, tte = TRUE, btte = FALSE, n_workers = 1)
 \item{n_workers}{Integer. Number of cores to use for parallel processing. Default is 1.}
 }
 \value{
-A data frame with the original patient data and additional columns for calculated TE metrics.
+A data frame with the original patient data and additional columns:
+\itemize{
+\item theoretical_wait_time: Simulated wait time based on original priorities (if tte=TRUE)
+\item binary_theoretical_wait_time: Simulated wait time based on binary priorities (if btte=TRUE)
+}
 }
 \description{
-This function performs an optimized simulation to calculate various Triage Efficacy (TE) metrics
-in a deterministic way. It processes the input data frame, creates segments and batches,
-runs parallel simulations, and applies corrections if specified.
+Performs a complete simulation of emergency department patient flow, calculating
+theoretical wait times for all patients regardless of their time-critical status.
+This function is designed for research purposes when complete queue behavior analysis
+is needed, and is more computationally intensive than the standard sim_te function.
 }
 \details{
-This function is the optimized version of the verbose simulation. It uses segmentation and batching
-techniques to enable efficient parallel processing. The simulation calculates wait times in a
-deterministic world where patients are strictly processed according to their priority and wait time
-within the same priority level - this is the basis for the TTE value.
-
-Key steps in the process:
-\enumerate{
-\item Data preparation and extraction of relevant fields.
-\item Creation of segments (periods where queue goes from 0 to 0) for independent processing.
-\item Batching of segments for balanced parallel processing.
-\item Parallel execution of simulations on batches.
-\item Aggregation of results
+Unlike sim_te which optimizes performance by focusing only on segments containing
+time-critical cases, sim_te_alt simulates waiting times for all patients. This makes
+it more suitable for research purposes such as:
+\itemize{
+\item Analyzing complete queue behavior patterns
+\item Studying wait time distributions for non-time-critical patients
+\item Validating simulation methodology
+\item Investigating effects of different priority schemes
 }
+
+The simulation operates in a non-preemptive manner, treating physician contacts as
+available time slots and processing patients strictly according to priority and
+arrival order. While this provides complete information about theoretical queue
+behavior, it is computationally more intensive than sim_te and may not be necessary
+for standard TE calculations.
+
+Note that while sim_te_alt calculates wait times for all patients, it produces
+identical TE values to sim_te since TE metrics depend only on the wait times of
+time-critical patients relative to the overall mean.
+}
+\examples{
+\dontrun{
+# Basic usage with default settings
+results <- sim_te_alt(patient_data)
+
+# Calculate both TTE and BTTE with parallel processing
+results <- sim_te_alt(patient_data,
+                      tte = TRUE,
+                      btte = TRUE,
+                      n_workers = 4)
+}
+
+}
+\seealso{
+\code{\link{sim_te}} for the optimized simulation approach
+recommended for standard TE calculations
 }

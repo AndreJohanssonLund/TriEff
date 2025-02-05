@@ -31,7 +31,7 @@ The `plot_te()` function provides flexible visualization of Triage Effectiveness
 
 ## Prerequisites
 - Calculated TE metrics (see `vignette("calc_te")`)
-- Optional: Bootstrap results for confidence intervals
+- Optional: Bootstrap results for confidence intervals (see `vignette("bootstrap")`)
 
 ## Basic Plotting
 
@@ -110,7 +110,7 @@ plot_te(te_ortho)
 plot_te(te_all, min_x = -0.4)
 ```
 
-Notice how setting `min_x = -0.3` ensures consistent scale and alignment between the plots, making it easier to compare results across different units.
+Notice how setting `min_x = -0.4` ensures consistent scale and alignment between the plots, making it easier to compare results across different units.
 
 ## Advanced Plot Customization
 

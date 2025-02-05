@@ -31,6 +31,8 @@ Bootstrap analysis in trieff provides confidence intervals for Triage Effectiven
 
 The confidence intervals calculated here can be visualized using the plotting functions described in `vignette("plot_te")`. The visualization provides an intuitive way to understand the uncertainty in TE estimates.
 
+Bootstrapping works by sampling a randomly from the population, calculating TE from the sample and saving this value. After n samples (default: 2000) the variability in the metrics can be calculated.
+
 ## Prerequisites
 - Knowledge on basic TE calculation (see `vignette("calc_te")`)
 - Simulated theoretical wait times (see `vignette("sim_te")`)
@@ -77,8 +79,7 @@ te_custom <- calc_te(data,
                      bootstrap_params = list(
                        sample_percentage = 0.8,  # Use 80% of data per iteration
                        n_iterations = 1000,      # decrease iterations
-                       distribution_span = 0.99, # Wider confidence intervals
-                       min_loset_warning = 10    # More stringent warning threshold
+                       distribution_span = 0.99  # Wider confidence intervals
                      ))
 
 print(te_custom)
@@ -92,11 +93,9 @@ Key parameters:
 
 - distribution_span: Width of confidence intervals (default = 0.95)
 
-- min_loset_warning: Threshold for low LOSET count warnings (default = 5)
-
 ## Convergence Analysis
 
-Convergence analysis helps verify that our bootstrap estimates are stable. When check_convergence=TRUE, calc_te generates three types of diagnostic plots:
+Convergence analysis helps verify that our bootstrap estimates are stable. When check_convergence=TRUE (which it is by standard), calc_te generates three types of diagnostic plots:
 
 1. Running Mean Plot
 
@@ -127,7 +126,7 @@ Convergence analysis helps verify that our bootstrap estimates are stable. When 
 
 Let's examine convergence for our analysis:
 
-```{r convergencefig, fig.width=10, fig.height=5, fig.alt="Convergence plots for the bootstrap."}
+```{r convergence, fig.width=10, fig.height=5, fig.alt="Convergence plots for the bootstrap."}
 # Calculate TE with convergence checking
 te_convergence <- calc_te(data,
                          bootstrap = TRUE,

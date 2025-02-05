@@ -24,12 +24,13 @@ plot_te_heatmap(
 \item{show_labels}{Logical. If TRUE, displays numeric values on heatmap. Default TRUE.}
 
 \item{show_alt_calc}{Logical. If TRUE, displays multiple heatmaps with alternative
-calculations. Default FALSE.}
+calculations. Default FALSE. Note that sim_heat_alt needs to be run to have the
+relevant variables for this.}
 
 \item{normalize}{Logical. If TRUE, normalizes values to 0-100 scale. Ignored if
 show_alt_calc=TRUE. Default FALSE.}
 
-\item{title}{Character. Title for the plot. Default "Triage Efficacy Heatmap".}
+\item{title}{Character. Title for the plot. Default "Triage Effectiveness Heatmap".}
 }
 \value{
 A ggplot object (single heatmap) or a list of patchwork objects (multiple heatmaps)

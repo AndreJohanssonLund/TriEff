@@ -1,11 +1,10 @@
-#' Fast Heatmap Generation for Triage Effectiveness Analysis
+#' Simulate Triage Effectiveness over different levels of sensitivity/specificity.
 #'
 #' @description
 #' Efficiently generates a heatmap analyzing the relationship between sensitivity, specificity,
 #' and Triage Effectiveness (TE). This function optimizes performance by:
-#' 1. Processing only segments containing time-critical (LOSET) cases
+#' 1. Processing only segments containing time-critical (LOSET) cases and
 #' 2. Parallelizing across sensitivity/specificity combinations
-#' 3. Using small batch sizes for frequent progress updates
 #'
 #' @details
 #' The function processes data through these key steps:
@@ -15,27 +14,31 @@
 #'    - Creates sensitivity/specificity combinations based on step_size
 #'
 #' 2. Parallel Processing:
-#'    - Divides combinations into small batches (2-3 combinations each)
 #'    - Processes each combination independently across workers
 #'    - For each combination:
-#'      * Applies priority assignment based on sensitivity/specificity
+#'      * Scholastically applies priority assignment based on sensitivity/specificity
 #'      * Simulates queue processing for each segment
-#'      * Calculates resulting TE value
+#'      * Calculates resulting (binary) TE value
 #'
 #' 3. Progress Tracking:
-#'    - Updates progress after each small batch
-#'    - Enables accurate progress estimation for long-running analyses
+#'    - Updates progress after each segment
+#'
+#' Performance considerations:
+#' - Large step_sizes (e.g., 25) are suitable for initial exploration
+#' - Smaller step_sizes provide more detailed analysis but increase computation time
+#' - Processing time increases with dataset size and number of combinations
 #'
 #' @param df A data frame containing patient data (must be initialized through init())
 #' @param step_size Numeric. The step size for sensitivity and specificity values.
-#'   Must be one of: 25, 10, 5, 2.5, or 1.
+#'   Must be one of: 25, 10, 5, 2.5, or 1. representing the percentual step in
+#'   sensitivity/specificity that is taken.
 #' @param n_workers Integer. Number of cores to use for parallel processing.
 #'   Default is (detectCores() - 1).
 #' @param pos_values_only Logical. If TRUE, only includes combinations where
 #'   sensitivity + specificity >= 1. Default is FALSE.
-#' @param n_loset Integer, least number of LOSET cases in the datafram. Will duplicate
-#' the data to reach this.
-#' @param seed Seed for reprorucible heatmaps (default: null - no seed)
+#' @param n_loset Integer, least number of LOSET cases in the data frame. Will duplicate
+#' the data to reach this. Can by doing this get more LOSET cases.
+#' @param seed Seed for reproducible heat maps (default: null - no seed)
 #'
 #'
 #' @return A Tibble with sensitivity, specificity and TE values

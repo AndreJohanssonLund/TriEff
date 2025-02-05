@@ -1,28 +1,66 @@
-#' Optimized Triage Efficacy Simulation
+#' Full Triage Effectiveness Simulation for Research
 #'
-#' This function performs an optimized simulation to calculate various Triage Efficacy (TE) metrics
-#' in a deterministic way. It processes the input data frame, creates segments and batches,
-#' runs parallel simulations, and applies corrections if specified.
+#' @description
+#' Performs a complete simulation of emergency department patient flow, calculating
+#' theoretical wait times for all patients regardless of their time-critical status.
+#' This function is designed for research purposes when complete queue behavior analysis
+#' is needed, and is more computationally intensive than the standard sim_te function.
 #'
-#' @param df A data frame containing patient data, including arrival times, resolve times, and priorities.
+#' @param df A data frame containing patient data, including:
+#'   \itemize{
+#'     \item id: Unique patient identifier
+#'     \item arrival_minute: Minutes since start of study period until patient arrival
+#'     \item resolve_minute: Minutes since start until patient sees physician
+#'     \item priority: Original triage priority
+#'     \item priority_binary: Binary priority (typically 1 for high, 2 for low)
+#'     \item loset: Logical indicating if patient is time-critical per LOSET criteria
+#'     \item observed_wait_time: Actual waiting time in minutes
+#'   }
 #' @param tte Logical. If TRUE, calculates Theoretical Triage Efficacy (TTE). Default is TRUE.
 #' @param btte Logical. If TRUE, calculates Binary Theoretical Triage Efficacy (BTTE). Default is FALSE.
 #' @param n_workers Integer. Number of cores to use for parallel processing. Default is 1.
 #'
-#' @return A data frame with the original patient data and additional columns for calculated TE metrics.
+#' @return A data frame with the original patient data and additional columns:
+#'   \itemize{
+#'     \item theoretical_wait_time: Simulated wait time based on original priorities (if tte=TRUE)
+#'     \item binary_theoretical_wait_time: Simulated wait time based on binary priorities (if btte=TRUE)
+#'   }
 #'
 #' @details
-#' This function is the optimized version of the verbose simulation. It uses segmentation and batching
-#' techniques to enable efficient parallel processing. The simulation calculates wait times in a
-#' deterministic world where patients are strictly processed according to their priority and wait time
-#' within the same priority level - this is the basis for the TTE value.
+#' Unlike sim_te which optimizes performance by focusing only on segments containing
+#' time-critical cases, sim_te_alt simulates waiting times for all patients. This makes
+#' it more suitable for research purposes such as:
 #'
-#' Key steps in the process:
-#' 1. Data preparation and extraction of relevant fields.
-#' 2. Creation of segments (periods where queue goes from 0 to 0) for independent processing.
-#' 3. Batching of segments for balanced parallel processing.
-#' 4. Parallel execution of simulations on batches.
-#' 5. Aggregation of results
+#' - Analyzing complete queue behavior patterns
+#' - Studying wait time distributions for non-time-critical patients
+#' - Validating simulation methodology
+#' - Investigating effects of different priority schemes
+#'
+#' The simulation operates in a non-preemptive manner, treating physician contacts as
+#' available time slots and processing patients strictly according to priority and
+#' arrival order. While this provides complete information about theoretical queue
+#' behavior, it is computationally more intensive than sim_te and may not be necessary
+#' for standard TE calculations.
+#'
+#' Note that while sim_te_alt calculates wait times for all patients, it produces
+#' identical TE values to sim_te since TE metrics depend only on the wait times of
+#' time-critical patients relative to the overall mean.
+#'
+#' @examples
+#' \dontrun{
+#' # Basic usage with default settings
+#' results <- sim_te_alt(patient_data)
+#'
+#' # Calculate both TTE and BTTE with parallel processing
+#' results <- sim_te_alt(patient_data,
+#'                       tte = TRUE,
+#'                       btte = TRUE,
+#'                       n_workers = 4)
+#' }
+#'
+#' @seealso
+#' \code{\link{sim_te}} for the optimized simulation approach
+#' recommended for standard TE calculations
 #'
 #' @importFrom dplyr select mutate arrange left_join bind_rows filter
 #' @importFrom purrr map_dfr map
@@ -32,6 +70,11 @@
 #'
 #' @export
 sim_te_alt <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
+  if (any(!is.na(df$theoretical_wait_time)) || any(!is.na(df$binary_theoretical_wait_time))) {
+    stop("Data appears to have already been simulated. Each dataset should only be simulated once. ",
+         "If you need to re-simulate, please start with the original initialized data.")
+  }
+
   # Extracting only relevant fields for simulation for RAM conservation
   df_sim <- df %>%
     select(id, unit, arrival_minute, resolve_minute,
@@ -83,7 +126,7 @@ sim_te_alt <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
 
 
 
-#' Fast Triage Efficacy Simulation
+#' Triage Efficacy Simulation
 #'
 #' This function performs an optimized simulation to calculate Triage Efficacy (TE) metrics
 #' by only simulating segments containing time-critical (LOSET-positive) cases. For segments
@@ -91,7 +134,7 @@ sim_te_alt <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
 #' affect TE calculations. This optimization significantly reduces computation time while
 #' maintaining identical TE results compared to the full simulation.
 #'
-#' @param df A data frame containing patient data, including:
+#' @param df A data frame containing patient data, including (note that most of theese variables are created by init()):
 #'   \itemize{
 #'     \item id: Unique patient identifier
 #'     \item arrival_minute: Minutes since start of study period until patient arrival
@@ -112,22 +155,25 @@ sim_te_alt <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
 #'   }
 #'
 #' @details
-#' This function optimizes the standard sim_te simulation by:
-#' 1. Only simulating segments containing LOSET-positive cases
-#' 2. Using observed wait times for segments without LOSET cases
-#' 3. Maintaining minimal data during simulation to reduce memory usage
+#' This function simulates how patients would be processed if strictly following their
+#' assigned priority levels. The simulation operates by:
 #'
-#' This optimization is valid because TE calculation only depends on the waiting times
-#' of time-critical patients relative to the overall mean. Since segments without
-#' LOSET cases contribute identically to the mean whether simulated or observed,
-#' simulating these segments is unnecessary.
+#' 1. Identifying continuous queue segments (periods where queue size goes from 0 to 0)
+#' 2. Determining which segments contain time-critical (LOSET) cases
+#' 3. Simulating only segments containing LOSET cases using a non-preemptive approach:
+#'    - Each physician contact becomes an available time slot
+#'    - Patients are queued by priority and arrival time
+#'    - Wait times are calculated from slot assignment
+#' 4. For segments without LOSET cases, the observed wait times are retained as theoretical
+#'    wait times. This is valid because:
+#'    - TE calculations depend only on LOSET patient wait times relative to mean_all
+#'    - Using observed times for non-LOSET segments maintains the correct mean_all
+#'    - The waiting times of non-LOSET patients do not affect TE calculations
 #'
-#' Key steps in the process:
-#' 1. Extract minimal required data for simulation
-#' 2. Create and identify segments containing LOSET cases
-#' 3. Simulate only LOSET-containing segments
-#' 4. Copy observed wait times for non-simulated segments
-#' 5. Combine results maintaining all original data
+#' The simulation ensures that:
+#' - Within each simulated segment, patients are seen strictly in order of priority
+#' - Within the same priority level, patients are seen in order of arrival
+#' - No post-triage priority changes occur
 #'
 #' @examples
 #' \dontrun{
@@ -150,6 +196,11 @@ sim_te_alt <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
 #'
 #' @export
 sim_te <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
+  if (any(!is.na(df$theoretical_wait_time)) || any(!is.na(df$binary_theoretical_wait_time))) {
+    stop("Data appears to have already been simulated. Each dataset should only be simulated once. ",
+         "If you need to re-simulate, please start with the original initialized data.")
+  }
+
   # Extract minimal data for simulation while preserving original
   df_sim <- df %>%
     select(id, unit, arrival_minute, resolve_minute,

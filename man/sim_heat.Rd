@@ -2,7 +2,7 @@
 % Please edit documentation in R/sim_heat.R
 \name{sim_heat}
 \alias{sim_heat}
-\title{Fast Heatmap Generation for Triage Effectiveness Analysis}
+\title{Simulate Triage Effectiveness over different levels of sensitivity/specificity.}
 \usage{
 sim_heat(
   df,
@@ -17,7 +17,8 @@ sim_heat(
 \item{df}{A data frame containing patient data (must be initialized through init())}
 
 \item{step_size}{Numeric. The step size for sensitivity and specificity values.
-Must be one of: 25, 10, 5, 2.5, or 1.}
+Must be one of: 25, 10, 5, 2.5, or 1. representing the percentual step in
+sensitivity/specificity that is taken.}
 
 \item{n_workers}{Integer. Number of cores to use for parallel processing.
 Default is (detectCores() - 1).}
@@ -25,10 +26,10 @@ Default is (detectCores() - 1).}
 \item{pos_values_only}{Logical. If TRUE, only includes combinations where
 sensitivity + specificity >= 1. Default is FALSE.}
 
-\item{n_loset}{Integer, least number of LOSET cases in the datafram. Will duplicate
-the data to reach this.}
+\item{n_loset}{Integer, least number of LOSET cases in the data frame. Will duplicate
+the data to reach this. Can by doing this get more LOSET cases.}
 
-\item{seed}{Seed for reprorucible heatmaps (default: null - no seed)}
+\item{seed}{Seed for reproducible heat maps (default: null - no seed)}
 }
 \value{
 A Tibble with sensitivity, specificity and TE values
@@ -37,9 +38,8 @@ A Tibble with sensitivity, specificity and TE values
 Efficiently generates a heatmap analyzing the relationship between sensitivity, specificity,
 and Triage Effectiveness (TE). This function optimizes performance by:
 \enumerate{
-\item Processing only segments containing time-critical (LOSET) cases
+\item Processing only segments containing time-critical (LOSET) cases and
 \item Parallelizing across sensitivity/specificity combinations
-\item Using small batch sizes for frequent progress updates
 }
 }
 \details{
@@ -53,20 +53,25 @@ The function processes data through these key steps:
 }
 \item Parallel Processing:
 \itemize{
-\item Divides combinations into small batches (2-3 combinations each)
 \item Processes each combination independently across workers
 \item For each combination:
 \itemize{
-\item Applies priority assignment based on sensitivity/specificity
+\item Scholastically applies priority assignment based on sensitivity/specificity
 \item Simulates queue processing for each segment
-\item Calculates resulting TE value
+\item Calculates resulting (binary) TE value
 }
 }
 \item Progress Tracking:
 \itemize{
-\item Updates progress after each small batch
-\item Enables accurate progress estimation for long-running analyses
+\item Updates progress after each segment
 }
+}
+
+Performance considerations:
+\itemize{
+\item Large step_sizes (e.g., 25) are suitable for initial exploration
+\item Smaller step_sizes provide more detailed analysis but increase computation time
+\item Processing time increases with dataset size and number of combinations
 }
 }
 \examples{

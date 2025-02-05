@@ -2,12 +2,12 @@
 % Please edit documentation in R/sim_te.R
 \name{sim_te}
 \alias{sim_te}
-\title{Fast Triage Efficacy Simulation}
+\title{Triage Efficacy Simulation}
 \usage{
 sim_te(df, tte = TRUE, btte = FALSE, n_workers = 1)
 }
 \arguments{
-\item{df}{A data frame containing patient data, including:
+\item{df}{A data frame containing patient data, including (note that most of theese variables are created by init()):
 \itemize{
 \item id: Unique patient identifier
 \item arrival_minute: Minutes since start of study period until patient arrival
@@ -39,25 +39,31 @@ affect TE calculations. This optimization significantly reduces computation time
 maintaining identical TE results compared to the full simulation.
 }
 \details{
-This function optimizes the standard sim_te simulation by:
+This function simulates how patients would be processed if strictly following their
+assigned priority levels. The simulation operates by:
 \enumerate{
-\item Only simulating segments containing LOSET-positive cases
-\item Using observed wait times for segments without LOSET cases
-\item Maintaining minimal data during simulation to reduce memory usage
+\item Identifying continuous queue segments (periods where queue size goes from 0 to 0)
+\item Determining which segments contain time-critical (LOSET) cases
+\item Simulating only segments containing LOSET cases using a non-preemptive approach:
+\itemize{
+\item Each physician contact becomes an available time slot
+\item Patients are queued by priority and arrival time
+\item Wait times are calculated from slot assignment
+}
+\item For segments without LOSET cases, the observed wait times are retained as theoretical
+wait times. This is valid because:
+\itemize{
+\item TE calculations depend only on LOSET patient wait times relative to mean_all
+\item Using observed times for non-LOSET segments maintains the correct mean_all
+\item The waiting times of non-LOSET patients do not affect TE calculations
+}
 }
 
-This optimization is valid because TE calculation only depends on the waiting times
-of time-critical patients relative to the overall mean. Since segments without
-LOSET cases contribute identically to the mean whether simulated or observed,
-simulating these segments is unnecessary.
-
-Key steps in the process:
-\enumerate{
-\item Extract minimal required data for simulation
-\item Create and identify segments containing LOSET cases
-\item Simulate only LOSET-containing segments
-\item Copy observed wait times for non-simulated segments
-\item Combine results maintaining all original data
+The simulation ensures that:
+\itemize{
+\item Within each simulated segment, patients are seen strictly in order of priority
+\item Within the same priority level, patients are seen in order of arrival
+\item No post-triage priority changes occur
 }
 }
 \examples{

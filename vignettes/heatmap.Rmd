@@ -38,7 +38,7 @@ The heatmap analysis builds on the simulation framework described in `vignette("
 
 ### Important Considerations
 
-1. **Computational Cost**: Full heatmap generation with typical ED datasets (>100,000 visits) can take several minutes depending on step size.
+1. **Computational Cost**: Full heatmap generation with typical ED datasets (>100,000 visits) can take several minutes up to hours depending on step size.
 2. **Intended Use**: This tool is meant for researchers validating TE properties or comparing results across different ED settings.
 3. **Limitation**: The heatmap does not naturally handle different units and it is recommended to only simulate one unit per heatmap.
 
@@ -49,10 +49,12 @@ A TE heatmap visualizes how different combinations of sensitivity and specificit
 1. The sum of sensitivity and specificity must exceed 1 for positive TE values
 2. When this sum exceeds 1, improving sensitivity yields slightly better gains
 3. When below 1, improving specificity is more beneficial
+4. Above rules are generally hard to validate when the sum is very close to 1, likely due to stochastic reasons.
+5. If inflow of LOSET patients are uneven during operational hours and the mean waiting time is also uneven, such as that more time critical cases arrives during the night when waiting times are longer the values where the sensitivity specificity sum is close to 1 can diverge further from 0.
 
 Let's examine these patterns with a small dataset:
 
-```{r example of heatmap, fig.width=7, fig.height=7, fig.alt="A heatmap showing TE over Sensitivity/specificity, unnormalized"}
+```{r example_of_heatmap, fig.width=7, fig.height=6, fig.alt="A heatmap showing TE over Sensitivity/specificity, unnormalized"}
 # Get a small sample (1 week) of data
 small_data <- init(sem_malmo_synth[
   sem_malmo_synth$arrival >= min(sem_malmo_synth$arrival) &
@@ -60,9 +62,8 @@ small_data <- init(sem_malmo_synth[
 ])
 
 data <- sem_malmo_synth %>%
-    filter(unit == "medical") %>% 
+    filter(unit == "medical") %>% # As noted before - use only one unit per sim.
     init()
-# As noted before - use only one unit per sim.
 
 # Generate heatmap data
 # WARNING: Even with this small dataset, this may take several minutes
@@ -74,7 +75,7 @@ plot_te_heatmap(heatmap_data) # Create heatmap
 
 We can also normalize the heatmap with a single argument:
 
-```{r example of heatmap - normalized, fig.width=7, fig.height=7, fig.alt="A heatmap showing TE over Sensitivity/specificity, normalized"}
+```{r example_of_heatmap_normalized, fig.width=7, fig.height=6, fig.alt="A heatmap showing TE over Sensitivity/specificity, normalized"}
 plot_te_heatmap(heatmap_data, normalize = TRUE) # Create heatmap
 
 ```
@@ -82,7 +83,7 @@ plot_te_heatmap(heatmap_data, normalize = TRUE) # Create heatmap
 
 The package includes several alternative TE calculations (cube root, log, median-based) primarily for research validation. These can be accessed using `alt_calc = TRUE` in `sim_heat_alt()`, i.e. it is not possible based on the `sim_heat()`:
 
-```{r example alt_calc_1, fig.width=10, fig.height=5, fig.alt="The first of three heatmaps from the alternative calculations - plain TE where TE is calculated based on on different normalisation techniques"}
+```{r example_alt_calc_1, fig.width=10, fig.height=5, fig.alt="The first of three heatmaps from the alternative calculations - plain TE where TE is calculated based on on different normalisation techniques"}
 # Example of alternative calculations
 alt_calc <- sim_heat_alt(data, alt_calc = TRUE, step_size = 25) %>% 
   plot_te_heatmap(show_alt_calc = TRUE)
@@ -90,13 +91,13 @@ alt_calc <- sim_heat_alt(data, alt_calc = TRUE, step_size = 25) %>%
 alt_calc$te_batch # The first possible alternative heat map
 ```
 
-```{r example alt_calc_2, fig.width=10, fig.height=5, fig.alt="The second of three heatmaps from the alternative calculations - normalized TE where TE is calculated based on on different normalisation techniques"}
+```{r example_alt_calc_2, fig.width=10, fig.height=5, fig.alt="The second of three heatmaps from the alternative calculations - normalized TE where TE is calculated based on on different normalisation techniques"}
 
 alt_calc$normalized_te_batch # The second possible alternative heat map
 ```
 
 
-```{r example alt_calc_3, fig.width=10, fig.height=5, fig.alt="The second of three heatmaps from the alternative calculations - normalized TE where TE is calculated based on on different normalisation techniques"}
+```{r example_alt_calc_3, fig.width=10, fig.height=5, fig.alt="The second of three heatmaps from the alternative calculations - normalized TE where TE is calculated based on on different normalisation techniques"}
 
 alt_calc$all_batch # The third possible alternative heat map
 
@@ -106,10 +107,13 @@ These alternatives help validate that the patterns we observe aren't artifacts o
 ## Summary
 
 Heatmap analysis in trieff is a powerful research tool for understanding TE properties, but it requires:
+
 1. Significant computational resources/patience
+
 2. Careful interpretation of results
+
 3. Understanding of the theoretical background
 
 For regular TE analysis of your ED, we recommend using the main `calc_te()` function as demonstrated in other vignettes.
 
-For researchers interested in detailed heatmap analysis, we recommend reviewing the methods section of the TE paper and ensuring sufficient computational resources before beginning analysis.
+For researchers interested in detailed heatmap analysis, we recommend reviewing the methods section of the TE paper (see `vignette("original_study")`and ensuring sufficient computational resources before beginning analysis.

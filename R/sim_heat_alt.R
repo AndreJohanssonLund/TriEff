@@ -1,4 +1,4 @@
-#' Simulate Triage Effectiveness Across Sensitivity/Specificity Combinations
+#' Simulate Triage Effectiveness including potential normalization techniques - mainly for validation and methodological research
 #'
 #' @description
 #' Performs simulations to analyze how Triage Effectiveness (TE) varies with different
@@ -35,6 +35,9 @@
 #'
 #' @details
 #' The function performs these key steps:
+#' 0. Optional, (if alt_calc=TRUE) runs a simulation to evaluate median TE at
+#'  sensitivity = 100%, specificity = 0% - i.e a first come, first serve ED. This
+#'  acts like the denominator for the global median calculation.
 #' 1. Creates combinations of sensitivity/specificity values based on step_size
 #' 2. Identifies segments containing time-critical (LOSET) cases
 #' 3. Processes each combination in parallel:
