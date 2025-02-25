@@ -110,43 +110,56 @@ sim_heat_alt <- function(df, step_size, n_workers = detectCores() - 1,
 
   # Create segments
   print(paste("Creating segments out of dataframe", Sys.time()))
-  segments <- create_segments(df, n_workers)
-  print(paste("Processing", length(segments), "segments."))
+  df_segmented <- create_segments(df, n_workers)
+  print(paste("Processing segments."))
 
   # Duplicate segments if n_loset is specified
   if (!is.null(n_loset)) {
     # Count current LOSET cases
-    total_loset <- sum(sapply(segments, function(segment) sum(segment$loset)))
+    total_loset <- sum(df_segmented$loset)
 
     # Calculate needed duplications (rounding up)
     n_duplications <- ceiling(n_loset / total_loset)
 
     if (n_duplications > 1) {
       print(paste("Duplicating segments", n_duplications, "times to reach minimum", n_loset, "LOSET cases"))
-      segments <- rep(segments, n_duplications)
-      new_total_loset <- sum(sapply(segments, function(segment) sum(segment$loset)))
+
+      # Create the original plus n_duplications-1 copies
+      df_copies <- c(
+        list(df_segmented),  # Original data
+        lapply(2:n_duplications, function(i) {
+          # Create copy with modified segment IDs
+          copy <- df_segmented
+          copy$segment <- paste0(copy$segment, "_dup", i)
+          return(copy)
+        })
+      )
+
+      df_segmented <- bind_rows(df_copies)
+      new_total_loset <- sum(df_segmented$loset)
       print(paste("New total LOSET cases:", new_total_loset))
     }
   }
 
-
-  # If alt_calc is TRUE, calculate global median from reference simulation
+  # If alt_calc is TRUE, handle global median calculation with segment column approach
   median_all_global <- if(alt_calc) {
     print(paste("Calculating global median from reference simulation", Sys.time()))
-    all_wait_times <- vector("numeric")
 
-    # Process each segment with all priorities set to 1 (equivalent to 100% sens/0% spec)
-    for(segment in segments) {
-      dt <- data.table::as.data.table(segment)
-      # Set all priorities to 1 since this represents 100% sensitivity/0% specificity
-      dt[, priority_binary := 1]
+    # Create copy of segmented data
+    df_median <- df_segmented
 
-      sim_result <- run_simulation(dt, tte = FALSE, btte = TRUE)
-      all_wait_times <- c(all_wait_times, sim_result$binary_theoretical_wait_time)
-      rm(sim_result)
-    }
+    # Set all priorities to 1 (equivalent to 100% sens/0% spec)
+    df_median$priority_binary <- 1
 
-    median(all_wait_times)
+    # Process by segment groups
+    wait_times <- df_median %>%
+      group_by(segment) %>%
+      group_split() %>%
+      map(~ run_simulation(.x, tte = FALSE, btte = TRUE)) %>%
+      bind_rows() %>%
+      pull(binary_theoretical_wait_time)
+
+    median(wait_times)
   } else {
     NULL
   }
@@ -163,6 +176,7 @@ sim_heat_alt <- function(df, step_size, n_workers = detectCores() - 1,
   print(paste("Starting simulations with", nrow(combinations), "combinations", Sys.time()))
 
   # Run parallel simulations by sesitivity/specificity combination
+  # Update the batch processing section in sim_heat_alt
   results <- with_progress({
     p <- progressor(steps = length(combinations))
 
@@ -177,31 +191,27 @@ sim_heat_alt <- function(df, step_size, n_workers = detectCores() - 1,
         sens <- combinations$sensitivity[i]
         spec <- combinations$specificity[i]
 
-        # Storage for simulation results
-        all_wait_times <- vector("numeric")
-        loset_indices <- vector("logical")
+        # Create a copy of the segmented data for this combination
+        df_copy <- df_segmented
+        random_values <- runif(nrow(df_copy))
 
-        # Process each segment
-        for(segment in segments) {
-          dt <- data.table::as.data.table(segment)
-          random_values <- runif(nrow(dt))
-          dt[, priority_binary := data.table::fifelse(
-            loset == TRUE,
-            data.table::fifelse(random_values <= sens, 1, 2),
-            data.table::fifelse(random_values <= spec, 2, 1)
-          )]
+        # Assign priorities based on sensitivity/specificity
+        df_copy$priority_binary <- data.table::fifelse(
+          df_copy$loset == TRUE,
+          data.table::fifelse(random_values <= sens, 1, 2),
+          data.table::fifelse(random_values <= spec, 2, 1)
+        )
 
-          sim_result <- run_simulation(dt, tte = FALSE, btte = TRUE)
-          all_wait_times <- c(all_wait_times, sim_result$binary_theoretical_wait_time)
-          loset_indices <- c(loset_indices, sim_result$loset)
+        # Process by segment groups
+        sim_results <- df_copy %>%
+          group_by(segment) %>%
+          group_split() %>%
+          map(~ run_simulation(.x, tte = FALSE, btte = TRUE)) %>%
+          bind_rows()
 
-          # Store complete simulation results if requested
-          if (include_dataframes) {
-            dt$sim_wait_times <- sim_result$binary_theoretical_wait_time
-          }
-
-          rm(sim_result)
-        }
+        # Extract wait times and LOSET status
+        all_wait_times <- sim_results$binary_theoretical_wait_time
+        loset_indices <- sim_results$loset
 
         # Calculate mean values for this simulation
         mean_all <- mean(all_wait_times)
@@ -242,7 +252,7 @@ sim_heat_alt <- function(df, step_size, n_workers = detectCores() - 1,
 
         # Store complete data if requested
         if (include_dataframes) {
-          result$sim_data <- dt
+          result$sim_data <- sim_results
         }
 
         result
@@ -250,7 +260,7 @@ sim_heat_alt <- function(df, step_size, n_workers = detectCores() - 1,
 
       p()
       batch_results
-    }, .options = furrr::furrr_options(seed = TRUE))
+    }, .options = furrr_options(seed = TRUE))
   })
 
   # Convert results to tibble

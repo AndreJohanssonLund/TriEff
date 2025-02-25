@@ -82,7 +82,7 @@
 #'   }
 #'
 #' @importFrom dplyr filter select mutate arrange left_join bind_rows group_by group_split
-#' @importFrom dplyr summarise ungroup across group_vars group_modify n rename distinct
+#' @importFrom dplyr summarise ungroup across group_vars group_modify n rename distinct inner_join
 #' @importFrom magrittr %>%
 #' @importFrom purrr map map2 map_dfr
 #' @importFrom stats var sd quantile median weighted.mean
@@ -694,7 +694,6 @@ calculate_te_bootstrap <- function(df, bootstrap_params, n_workers,
 }
 
 
-
 #' Calculate Triage Effectiveness with Segment Bootstrap
 #'
 #' @param df Data frame containing patient data
@@ -710,36 +709,36 @@ calculate_te_bootstrap <- function(df, bootstrap_params, n_workers,
 #'
 #' @details
 #' Performs segment-based bootstrap analysis of TE metrics, where entire queue
-#' segments are resampled rather than individual patients. This approach preserves
-#' temporal dependencies and queue dynamics within segments, providing more
-#' statistically valid confidence intervals for time series queue data.
-#'
-#' Key differences from standard bootstrapping:
-#' \itemize{
-#'   \item Segments (periods where queue goes from 0 to 0) are the resampling unit
-#'   \item Temporal patterns and dependencies within segments are preserved
-#'   \item More accurately reflects uncertainty in systems with queue dynamics
-#' }
+#' segments are resampled rather than individual patients.
 #'
 #' @keywords internal
 calculate_te_segment_bootstrap <- function(df, bootstrap_params, n_workers,
-                                         subgroup, var1, var2, min_loset_warning,
-                                         seed) {
+                                           subgroup, var1, var2, min_loset_warning,
+                                           seed) {
 
   # Set seed if provided
   if (!is.null(seed)) {
     set.seed(seed)
   }
 
-  # Create segments with included segmentation logic
-  print(paste("Creating segments for segment bootstrap", Sys.time()))
-  segments <- create_segments(df, n_workers)
+  # Check if segment column exists; if not, create segments
+  if (!"segment" %in% names(df)) {
+    print(paste("Creating segments for segment bootstrap", Sys.time()))
+    df <- create_segments(df, n_workers)
+  } else {
+    print(paste("Using existing segments for bootstrap", Sys.time()))
+  }
 
-  # Calculate sample size based on number of segments
-  n_segments <- length(segments)
+  # Get unit-segment combinations to preserve unit separation during sampling
+  # This ensures we maintain queue independence between units
+  unit_segment_pairs <- df %>%
+    select(unit, segment) %>%
+    distinct()
+
+  n_segments <- nrow(unit_segment_pairs)
   n_samples <- floor(n_segments * bootstrap_params$sample_percentage)
 
-  print(paste("Starting segment bootstrap with", n_segments, "segments,",
+  print(paste("Starting segment bootstrap with", n_segments, "unit-segment pairs,",
               n_samples, "samples per iteration,",
               bootstrap_params$n_iterations, "iterations", Sys.time()))
 
@@ -754,12 +753,13 @@ calculate_te_segment_bootstrap <- function(df, bootstrap_params, n_workers,
   bootstrap_results <- with_progress({
     p <- progressor(steps = bootstrap_params$n_iterations)
     future_map(1:bootstrap_params$n_iterations, function(i) {
-      # Sample segments with replacement
-      sampled_segment_indices <- sample(n_segments, size = n_samples, replace = TRUE)
-      sampled_segments <- segments[sampled_segment_indices]
+      # Sample unit-segment pairs with replacement
+      sample_indices <- sample(n_segments, size = n_samples, replace = TRUE)
+      sampled_pairs <- unit_segment_pairs[sample_indices, ]
 
-      # Combine segments into a full dataset
-      boot_sample <- bind_rows(sampled_segments)
+      # Create bootstrap sample by filtering rows matching sampled unit-segment combinations
+      boot_sample <- df %>%
+        dplyr::inner_join(sampled_pairs, by = c("unit", "segment"), relationship = "many-to-many")
 
       # Calculate TE using existing functions
       result <- calculate_te(boot_sample, subgroup, var1, var2, min_loset_warning)
@@ -767,7 +767,8 @@ calculate_te_segment_bootstrap <- function(df, bootstrap_params, n_workers,
       result
     }, .options = furrr_options(seed = TRUE))
   })
-  print(paste("Block bootstrap iterations done", Sys.time()))
+
+  print(paste("Segment bootstrap iterations done", Sys.time()))
 
   # Convert list of results to a more manageable format
   results_df <- bind_rows(bootstrap_results, .id = "iteration")

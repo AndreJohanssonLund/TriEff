@@ -92,25 +92,45 @@ sim_heat <- function(df, step_size, n_workers = detectCores() - 1,
 
   # Create segments with LOSET cases
   print(paste("Creating segments out of dataframe", Sys.time()))
-  segments <- create_segments(df, n_workers)
-  print(paste("Identified", length(segments), "segments, filtering LOSET cases.."))
+  df_segmented <- create_segments(df, n_workers)
+  print(paste("Identified segments, filtering LOSET segments.."))
 
-  # Filter to LOSET segments
-  segments <- segments[sapply(segments, function(segment) any(segment$loset))]
-  print(paste("Processing", length(segments), "segments with LOSET cases"))
+  # Filter to segments containing LOSET cases
+  segments_with_loset <- df_segmented %>%
+    group_by(segment) %>%
+    summarize(has_loset = any(loset), .groups = "drop") %>%
+    filter(has_loset) %>%
+    pull(segment)
 
-  # Duplicate segments if n_loset is specified
+  df_segmented <- df_segmented %>%
+    filter(segment %in% segments_with_loset)
+
+  print(paste("Processing", length(unique(df_segmented$segment)), "segments with LOSET cases"))
+
+  # If n_loset specified, handle replication differently with the segment column approach
   if (!is.null(n_loset)) {
     # Count current LOSET cases
-    total_loset <- sum(sapply(segments, function(segment) sum(segment$loset)))
+    total_loset <- sum(df_segmented$loset)
 
     # Calculate needed duplications (rounding up)
     n_duplications <- ceiling(n_loset / total_loset)
 
     if (n_duplications > 1) {
       print(paste("Duplicating segments", n_duplications, "times to reach minimum", n_loset, "LOSET cases"))
-      segments <- rep(segments, n_duplications)
-      new_total_loset <- sum(sapply(segments, function(segment) sum(segment$loset)))
+
+      # Create the original plus n_duplications-1 copies
+      df_copies <- c(
+        list(df_segmented),  # Original data
+        lapply(2:n_duplications, function(i) {
+          # Create copy with modified segment IDs
+          copy <- df_segmented
+          copy$segment <- paste0(copy$segment, "_dup", i)
+          return(copy)
+        })
+      )
+
+      df_segmented <- bind_rows(df_copies)
+      new_total_loset <- sum(df_segmented$loset)
       print(paste("New total LOSET cases:", new_total_loset))
     }
   }
@@ -135,31 +155,34 @@ sim_heat <- function(df, step_size, n_workers = detectCores() - 1,
       set.seed(seed)
     }
 
+    # Then in the batch processing loop, modify the segment processing:
     future_map(combinations, function(combinations) {
       # Process each combination
       batch_results <- map(1:nrow(combinations), function(i) {
         sens <- combinations$sensitivity[i]
         spec <- combinations$specificity[i]
 
-        # Process each segment
-        all_wait_times <- vector("numeric")
-        loset_indices <- vector("logical")
+        # Instead of processing each segment separately, process all segments together
+        # with proper grouping
+        df_copy <- df_segmented
+        random_values <- runif(nrow(df_copy))
 
-        for(segment in segments) {
-          dt <- data.table::as.data.table(segment)
-          random_values <- runif(nrow(dt))
-          dt[, priority_binary := data.table::fifelse(
-            loset == TRUE,
-            data.table::fifelse(random_values <= sens, 1, 2),
-            data.table::fifelse(random_values <= spec, 2, 1)
-          )]
+        df_copy$priority_binary <- data.table::fifelse(
+          df_copy$loset == TRUE,
+          data.table::fifelse(random_values <= sens, 1, 2),
+          data.table::fifelse(random_values <= spec, 2, 1)
+        )
 
-          sim_result <- run_simulation(dt, tte = FALSE, btte = TRUE)
-          all_wait_times <- c(all_wait_times, sim_result$binary_theoretical_wait_time)
-          loset_indices <- c(loset_indices, sim_result$loset)
+        # Process by segment groups
+        wait_times_by_segment <- df_copy %>%
+          group_by(segment) %>%
+          group_split() %>%
+          map(~ run_simulation(.x, tte = FALSE, btte = TRUE)) %>%
+          bind_rows()
 
-          rm(sim_result, dt)
-        }
+        # Extract wait times and LOSET status
+        all_wait_times <- wait_times_by_segment$binary_theoretical_wait_time
+        loset_indices <- wait_times_by_segment$loset
 
         # Calculate TE for this combination
         mean_loset <- mean(all_wait_times[loset_indices])

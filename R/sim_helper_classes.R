@@ -1,16 +1,16 @@
-#' Create Segments from Patient Data
+#' Create Segment Identifiers in Patient Data
 #'
-#' This function divides the input patient data into segments based on continuous queue periods.
+#' This function adds a segment identifier column to the input patient data based on continuous queue periods.
 #' Each segment represents a period where the queue starts at 0 and ends at 0, allowing for
 #' independent processing of these time periods.
 #'
 #' @param df A data frame containing patient data, including ID, unit, arrival times, and resolve times.
 #' @param n_workers Integer. Number of cores to use for parallel processing. Default is (detectCores() - 1).
 #'
-#' @return A list of data frames, where each data frame represents a segment of continuous queue activity.
+#' @return A data frame with an additional 'segment' column that identifies continuous queue segments.
 #'
 #' @importFrom data.table as.data.table setkey setorder
-#' @importFrom dplyr select mutate filter arrange bind_rows
+#' @importFrom dplyr select mutate filter arrange bind_rows group_by ungroup summarize inner_join
 #' @importFrom magrittr %>%
 #' @importFrom tidyr pivot_longer
 #' @importFrom purrr map map_dfr map_int
@@ -18,8 +18,9 @@
 #'
 #' @details
 #' The function identifies periods where the queue size goes from 0 to 1, marking the start of a new segment.
-#' It then groups patient data into these segments, which can be processed independently in parallel simulations.
-#' This segmentation is crucial for maintaining chronological integrity while enabling parallelization.
+#' It then assigns segment IDs to patients based on these boundaries, which can be used for grouped processing
+#' in parallel simulations. This segmentation is crucial for maintaining chronological integrity while enabling
+#' parallelization.
 #'
 #' @keywords internal
 create_segments <- function(df, n_workers = detectCores() - 1) {
@@ -33,8 +34,10 @@ create_segments <- function(df, n_workers = detectCores() - 1) {
   # Initialize progress reporting
   init_progressr()
 
-  # Process each unit in parallel
-  segments_by_unit <- future_map(unit_data, function(unit_df) {
+  # Process each unit in parallel to identify segments
+  segment_results <- future_map(names(unit_data), function(unit_name) {
+    unit_df <- unit_data[[unit_name]]
+
     # Create events table for this unit
     events <- unit_df %>%
       select(id, arrival_minute, resolve_minute) %>%
@@ -51,36 +54,32 @@ create_segments <- function(df, n_workers = detectCores() - 1) {
         cum_resolves = cumsum(event_type == "resolve"),
         queue_size = cum_arrivals - cum_resolves,
         segment_start = queue_size == 1 & lag(queue_size, default = 0) == 0,
-        segment = cumsum(segment_start)
+        segment_id = cumsum(segment_start)
       )
 
-    # Get unique IDs for each segment
-    segment_data <- queue_df %>%
-      group_by(segment) %>%
-      summarise(ids = list(unique(id)), .groups = 'drop')
+    # Map segment_id back to original patient data
+    id_to_segment <- queue_df %>%
+      filter(event_type == "arrival") %>%
+      select(id, segment_id) %>%
+      distinct()
 
-    # Create segments using the unique IDs
-    segment_list <- map(segment_data$ids, ~{
-      unit_df %>% filter(id %in% .x)
-    })
-
-    # Sort segments by size (descending)
-    sorted_segments <- segment_list[order(map_int(segment_list, nrow), decreasing = TRUE)]
-    names(sorted_segments) <- paste("Segment", seq_along(sorted_segments))
-
-    return(sorted_segments)
+    # Join segment IDs back to unit data
+    unit_df %>%
+      left_join(id_to_segment, by = "id") %>%
+      # Ensure unique segment IDs across units by prefixing with unit name
+      mutate(segment = paste(unit_name, segment_id, sep = "_"))
   }, .options = furrr::furrr_options(seed = TRUE))
 
-  # Switch back to sequential processing
-  plan(sequential)
+  # Combine results from all units
+  result_df <- bind_rows(segment_results)
 
-  # Combine all segments across units while maintaining order
-  all_segments <- unlist(segments_by_unit, recursive = FALSE, use.names = TRUE)
-  all_segments <- all_segments[order(map_int(all_segments, nrow), decreasing = TRUE)]
+  # Clean up temporary column if it exists
+  if ("segment_id" %in% names(result_df)) {
+    result_df <- result_df %>% select(-segment_id)
+  }
 
-  return(all_segments)
+  return(result_df)
 }
-
 
 
 

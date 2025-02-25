@@ -62,7 +62,7 @@
 #' \code{\link{sim_te}} for the optimized simulation approach
 #' recommended for standard TE calculations
 #'
-#' @importFrom dplyr select mutate arrange left_join bind_rows filter
+#' @importFrom dplyr select mutate arrange left_join bind_rows filter summarize
 #' @importFrom purrr map_dfr map
 #' @importFrom parallel detectCores
 #' @importFrom furrr future_map furrr_options
@@ -70,11 +70,6 @@
 #'
 #' @export
 sim_te_alt <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
-  if (any(!is.na(df$theoretical_wait_time)) || any(!is.na(df$binary_theoretical_wait_time))) {
-    stop("Data appears to have already been simulated. Each dataset should only be simulated once. ",
-         "If you need to re-simulate, please start with the original initialized data.")
-  }
-
   # Extracting only relevant fields for simulation for RAM conservation
   df_sim <- df %>%
     select(id, unit, arrival_minute, resolve_minute,
@@ -84,11 +79,7 @@ sim_te_alt <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
               priority, priority_binary, loset))
 
   print(paste("Creating segments out of dataframe", Sys.time()))
-  segments <- create_segments(df_sim, n_workers)
-
-  print(paste("Creating batches", Sys.time()))
-  n_batches <- n_workers * 3  # Creating 3 times as many batches as cores
-  batched_segments <- create_batches(segments, n_batches)
+  df_sim <- create_segments(df_sim, n_workers)
 
   print(paste("Starting multisession with", n_workers, "cores.", Sys.time()))
   setup_parallel(n_workers = n_workers)
@@ -97,18 +88,22 @@ sim_te_alt <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
   # Initialize progress reporting
   init_progressr()
 
+  # Process segments in parallel (no batches)
+  segment_groups <- df_sim %>% group_by(segment) %>% group_split()
+
   results <- with_progress({
-    p <- progressor(steps = length(batched_segments))
-    future_map(batched_segments, function(batch) {
-      result <- map_dfr(batch, ~run_simulation(.x, tte, btte))
+    p <- progressor(steps = length(segment_groups))
+    future_map(segment_groups, function(segment_df) {
+      result <- run_simulation(segment_df, tte, btte)
       p()
       result
     }, .options = furrr::furrr_options(seed = TRUE))
   })
+
   print(paste("Simulations are done!", Sys.time()))
   plan(sequential)
 
-  # Combine results from all batches
+  # Combine results from all segments
   merged_results <- bind_rows(results)
 
   # Merge results back with original data
@@ -121,9 +116,6 @@ sim_te_alt <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
 
   return(final_results)
 }
-
-
-
 
 
 #' Triage Efficacy Simulation
@@ -188,7 +180,7 @@ sim_te_alt <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
 #' @seealso
 #' \code{\link{sim_te}} for the full simulation approach
 #'
-#' @importFrom dplyr select mutate arrange left_join bind_rows filter
+#' @importFrom dplyr select mutate arrange left_join bind_rows filter summarize
 #' @importFrom purrr map_dfr map
 #' @importFrom parallel detectCores
 #' @importFrom furrr future_map furrr_options
@@ -200,31 +192,30 @@ sim_te <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
     stop("Data appears to have already been simulated. Each dataset should only be simulated once. ",
          "If you need to re-simulate, please start with the original initialized data.")
   }
-
   # Extract minimal data for simulation while preserving original
   df_sim <- df %>%
     select(id, unit, arrival_minute, resolve_minute,
            priority, priority_binary, loset)
 
-  # Create segments with minimal data
+  # Create segments with minimal data - now returns df with segment column
   print(paste("Creating segments out of dataframe", Sys.time()))
-  segments <- create_segments(df_sim, n_workers)
+  df_sim <- create_segments(df_sim, n_workers)
 
-  # Log initial segment counts
-  total_patients_before <- sum(sapply(segments, nrow))
-  print(paste("Initial segments:", length(segments), "Total patients:", total_patients_before))
+  # Filter to keep only rows in segments containing LOSET cases
+  loset_segments <- df_sim %>%
+    dplyr::group_by(segment) %>%
+    dplyr::summarize(has_loset = any(loset)) %>%
+    dplyr::filter(has_loset) %>%
+    dplyr::pull(segment)
 
-  # Filter to LOSET segments (working with minimal data)
-  segments <- segments[sapply(segments, function(segment) any(segment$loset))]
-  total_loset_cases <- sum(sapply(segments, function(segment) sum(segment$loset)))
-  print(paste("Filtered to", length(segments), "segments with LOSET cases"))
+  total_patients_before <- nrow(df_sim)
+  df_sim <- df_sim %>% filter(segment %in% loset_segments)
+  total_loset_cases <- sum(df_sim$loset)
+
+  print(paste("Filtered to", length(loset_segments), "segments with LOSET cases"))
   print(paste("Total LOSET cases:", total_loset_cases))
 
-  # Process LOSET segments
-  print(paste("Creating batches", Sys.time()))
-  n_batches <- n_workers * 3
-  batched_segments <- create_batches(segments, n_batches)
-
+  # Process segments in parallel
   print(paste("Starting multisession with", n_workers, "cores.", Sys.time()))
   setup_parallel(n_workers = n_workers)
   on.exit(cleanup_parallel())
@@ -232,9 +223,13 @@ sim_te <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
   # Initialize progress reporting
   init_progressr()
 
-  results <- future_map(batched_segments, function(batch) {
-    map_dfr(batch, ~run_simulation(.x, tte, btte))
+  # Group data by segment and process each group
+  segment_groups <- df_sim %>% group_by(segment) %>% group_split()
+
+  results <- future_map(segment_groups, function(segment_df) {
+    run_simulation(segment_df, tte, btte)
   }, .options = furrr::furrr_options(seed = TRUE))
+
   print(paste("Simulations are done!", Sys.time()))
   plan(sequential)
 
@@ -247,6 +242,7 @@ sim_te <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
     left_join(sim_results, by = "id") %>%
     arrange(id)
 
+  # Fill in non-simulated cases with observed wait times
   if (tte) {
     final_results <- final_results %>%
       mutate(
@@ -265,7 +261,6 @@ sim_te <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
         )
       )
   }
-
 
   return(final_results)
 }

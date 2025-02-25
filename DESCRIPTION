@@ -1,7 +1,7 @@
 Package: trieff
 Type: Package
 Title: Triage Effectiveness Analysis for Emergency Departments
-Version: 0.8.6
+Version: 0.8.7
 Authors@R: person("André", "Johansson",
                   email = "andre.johansson@med.lu.se",
                   role = c("aut", "cre"),

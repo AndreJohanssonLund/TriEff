@@ -1,6 +1,9 @@
-# trieff 0.8.6
+# trieff 0.8.7
 
-## Major Features
+* Reworked segmentation logic to reduce memory overhead and increase speed.
+
+
+# trieff 0.8.6
 
 * Added segment bootstrapping method for more accurate confidence intervals with temporal data
   * This new approach preserves temporal patterns by sampling segments of continuous queue activity

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">trieff</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,6 +30,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-research"><li><a class="dropdown-item" href="../articles/original_study.html">Original Study (Under Review)</a></li>
     <li><a class="dropdown-item" href="../articles/publications.html">Publications Using trieff</a></li>
   </ul></li>
+<li class="active nav-item"><a class="nav-link" href="../news/index.html">News</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/AndreJohanssonLund/trieff/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -46,9 +47,11 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.8.7" id="trieff-087">trieff 0.8.7<a class="anchor" aria-label="anchor" href="#trieff-087"></a></h2>
+<ul><li>Reworked segmentation logic to reduce memory overhead and increase speed.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.8.6" id="trieff-086">trieff 0.8.6<a class="anchor" aria-label="anchor" href="#trieff-086"></a></h2>
-<div class="section level3">
-<h3 id="major-features-0-8-6">Major Features<a class="anchor" aria-label="anchor" href="#major-features-0-8-6"></a></h3>
 <ul><li>Added segment bootstrapping method for more accurate confidence intervals with temporal data
 <ul><li>This new approach preserves temporal patterns by sampling segments of continuous queue activity</li>
 <li>Maintains the dependency structure between patients who were in the ED during the same time period</li>
@@ -56,7 +59,6 @@
 </ul></li>
 <li>Enhanced bootstrap vignette with detailed comparison between standard and segment bootstrapping</li>
 </ul></div>
-</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.8.5" id="trieff-085">trieff 0.8.5<a class="anchor" aria-label="anchor" href="#trieff-085"></a></h2>
 <ul><li>Initial release</li>
