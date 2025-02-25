@@ -11,7 +11,7 @@ template:
 
 navbar:
   structure:
-    left:  [intro, reference, articles, research]
+    left:  [intro, reference, articles, research, news]
     right: [search, github]
   components:
     articles:
@@ -36,6 +36,9 @@ navbar:
         href: articles/original_study.html
       - text: "Publications Using trieff"
         href: articles/publications.html
+    news:
+      text: News
+      href: news/index.html
 
 reference:
 - title: "Core Functions"
@@ -65,4 +68,3 @@ reference:
   desc: "Included datasets"
   contents:
   - sem_malmo_synth
-

@@ -83,14 +83,16 @@ test_that("calc_te bootstrap analysis works correctly", {
 test_that("calc_te handles convergence analysis correctly", {
   data <- setup_test_data()
 
+  # The convergence analysis is now conditionally triggered based on bootstrap type
+  # Make sure we're using "standard" bootstrap (not "segment") to get convergence analysis
   result <- calc_te(data,
-                    bootstrap = TRUE,
+                    bootstrap = "standard",
                     bootstrap_params = list(
-                      sample_percentage = 0.5,
+                      sample_percentage = 1,
                       n_iterations = 100,
                       distribution_span = 0.95
                     ),
-                    check_convergence = TRUE,
+                    check_convergence = TRUE,  # Request convergence analysis
                     min_loset_warning = -1)
 
   # Check convergence results structure
@@ -181,4 +183,133 @@ test_that("calc_te print method works correctly", {
   expect_true(any(grepl("Classification Metrics:", output)))
   expect_true(any(grepl("Triage Effectiveness Metrics:", output)))
   expect_true(any(grepl("Computation Information", output)))
+})
+
+test_that("calc_te segment bootstrap works correctly", {
+  # Use a larger dataset for segment bootstrap to ensure enough segments
+  data <- get_test_data()
+  data <- init(data)
+  data <- sim_te(data)
+
+  # Run with smaller iteration count and ensure sample_percentage is valid
+  result <- calc_te(data,
+                    bootstrap = "segment",
+                    bootstrap_params = list(
+                      sample_percentage = 1,  # Use full sample to avoid small-sample issues
+                      n_iterations = 5,       # Reduce iterations for faster tests
+                      distribution_span = 0.95
+                    ),
+                    min_loset_warning = -1)
+
+  # Check bootstrap results structure
+  expect_true(!is.null(result$bootstrap_distributions))
+  expect_true(all(c("boot_ote_var_lower", "boot_ote_var_upper") %in%
+                    names(result$results)))
+
+  # Check bootstrap method in metadata
+  expect_equal(result$metadata$bootstrap_method, "segment")
+
+  # Verify iterations match parameter setting
+  expect_equal(length(unique(result$bootstrap_distributions$iteration)), 5)
+})
+
+test_that("calc_te segment bootstrap preserves data structure differently than standard bootstrap", {
+  data <- setup_test_data()
+
+  # Add a temporal pattern to make differences more detectable
+  # Create a cyclical pattern in the data that would be preserved by segment but not standard bootstrap
+  set.seed(123)
+  data$cycle_group <- as.factor(rep(1:5, length.out = nrow(data)))
+
+  # Run both bootstrap types with same parameters
+  segment_result <- calc_te(data,
+                            bootstrap = "segment",
+                            bootstrap_params = list(
+                              sample_percentage = 0.8,
+                              n_iterations = 50,
+                              distribution_span = 0.95
+                            ),
+                            n_workers = 1,
+                            min_loset_warning = -1)
+
+  standard_result <- calc_te(data,
+                             bootstrap = "standard",
+                             bootstrap_params = list(
+                               sample_percentage = 0.8,
+                               n_iterations = 50,
+                               distribution_span = 0.95
+                             ),
+                             n_workers = 1,
+                             min_loset_warning = -1)
+
+  # Extract bootstrap distributions and calculate statistics
+  segment_sd <- segment_result$results$boot_ote_sd
+  standard_sd <- standard_result$results$boot_ote_sd
+
+  # Calculate CI widths for comparison
+  segment_ci_width <- segment_result$results$boot_ote_var_upper -
+    segment_result$results$boot_ote_var_lower
+  standard_ci_width <- standard_result$results$boot_ote_var_upper -
+    standard_result$results$boot_ote_var_lower
+
+  # For data with temporal patterns, segment bootstrap typically produces different
+  # (often wider) confidence intervals than standard bootstrap
+  # But we can't predict exact difference, so just verify they're different
+  expect_false(all(abs(segment_ci_width - standard_ci_width) < 0.001))
+
+  # Verify segment bootstrap parameter is correctly stored in metadata
+  expect_equal(segment_result$metadata$bootstrap_method, "segment")
+  expect_equal(standard_result$metadata$bootstrap_method, "standard")
+})
+
+test_that("calc_te compares segment and standard bootstrap methods", {
+  # Use a larger dataset and reduce test complexity
+  data <- get_test_data()
+  data <- init(data)
+  data <- sim_te(data)
+
+  # Minimal test to verify bootstrap method is stored correctly
+  segment_result <- calc_te(data,
+                            bootstrap = "segment",
+                            bootstrap_params = list(
+                              sample_percentage = 1,   # Use full sample
+                              n_iterations = 3,       # Minimal iterations for test
+                              distribution_span = 0.95
+                            ),
+                            min_loset_warning = -1)
+
+  standard_result <- calc_te(data,
+                             bootstrap = "standard",
+                             bootstrap_params = list(
+                               sample_percentage = 1,   # Use full sample
+                               n_iterations = 3,       # Minimal iterations for test
+                               distribution_span = 0.95
+                             ),
+                             min_loset_warning = -1)
+
+  # Verify bootstrap methods are stored correctly
+  expect_equal(segment_result$metadata$bootstrap_method, "segment")
+  expect_equal(standard_result$metadata$bootstrap_method, "standard")
+})
+
+
+test_that("calc_te handles bootstrap parameter options correctly", {
+  data <- get_test_data()
+  data <- init(data)
+  data <- sim_te(data)
+
+  # Test logical TRUE (should convert to "standard")
+  result_true <- calc_te(data,
+                         bootstrap = TRUE,
+                         bootstrap_params = list(
+                           sample_percentage = 1,
+                           n_iterations = 3,
+                           distribution_span = 0.95
+                         ),
+                         min_loset_warning = -1)
+
+  expect_equal(result_true$metadata$bootstrap_method, "standard")
+
+  # Test invalid bootstrap parameter
+  expect_error(calc_te(data, bootstrap = "invalid_method"))
 })

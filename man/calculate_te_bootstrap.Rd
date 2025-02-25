@@ -29,6 +29,8 @@ calculate_te_bootstrap(
 \item{var2}{Optional string for second comparison variable}
 
 \item{min_loset_warning}{will be sent onward to check if a valid amount of loset cases exists}
+
+\item{seed}{Seed for reproducible results}
 }
 \value{
 List containing metrics, distributions, and convergence information

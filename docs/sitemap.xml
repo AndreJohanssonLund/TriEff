@@ -1,6 +1,5 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>/404.html</loc></url>
-<url><loc>/LICENSE-text.html</loc></url>
 <url><loc>/LICENSE.html</loc></url>
 <url><loc>/articles/bootstrap.html</loc></url>
 <url><loc>/articles/calc_te.html</loc></url>
@@ -13,16 +12,18 @@
 <url><loc>/articles/sim_te.html</loc></url>
 <url><loc>/authors.html</loc></url>
 <url><loc>/index.html</loc></url>
+<url><loc>/news/index.html</loc></url>
 <url><loc>/reference/analyze_bootstrap_convergence.html</loc></url>
 <url><loc>/reference/calc_te.html</loc></url>
+<url><loc>/reference/calculate_bootstrap_metrics.html</loc></url>
 <url><loc>/reference/calculate_overall_metrics.html</loc></url>
 <url><loc>/reference/calculate_reference_values.html</loc></url>
 <url><loc>/reference/calculate_te.html</loc></url>
 <url><loc>/reference/calculate_te_bootstrap.html</loc></url>
+<url><loc>/reference/calculate_te_segment_bootstrap.html</loc></url>
 <url><loc>/reference/calculate_unit_metrics.html</loc></url>
 <url><loc>/reference/cleanup_parallel.html</loc></url>
 <url><loc>/reference/combine_results.html</loc></url>
-<url><loc>/reference/convergence_results.html</loc></url>
 <url><loc>/reference/create_batches.html</loc></url>
 <url><loc>/reference/create_grouping.html</loc></url>
 <url><loc>/reference/create_overall_grouping.html</loc></url>

@@ -28,13 +28,18 @@ calc_te(
 
 \item{var2}{Optional string for second comparison variable}
 
-\item{bootstrap}{Logical. Whether to perform bootstrap calculations}
+\item{bootstrap}{Logical or character. Whether to perform bootstrap calculations and what method to use:
+\itemize{
+\item FALSE: No bootstrapping (default)
+\item TRUE or "standard": Standard patient-level bootstrapping
+\item "segment": A custom type of Block bootstrapping using queue segments
+}}
 
 \item{bootstrap_params}{List of bootstrap parameters:
 \itemize{
-\item sample_percentage (default: 1)
-\item n_iterations (default: 2000)
-\item distribution_span (default: 0.95)
+\item sample_percentage (default: 1) How large of the sample is used? 1 = full sample. In segment bootstrapping this reffers to the percentage of samples that are used
+\item n_iterations (default: 2000) How many bootstrap iterations to use
+\item distribution_span (default: 0.95) What is the confidence interval used?
 }}
 
 \item{n_workers}{Number of workers for parallel processing (default: detectCores() - 1)}
@@ -68,17 +73,17 @@ A list containing:
 \item specificity: True negative rate for identifying non-time-critical patients
 \item boot_ote_mean: Bootstrap mean for OTE (if bootstrap=TRUE)
 \item boot_ote_sd: Bootstrap standard deviation for OTE
-\item boot_ote_sd_q: Robust standard deviation for OTE based on IQR
+\item boot_ote_sd_q: Robust standard deviation for OTE based on IQR, Calculated as IQR/1.349
 \item boot_ote_var_lower: Lower bound of OTE confidence interval
 \item boot_ote_var_upper: Upper bound of OTE confidence interval
 \item boot_tte_mean: Bootstrap mean for TTE
 \item boot_tte_sd: Bootstrap standard deviation for TTE
-\item boot_tte_sd_q: Robust standard deviation for TTE based on IQR
+\item boot_tte_sd_q: Robust standard deviation for TTE based on IQR, Calculated as IQR/1.349
 \item boot_tte_var_lower: Lower bound of TTE confidence interval
 \item boot_tte_var_upper: Upper bound of TTE confidence interval
 \item boot_btte_mean: Bootstrap mean for BTTE
 \item boot_btte_sd: Bootstrap standard deviation for BTTE
-\item boot_btte_sd_q: Robust standard deviation for BTTE based on IQR
+\item boot_btte_sd_q: Robust standard deviation for BTTE based on IQR, Calculated as IQR/1.349
 \item boot_btte_var_lower: Lower bound of BTTE confidence interval
 \item boot_btte_var_upper: Upper bound of BTTE confidence interval
 \item boot_mean_n_patients: Mean number of patients across bootstrap samples
@@ -93,6 +98,7 @@ A list containing:
 \item n_iterations: Number of bootstrap iterations performed
 \item distribution_span: Width of confidence intervals (e.g., 0.95 for 95\% CI)
 }
+\item bootstrap_method: Type of bootstrap method use - standard or segment (if applicable)
 \item group_var1: First grouping variable used (if any)
 \item group_var2: Second grouping variable used (if any)
 \item subgr: Subgroup criteria used (if any)

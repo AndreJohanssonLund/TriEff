@@ -37,21 +37,43 @@ test_that("init accepts valid data and returns expected structure", {
   expect_s3_class(result$priority_binary, "factor")
 })
 
-test_that("init handles datetime edge cases correctly", {
+test_that("init handles edge case data volumes", {
   data <- setup_test_data()
 
-  # Test midnight times (00:00:00)
-  midnight_data <- data[1:10,]
-  midnight_data$arrival <- as.POSIXct("2024-01-01 00:00:00", tz = "UTC")
-  midnight_data$resolve <- as.POSIXct("2024-01-01 00:00:01", tz = "UTC")
-  expect_no_error(init(midnight_data))
+  # Test single row
+  single_row <- data[1,]
+  # Make sure this single row has LOSET
+  single_row$loset <- TRUE
+  expect_error(init(single_row), NA)
 
-  # Test timezone handling
-  tz_data <- data[1:10,]
-  tz_data$arrival <- as.POSIXct("2024-01-01 12:00:00", tz = "America/New_York")
-  tz_data$resolve <- as.POSIXct("2024-01-01 13:00:00", tz = "America/New_York")
-  result <- init(tz_data)
-  expect_true(all(!is.na(result$arrival_minute)))
+  # Test two rows with same arrival time
+  same_arrival <- data[1:2,]
+  same_arrival$arrival[2] <- same_arrival$arrival[1]
+  same_arrival$resolve[2] <- same_arrival$resolve[1] + lubridate::minutes(30)
+  # Make sure we have LOSET for each unit
+  units <- unique(same_arrival$unit)
+  for(i in seq_along(units)) {
+    idx <- which(same_arrival$unit == units[i])
+    if(length(idx) > 0) {
+      # Set LOSET for the first row of each unit
+      same_arrival$loset[idx[1]] <- TRUE
+    }
+  }
+  expect_error(init(same_arrival), NA)
+
+  # Test two rows with same resolve time
+  same_resolve <- data[1:2,]
+  same_resolve$resolve[2] <- same_resolve$resolve[1]
+  # Make sure we have LOSET for each unit
+  units <- unique(same_resolve$unit)
+  for(i in seq_along(units)) {
+    idx <- which(same_resolve$unit == units[i])
+    if(length(idx) > 0) {
+      # Set LOSET for the first row of each unit
+      same_resolve$loset[idx[1]] <- TRUE
+    }
+  }
+  expect_error(init(same_resolve), NA)
 })
 
 test_that("init enforces correct temporal order", {
@@ -60,12 +82,24 @@ test_that("init enforces correct temporal order", {
   # Test resolve before arrival
   invalid_data <- data[1:10,]
   invalid_data$resolve <- invalid_data$arrival - lubridate::minutes(30)
+  # Add LOSET cases for each unit
+  invalid_data$loset <- FALSE
+  for(unit_val in unique(invalid_data$unit)) {
+    idx <- which(invalid_data$unit == unit_val)[1]
+    invalid_data$loset[idx] <- TRUE
+  }
   expect_error(init(invalid_data),
                pattern = "'resolve' time is before 'arrival' time")
 
   # Test exact same times
   same_time_data <- data[1:10,]
   same_time_data$resolve <- same_time_data$arrival
+  # Add LOSET cases for each unit
+  same_time_data$loset <- FALSE
+  for(unit_val in unique(same_time_data$unit)) {
+    idx <- which(same_time_data$unit == unit_val)[1]
+    same_time_data$loset[idx] <- TRUE
+  }
   result <- init(same_time_data)
   expect_true(all(result$observed_wait_time == 0))
 })
@@ -170,32 +204,47 @@ test_that("init maintains data consistency", {
 })
 
 
-
-test_that("init handles edge case data volumes", {
+test_that("init handles datetime edge cases correctly", {
   data <- setup_test_data()
 
-  # Test single row
-  single_row <- data[1,]
-  expect_error(init(single_row), NA)
+  # Test midnight times (00:00:00)
+  midnight_data <- data[1:10,]
+  midnight_data$arrival <- as.POSIXct("2024-01-01 00:00:00", tz = "UTC")
+  midnight_data$resolve <- as.POSIXct("2024-01-01 00:00:01", tz = "UTC")
+  # Add at least one LOSET case per unit to avoid warnings
+  midnight_data$loset <- FALSE
+  units <- unique(midnight_data$unit)
+  for(unit_val in units) {
+    idx <- which(midnight_data$unit == unit_val)[1]
+    midnight_data$loset[idx] <- TRUE
+  }
+  expect_no_error(init(midnight_data))
 
-  # Test two rows with same arrival time
-  same_arrival <- data[1:2,]
-  same_arrival$arrival[2] <- same_arrival$arrival[1]
-  same_arrival$resolve[2] <- same_arrival$resolve[1] + lubridate::minutes(30)
-  expect_error(init(same_arrival), NA)
-
-  # Test two rows with same resolve time
-  same_resolve <- data[1:2,]
-  same_resolve$resolve[2] <- same_resolve$resolve[1]
-  expect_error(init(same_resolve), NA)
+  # Test timezone handling - ensure LOSET cases
+  tz_data <- data[1:10,]
+  tz_data$arrival <- as.POSIXct("2024-01-01 12:00:00", tz = "America/New_York")
+  tz_data$resolve <- as.POSIXct("2024-01-01 13:00:00", tz = "America/New_York")
+  tz_data$loset <- FALSE
+  for(unit_val in unique(tz_data$unit)) {
+    idx <- which(tz_data$unit == unit_val)[1]
+    tz_data$loset[idx] <- TRUE
+  }
+  result <- init(tz_data)
+  expect_true(all(!is.na(result$arrival_minute)))
 })
-
 
 test_that("init handles data with no LOSET cases", {
   data <- setup_test_data()
+  # Set all LOSET to FALSE to deliberately trigger the warning
   data$loset <- FALSE
-  result <- init(data)
 
+  # Expect the specific warning
+  expect_warning(
+    result <- init(data),
+    regexp = "The following units have no LOSET cases"
+  )
+
+  # Continue with the checks on the result from the initialization
   # Check that classification metrics are correct
   expect_true(all(!result$tp))  # No true positives
   expect_true(all(!result$fn))  # No false negatives

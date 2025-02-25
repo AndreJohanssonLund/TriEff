@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">trieff</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,7 +78,7 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://AndreJohanssonLund.github.io/trieff/" class="external-link">trieff</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loaded trieff 0.8.5</span></span>
+<span><span class="co">#&gt; Loaded trieff 0.8.6</span></span>
 <span><span class="co">#&gt; System capable of parallel processing with multisession backend</span></span>
 <span><span class="co">#&gt; Maximum available workers: 16</span></span>
 <span><span class="co">#&gt; Note: Individual functions will determine optimal core usage at runtime</span></span>
@@ -174,11 +174,11 @@ from 0.</li>
 <span><span class="co"># WARNING: Even with this small dataset, this may take several minutes</span></span>
 <span><span class="va">heatmap_data</span> <span class="op">&lt;-</span> <span class="va">data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/sim_heat.html">sim_heat</a></span><span class="op">(</span>n_workers <span class="op">=</span> <span class="fl">12</span>, step_size <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-05 12:40:55.987935"</span></span>
+<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-25 12:22:45.451088"</span></span>
 <span><span class="co">#&gt; [1] "Identified 907 segments, filtering LOSET cases.."</span></span>
 <span><span class="co">#&gt; [1] "Processing 527 segments with LOSET cases"</span></span>
-<span><span class="co">#&gt; [1] "Starting simulations with  combinations 2025-02-05 12:40:57.602646"</span></span>
-<span><span class="co">#&gt; [1] "Simulations complete 2025-02-05 12:41:41.305902"</span></span>
+<span><span class="co">#&gt; [1] "Starting simulations with  combinations 2025-02-25 12:22:47.173175"</span></span>
+<span><span class="co">#&gt; [1] "Simulations complete 2025-02-25 12:23:30.725651"</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plot_te_heatmap.html">plot_te_heatmap</a></span><span class="op">(</span><span class="va">heatmap_data</span><span class="op">)</span> <span class="co"># Create heatmap</span></span></code></pre></div>
 <p><img src="heatmap_files/figure-html/example_of_heatmap-1.png" alt="A heatmap showing TE over Sensitivity/specificity, unnormalized" width="672"></p>
@@ -196,11 +196,11 @@ accessed using <code>alt_calc = TRUE</code> in
 <code class="sourceCode R"><span><span class="co"># Example of alternative calculations</span></span>
 <span><span class="va">alt_calc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_heat_alt.html">sim_heat_alt</a></span><span class="op">(</span><span class="va">data</span>, alt_calc <span class="op">=</span> <span class="cn">TRUE</span>, step_size <span class="op">=</span> <span class="fl">25</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/plot_te_heatmap.html">plot_te_heatmap</a></span><span class="op">(</span>show_alt_calc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-05 12:41:41.621162"</span></span>
+<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-25 12:23:31.074025"</span></span>
 <span><span class="co">#&gt; [1] "Processing 907 segments."</span></span>
-<span><span class="co">#&gt; [1] "Calculating global median from reference simulation 2025-02-05 12:41:42.918787"</span></span>
-<span><span class="co">#&gt; [1] "Starting simulations with  combinations 2025-02-05 12:41:47.017838"</span></span>
-<span><span class="co">#&gt; [1] "Simulations complete 2025-02-05 12:42:01.322542"</span></span>
+<span><span class="co">#&gt; [1] "Calculating global median from reference simulation 2025-02-25 12:23:32.453514"</span></span>
+<span><span class="co">#&gt; [1] "Starting simulations with  combinations 2025-02-25 12:23:36.633811"</span></span>
+<span><span class="co">#&gt; [1] "Simulations complete 2025-02-25 12:23:51.398213"</span></span>
 <span></span>
 <span><span class="va">alt_calc</span><span class="op">$</span><span class="va">te_batch</span> <span class="co"># The first possible alternative heat map</span></span></code></pre></div>
 <p><img src="heatmap_files/figure-html/example_alt_calc_1-1.png" alt="The first of three heatmaps from the alternative calculations - plain TE where TE is calculated based on on different normalisation techniques" width="960"></p>

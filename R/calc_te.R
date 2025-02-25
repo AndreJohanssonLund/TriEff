@@ -9,12 +9,17 @@
 #' @param subgroup Optional list for subgroup analysis - an alternative to var1/2
 #' @param var1 Optional string for first comparison variable
 #' @param var2 Optional string for second comparison variable
-#' @param bootstrap Logical. Whether to perform bootstrap calculations
+#' @param bootstrap Logical or character. Whether to perform bootstrap calculations and what method to use:
+#'   \itemize{
+#'     \item FALSE: No bootstrapping (default)
+#'     \item TRUE or "standard": Standard patient-level bootstrapping
+#'     \item "segment": A custom type of Block bootstrapping using queue segments
+#'   }
 #' @param bootstrap_params List of bootstrap parameters:
 #'   \itemize{
-#'     \item sample_percentage (default: 1)
-#'     \item n_iterations (default: 2000)
-#'     \item distribution_span (default: 0.95)
+#'     \item sample_percentage (default: 1) How large of the sample is used? 1 = full sample. In segment bootstrapping this reffers to the percentage of samples that are used
+#'     \item n_iterations (default: 2000) How many bootstrap iterations to use
+#'     \item distribution_span (default: 0.95) What is the confidence interval used?
 #'   }
 #' @param n_workers Number of workers for parallel processing (default: detectCores() - 1)
 #' @param overall_only Logical. If TRUE, only overall metrics are returned (default: FALSE)
@@ -42,17 +47,17 @@
 #'         \item specificity: True negative rate for identifying non-time-critical patients
 #'         \item boot_ote_mean: Bootstrap mean for OTE (if bootstrap=TRUE)
 #'         \item boot_ote_sd: Bootstrap standard deviation for OTE
-#'         \item boot_ote_sd_q: Robust standard deviation for OTE based on IQR
+#'         \item boot_ote_sd_q: Robust standard deviation for OTE based on IQR, Calculated as IQR/1.349
 #'         \item boot_ote_var_lower: Lower bound of OTE confidence interval
 #'         \item boot_ote_var_upper: Upper bound of OTE confidence interval
 #'         \item boot_tte_mean: Bootstrap mean for TTE
 #'         \item boot_tte_sd: Bootstrap standard deviation for TTE
-#'         \item boot_tte_sd_q: Robust standard deviation for TTE based on IQR
+#'         \item boot_tte_sd_q: Robust standard deviation for TTE based on IQR, Calculated as IQR/1.349
 #'         \item boot_tte_var_lower: Lower bound of TTE confidence interval
 #'         \item boot_tte_var_upper: Upper bound of TTE confidence interval
 #'         \item boot_btte_mean: Bootstrap mean for BTTE
 #'         \item boot_btte_sd: Bootstrap standard deviation for BTTE
-#'         \item boot_btte_sd_q: Robust standard deviation for BTTE based on IQR
+#'         \item boot_btte_sd_q: Robust standard deviation for BTTE based on IQR, Calculated as IQR/1.349
 #'         \item boot_btte_var_lower: Lower bound of BTTE confidence interval
 #'         \item boot_btte_var_upper: Upper bound of BTTE confidence interval
 #'         \item boot_mean_n_patients: Mean number of patients across bootstrap samples
@@ -67,6 +72,7 @@
 #'             \item n_iterations: Number of bootstrap iterations performed
 #'             \item distribution_span: Width of confidence intervals (e.g., 0.95 for 95% CI)
 #'           }
+#'         \item bootstrap_method: Type of bootstrap method use - standard or segment (if applicable)
 #'         \item group_var1: First grouping variable used (if any)
 #'         \item group_var2: Second grouping variable used (if any)
 #'         \item subgr: Subgroup criteria used (if any)
@@ -104,6 +110,7 @@
 #' }
 #'
 #' @export
+# Create metadata about the calculation
 calc_te <- function(df,
                           subgroup = NULL,
                           var1 = NULL,
@@ -125,14 +132,36 @@ calc_te <- function(df,
   # Validate input data
   validate_te_data(df, subgroup, var1, var2)
 
+  # Validate bootstrap parameter
+  if (!is.null(bootstrap)) {
+    valid_bootstrap_values <- c(TRUE, FALSE, "standard", "segment")
+
+    if (!(is.logical(bootstrap) || is.character(bootstrap))) {
+      stop("Invalid bootstrap parameter type. Must be logical (TRUE/FALSE) or character ('standard'/'segment').")
+    }
+
+    if (is.character(bootstrap) && !(bootstrap %in% valid_bootstrap_values)) {
+      stop(paste0("Invalid bootstrap value: '", bootstrap, "'. Valid values are: TRUE, FALSE, 'standard', or 'segment'."))
+    }
+
+    # Handle backward compatibility - normalize values
+    if (bootstrap == TRUE) {
+      bootstrap <- "standard"  # Normalize to string version for consistency
+    }
+  }
+
   # Base calculations
   base_results <- calculate_te(df, subgroup, var1, var2, min_loset_warning)
 
   bootstrap_results = NULL
-  if (bootstrap) {
+  if (bootstrap == "standard") {
     bootstrap_results <- calculate_te_bootstrap(df, bootstrap_params, n_workers,
                                                 subgroup, var1, var2,
                                                 min_loset_warning, seed)
+  } else if (bootstrap == "segment") {
+    bootstrap_results <- calculate_te_segment_bootstrap(df, bootstrap_params, n_workers,
+                                                      subgroup, var1, var2,
+                                                      min_loset_warning, seed)
   }
 
 
@@ -149,7 +178,7 @@ calc_te <- function(df,
     }
   }
 
-  if (bootstrap && check_convergence) {
+  if ((bootstrap == "standard" || bootstrap == "segment") && check_convergence) {
     final_results$convergence <- analyze_bootstrap_convergence(final_results,
                                                                subgroup, var1, var2)
   }
@@ -611,6 +640,7 @@ validate_results <- function(results, min_loset_warning) {
 #' @param var1 Optional string for first comparison variable
 #' @param var2 Optional string for second comparison variable
 #' @param min_loset_warning will be sent onward to check if a valid amount of loset cases exists
+#' @param seed Seed for reproducible results
 #'
 #' @return List containing metrics, distributions, and convergence information
 #'
@@ -659,16 +689,129 @@ calculate_te_bootstrap <- function(df, bootstrap_params, n_workers,
 
   # Create grouped structure based on input parameters
   results <- create_grouping(results_df, subgroup, var1, var2)
+  return(calculate_bootstrap_metrics(results, results_df, bootstrap_params, "standard"))
+
+}
+
+
+
+#' Calculate Triage Effectiveness with Segment Bootstrap
+#'
+#' @param df Data frame containing patient data
+#' @param bootstrap_params List of bootstrap parameters
+#' @param n_workers Number of workers for parallel processing
+#' @param subgroup Optional list for subgroup analysis
+#' @param var1 Optional string for first comparison variable
+#' @param var2 Optional string for second comparison variable
+#' @param min_loset_warning Minimum number of LOSET cases before warning is issued
+#' @param seed Seed for reproducible results
+#'
+#' @return List containing metrics, distributions, and method information
+#'
+#' @details
+#' Performs segment-based bootstrap analysis of TE metrics, where entire queue
+#' segments are resampled rather than individual patients. This approach preserves
+#' temporal dependencies and queue dynamics within segments, providing more
+#' statistically valid confidence intervals for time series queue data.
+#'
+#' Key differences from standard bootstrapping:
+#' \itemize{
+#'   \item Segments (periods where queue goes from 0 to 0) are the resampling unit
+#'   \item Temporal patterns and dependencies within segments are preserved
+#'   \item More accurately reflects uncertainty in systems with queue dynamics
+#' }
+#'
+#' @keywords internal
+calculate_te_segment_bootstrap <- function(df, bootstrap_params, n_workers,
+                                         subgroup, var1, var2, min_loset_warning,
+                                         seed) {
+
+  # Set seed if provided
+  if (!is.null(seed)) {
+    set.seed(seed)
+  }
+
+  # Create segments with included segmentation logic
+  print(paste("Creating segments for segment bootstrap", Sys.time()))
+  segments <- create_segments(df, n_workers)
+
+  # Calculate sample size based on number of segments
+  n_segments <- length(segments)
+  n_samples <- floor(n_segments * bootstrap_params$sample_percentage)
+
+  print(paste("Starting segment bootstrap with", n_segments, "segments,",
+              n_samples, "samples per iteration,",
+              bootstrap_params$n_iterations, "iterations", Sys.time()))
+
+  # Set up parallel processing
+  setup_parallel(n_workers = n_workers)
+  on.exit(cleanup_parallel())
+
+  # Initialize progress reporting
+  init_progressr()
+
+  # Perform bootstrap iterations with progress bar
+  bootstrap_results <- with_progress({
+    p <- progressor(steps = bootstrap_params$n_iterations)
+    future_map(1:bootstrap_params$n_iterations, function(i) {
+      # Sample segments with replacement
+      sampled_segment_indices <- sample(n_segments, size = n_samples, replace = TRUE)
+      sampled_segments <- segments[sampled_segment_indices]
+
+      # Combine segments into a full dataset
+      boot_sample <- bind_rows(sampled_segments)
+
+      # Calculate TE using existing functions
+      result <- calculate_te(boot_sample, subgroup, var1, var2, min_loset_warning)
+      p()
+      result
+    }, .options = furrr_options(seed = TRUE))
+  })
+  print(paste("Block bootstrap iterations done", Sys.time()))
+
+  # Convert list of results to a more manageable format
+  results_df <- bind_rows(bootstrap_results, .id = "iteration")
+
+  # Create grouped structure based on input parameters
+  results <- create_grouping(results_df, subgroup, var1, var2)
 
   # Calculate variation metrics using existing grouping
+  return(calculate_bootstrap_metrics(results, results_df, bootstrap_params, "segment"))
+}
+
+
+
+#' Calculate Bootstrap Metrics for Triage Effectiveness
+#'
+#' @description
+#' This function performs bootstrap analysis on Triage Effectiveness data, calculating
+#' confidence intervals and statistical properties of TE metrics.
+#'
+#' @param results A list containing the complete calculation results
+#' @param results_df A data frame containing the summarized TE results
+#' @param bootstrap_params A list containing bootstrap parameters:
+#'   \itemize{
+#'     \item sample_percentage: Percentage of data to sample in each iteration
+#'     \item n_iterations: Number of bootstrap iterations
+#'     \item distribution_span: Width of confidence interval
+#'   }
+#' @param method Character string specifying the bootstrap method ("standard" or "segment")
+#'
+#' @return A modified results data frame with added bootstrap metrics
+#'
+#' @keywords internal
+calculate_bootstrap_metrics <- function(results, results_df, bootstrap_params, method) {
+  # Calculate confidence interval boundaries
   alpha <- (1 - bootstrap_params$distribution_span) / 2
+
+  # Calculate variation metrics
   variation_metrics <- results %>%
     summarise(
       # OTE metrics
       boot_ote_mean = mean(ote_te, na.rm = TRUE),
       boot_ote_sd = sd(ote_te, na.rm = TRUE),
       boot_ote_sd_q = (quantile(ote_te, 0.75, na.rm = TRUE) -
-                            quantile(ote_te, 0.25, na.rm = TRUE)) / 1.349,
+                         quantile(ote_te, 0.25, na.rm = TRUE)) / 1.349,
       boot_ote_var_lower = quantile(ote_te, probs = alpha, na.rm = TRUE),
       boot_ote_var_upper = quantile(ote_te, probs = 1 - alpha, na.rm = TRUE),
 
@@ -676,7 +819,7 @@ calculate_te_bootstrap <- function(df, bootstrap_params, n_workers,
       boot_tte_mean = mean(tte_te, na.rm = TRUE),
       boot_tte_sd = sd(tte_te, na.rm = TRUE),
       boot_tte_sd_q = (quantile(tte_te, 0.75, na.rm = TRUE) -
-                            quantile(tte_te, 0.25, na.rm = TRUE)) / 1.349,
+                         quantile(tte_te, 0.25, na.rm = TRUE)) / 1.349,
       boot_tte_var_lower = quantile(tte_te, probs = alpha, na.rm = TRUE),
       boot_tte_var_upper = quantile(tte_te, probs = 1 - alpha, na.rm = TRUE),
 
@@ -684,7 +827,7 @@ calculate_te_bootstrap <- function(df, bootstrap_params, n_workers,
       boot_btte_mean = mean(btte_te, na.rm = TRUE),
       boot_btte_sd = sd(btte_te, na.rm = TRUE),
       boot_btte_sd_q = (quantile(btte_te, 0.75, na.rm = TRUE) -
-                             quantile(btte_te, 0.25, na.rm = TRUE)) / 1.349,
+                          quantile(btte_te, 0.25, na.rm = TRUE)) / 1.349,
       boot_btte_var_lower = quantile(btte_te, probs = alpha, na.rm = TRUE),
       boot_btte_var_upper = quantile(btte_te, probs = 1 - alpha, na.rm = TRUE),
 
@@ -694,17 +837,18 @@ calculate_te_bootstrap <- function(df, bootstrap_params, n_workers,
       .groups = 'drop'
     )
 
-
   variation_metrics <- variation_metrics %>%
     ungroup()
 
-  # Return results
+  # Return structured results
   list(
     metrics = variation_metrics,
     distributions = results_df,
-    params = bootstrap_params
+    params = bootstrap_params,
+    method = method
   )
 }
+
 
 
 #' Combine Base Results with Bootstrap Results
@@ -746,6 +890,7 @@ combine_results <- function(base_results, bootstrap_results, var1, var2, subgrou
   metadata <- list(
     calculation_time = Sys.time(),
     bootstrap_params = bootstrap_results$params,
+    bootstrap_method = bootstrap_results$method,
     group_var1 = var1,
     group_var2 = var2,
     subgr = subgroup

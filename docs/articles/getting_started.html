@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">trieff</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,7 +78,7 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://AndreJohanssonLund.github.io/trieff/" class="external-link">trieff</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loaded trieff 0.8.5</span></span>
+<span><span class="co">#&gt; Loaded trieff 0.8.6</span></span>
 <span><span class="co">#&gt; System capable of parallel processing with multisession backend</span></span>
 <span><span class="co">#&gt; Maximum available workers: 16</span></span>
 <span><span class="co">#&gt; Note: Individual functions will determine optimal core usage at runtime</span></span></code></pre></div>
@@ -136,13 +136,13 @@ seen strictly in order of their assigned priority:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Run simulation for theoretical wait times</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_te.html">sim_te</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-05 12:40:03.573664"</span></span>
+<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-25 12:21:48.428796"</span></span>
 <span><span class="co">#&gt; [1] "Initial segments: 3 Total patients: 124311"</span></span>
 <span><span class="co">#&gt; [1] "Filtered to 3 segments with LOSET cases"</span></span>
 <span><span class="co">#&gt; [1] "Total LOSET cases: 5491"</span></span>
-<span><span class="co">#&gt; [1] "Creating batches 2025-02-05 12:40:03.690045"</span></span>
-<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-02-05 12:40:03.69014"</span></span>
-<span><span class="co">#&gt; [1] "Simulations are done! 2025-02-05 12:40:53.268721"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Creating batches 2025-02-25 12:21:48.545995"</span></span>
+<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-02-25 12:21:48.546101"</span></span>
+<span><span class="co">#&gt; [1] "Simulations are done! 2025-02-25 12:22:42.024384"</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="calculate-triage-effectiveness">3. Calculate Triage Effectiveness<a class="anchor" aria-label="anchor" href="#calculate-triage-effectiveness"></a>
@@ -173,7 +173,7 @@ Theoretical Triage Effectiveness (TTE):</p>
 <span><span class="co">#&gt; Computation Information</span></span>
 <span><span class="co">#&gt; =====================</span></span>
 <span><span class="co">#&gt; Method: Direct calculation</span></span>
-<span><span class="co">#&gt; Calculation time: 2025-02-05 12:40:53.359302</span></span></code></pre></div>
+<span><span class="co">#&gt; Calculation time: 2025-02-25 12:22:42.116268</span></span></code></pre></div>
 <p>The results show us: - OTE: How well the ED actually performed - TTE:
 How well it would have performed based on triage decisions alone - OTG
 (Observed-Theoretical Gap): The difference between OTE and TTE,

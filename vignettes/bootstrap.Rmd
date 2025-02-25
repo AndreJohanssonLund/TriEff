@@ -31,23 +31,24 @@ Bootstrap analysis in trieff provides confidence intervals for Triage Effectiven
 
 The confidence intervals calculated here can be visualized using the plotting functions described in `vignette("plot_te")`. The visualization provides an intuitive way to understand the uncertainty in TE estimates.
 
-Bootstrapping works by sampling a randomly from the population, calculating TE from the sample and saving this value. After n samples (default: 2000) the variability in the metrics can be calculated.
+Two bootstrapping methods are available in trieff:
+
+1. **Standard Bootstrap**: Traditional approach that randomly samples individual cases with replacement.
+2. **Segment Bootstrap**: Advanced approach that preserves temporal patterns by sampling segments of continuous queue activity.
+
+Both methods work by repeatedly sampling from the dataset, calculating TE metrics for each sample, and using the distribution of these calculations to estimate confidence intervals.
 
 ## Prerequisites
 - Knowledge on basic TE calculation (see `vignette("calc_te")`)
 - Simulated theoretical wait times (see `vignette("sim_te")`)
-
 
 ## Why Bootstrap?
 
 Bootstrapping helps us understand:
 
 - The reliability of our TE metrics
-
 - The stability of our estimates
-
 - The impact of rare events and outliers
-
 
 For reliable bootstrap analysis, we recommend using at least 3 months of ED data, though this guideline is based on preliminary analysis and may need adjustment for your specific context.
 
@@ -76,6 +77,7 @@ The bootstrap process can be customized using several parameters:
 te_custom <- calc_te(data,
                      bootstrap = TRUE,
                      overall_only = TRUE,
+                     seed = 123, # use seed to make your results reproducible
                      bootstrap_params = list(
                        sample_percentage = 0.8,  # Use 80% of data per iteration
                        n_iterations = 1000,      # decrease iterations
@@ -88,41 +90,113 @@ print(te_custom)
 Key parameters:
 
 - sample_percentage: Controls resample size (default = 1)
-
 - n_iterations: Number of bootstrap iterations (default = 2000)
-
 - distribution_span: Width of confidence intervals (default = 0.95)
+
+## Standard vs. Segment Bootstrap
+
+The trieff package offers two different bootstrapping methods, each with its own strengths:
+
+### Standard Bootstrap
+
+The standard bootstrap method (`bootstrap = "standard"` or simply `bootstrap = TRUE`) randomly samples individual patient cases with replacement. This is the traditional bootstrap approach.
+
+```{r standard-bootstrap}
+# Standard bootstrap
+standard_bootstrap <- calc_te(data,
+                             bootstrap = "standard")
+
+plot_te(standard_bootstrap)
+```
+
+### Segment Bootstrap
+
+The segment bootstrap method (`bootstrap = "segment"`) preserves temporal patterns by sampling segments of continuous queue activity. This approach maintains the dependency structure between patients who were in the ED during the same time period.
+
+```{r segment-bootstrap}
+# Segment bootstrap
+segment_bootstrap <- calc_te(data,
+                            bootstrap = "segment")
+
+plot_te(segment_bootstrap)
+```
+
+### When to Use Each Method
+
+- **Standard Bootstrap**: Use when cases can be considered independent or when computational efficiency is a priority (it is about 6 times faster).
+
+- **Segment Bootstrap**: Use when temporal patterns and dependencies between concurrent patients are important. This method is particularly valuable for:
+  * Data with strong temporal variations (e.g., day/night differences)
+  * Analysis of systems where queue dynamics significantly impact patient flow
+  * Studies focusing on crowding or surge effects
+
+We recomend that segment bootstrapping should be the standard when looking at Emergency department data.
+
+## Comparing Bootstrap Methods
+
+The two methods often produce similar confidence intervals with segment bootstrapping often giving slightly wider intervals but somtimes slighly narrower, however the segment version is theoretically more valid based on assumptions of independence of data, which queue data cannot be said to have.
+
+```{r compare-methods}
+# Function to extract confidence intervals
+get_ci_width <- function(result) {
+  ci_width <- result$results %>%
+    mutate(ote_ci_width = boot_ote_var_upper - boot_ote_var_lower) %>%
+    select(unit, ote_ci_width)
+  return(ci_width)
+}
+
+# Compare CI widths
+standard_ci <- get_ci_width(standard_bootstrap)
+segment_ci <- get_ci_width(segment_bootstrap)
+
+# Display results
+comparison <- standard_ci %>%
+  left_join(segment_ci, by = "unit", suffix = c("_standard", "_segment")) %>%
+  mutate(difference = ote_ci_width_segment - ote_ci_width_standard)
+
+print(comparison)
+```
+
+
+## How Segment Bootstrap Works
+
+The segment bootstrap can be described by a custom block bootstrap that operates by:
+
+1. Identifying segments of continuous queue activity (periods where the queue starts at 0 and ends at 0)
+2. Sampling these segments with replacement
+3. Calculating TE metrics for each resampled dataset
+
+This approach preserves the temporal structure of patient flow, including:
+
+- Arrival patterns
+
+- Concurrent cases
+
+- Crowding effects
+
+- Priority interrelationships
+
+While block bootstrapping reduces the effect of temporal effects, we argue that this approach should remove this effect altogether.
+
 
 ## Convergence Analysis
 
 Convergence analysis helps verify that our bootstrap estimates are stable. When check_convergence=TRUE (which it is by standard), calc_te generates three types of diagnostic plots:
 
 1. Running Mean Plot
-
    - Shows how the average TE estimate evolves with more iterations
-   
    - Should stabilize to a roughly horizontal line
-   
    - Large fluctuations at the end suggest need for more iterations
 
-
 2. CI Width Plot
-
    - Shows how confidence interval width changes with iterations
-   
    - Should decrease and stabilize
-   
    - Continued narrowing suggests potential for more precise estimates
 
-
 3. Standard Error Plot
-
    - Shows how the standard error of estimates changes
-   
    - Should decrease and stabilize
-   
    - Helps assess estimate precision
-   
 
 Let's examine convergence for our analysis:
 
@@ -138,34 +212,25 @@ print(te_convergence$convergence)
 ```
 
 Interpreting convergence plots:
-
 - Look for stabilization in all three metrics
-
 - Check if late iterations show systematic changes
-
 - Verify CI width has reached reasonable stability
 
-
 If convergence looks poor, consider:
-
 - Increasing n_iterations
-
 - Checking for data quality issues
-
 - Verifying sufficient sample size
-
 
 ## Summary
 
 Bootstrap analysis in trieff provides valuable insights into the reliability of TE metrics. Key points:
 
 1. Use bootstrapping to get confidence intervals for TE metrics
-
-2. Verify convergence using diagnostic plots
-
-3. Adjust parameters based on dataset size and precision needs
-
-4. Consider computational resources for large datasets
-
+2. Choose the appropriate bootstrap method:
+   - Standard bootstrap for independent cases
+   - Segment bootstrap for preserving temporal patterns
+3. Verify convergence using diagnostic plots
+4. Adjust parameters based on dataset size and precision needs
+5. Consider computational resources for large datasets
 
 Remember that while bootstrapping provides valuable statistical information, it should be combined with domain knowledge and practical considerations when evaluating triage system performance.

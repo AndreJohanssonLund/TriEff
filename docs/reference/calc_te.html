@@ -11,7 +11,7 @@ Note the separate help section on convergence documentation."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">trieff</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -95,13 +95,16 @@ Note the separate help section on convergence documentation.</p>
 
 
 <dt id="arg-bootstrap">bootstrap<a class="anchor" aria-label="anchor" href="#arg-bootstrap"></a></dt>
-<dd><p>Logical. Whether to perform bootstrap calculations</p></dd>
+<dd><p>Logical or character. Whether to perform bootstrap calculations and what method to use:</p><ul><li><p>FALSE: No bootstrapping (default)</p></li>
+<li><p>TRUE or "standard": Standard patient-level bootstrapping</p></li>
+<li><p>"segment": A custom type of Block bootstrapping using queue segments</p></li>
+</ul></dd>
 
 
 <dt id="arg-bootstrap-params">bootstrap_params<a class="anchor" aria-label="anchor" href="#arg-bootstrap-params"></a></dt>
-<dd><p>List of bootstrap parameters:</p><ul><li><p>sample_percentage (default: 1)</p></li>
-<li><p>n_iterations (default: 2000)</p></li>
-<li><p>distribution_span (default: 0.95)</p></li>
+<dd><p>List of bootstrap parameters:</p><ul><li><p>sample_percentage (default: 1) How large of the sample is used? 1 = full sample. In segment bootstrapping this reffers to the percentage of samples that are used</p></li>
+<li><p>n_iterations (default: 2000) How many bootstrap iterations to use</p></li>
+<li><p>distribution_span (default: 0.95) What is the confidence interval used?</p></li>
 </ul></dd>
 
 
@@ -143,17 +146,17 @@ Note the separate help section on convergence documentation.</p>
 <li><p>specificity: True negative rate for identifying non-time-critical patients</p></li>
 <li><p>boot_ote_mean: Bootstrap mean for OTE (if bootstrap=TRUE)</p></li>
 <li><p>boot_ote_sd: Bootstrap standard deviation for OTE</p></li>
-<li><p>boot_ote_sd_q: Robust standard deviation for OTE based on IQR</p></li>
+<li><p>boot_ote_sd_q: Robust standard deviation for OTE based on IQR, Calculated as IQR/1.349</p></li>
 <li><p>boot_ote_var_lower: Lower bound of OTE confidence interval</p></li>
 <li><p>boot_ote_var_upper: Upper bound of OTE confidence interval</p></li>
 <li><p>boot_tte_mean: Bootstrap mean for TTE</p></li>
 <li><p>boot_tte_sd: Bootstrap standard deviation for TTE</p></li>
-<li><p>boot_tte_sd_q: Robust standard deviation for TTE based on IQR</p></li>
+<li><p>boot_tte_sd_q: Robust standard deviation for TTE based on IQR, Calculated as IQR/1.349</p></li>
 <li><p>boot_tte_var_lower: Lower bound of TTE confidence interval</p></li>
 <li><p>boot_tte_var_upper: Upper bound of TTE confidence interval</p></li>
 <li><p>boot_btte_mean: Bootstrap mean for BTTE</p></li>
 <li><p>boot_btte_sd: Bootstrap standard deviation for BTTE</p></li>
-<li><p>boot_btte_sd_q: Robust standard deviation for BTTE based on IQR</p></li>
+<li><p>boot_btte_sd_q: Robust standard deviation for BTTE based on IQR, Calculated as IQR/1.349</p></li>
 <li><p>boot_btte_var_lower: Lower bound of BTTE confidence interval</p></li>
 <li><p>boot_btte_var_upper: Upper bound of BTTE confidence interval</p></li>
 <li><p>boot_mean_n_patients: Mean number of patients across bootstrap samples</p></li>
@@ -164,6 +167,7 @@ Note the separate help section on convergence documentation.</p>
 <li><p>n_iterations: Number of bootstrap iterations performed</p></li>
 <li><p>distribution_span: Width of confidence intervals (e.g., 0.95 for 95% CI)</p></li>
 </ul></li>
+<li><p>bootstrap_method: Type of bootstrap method use - standard or segment (if applicable)</p></li>
 <li><p>group_var1: First grouping variable used (if any)</p></li>
 <li><p>group_var2: Second grouping variable used (if any)</p></li>
 <li><p>subgr: Subgroup criteria used (if any)</p></li>
