@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">trieff</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,6 +48,7 @@
     <li><a class="dropdown-item" href="../articles/publications.html">Publications Using trieff</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">News</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -78,7 +79,7 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://AndreJohanssonLund.github.io/trieff/" class="external-link">trieff</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loaded trieff 0.8.6</span></span>
+<span><span class="co">#&gt; Loaded trieff 0.8.7</span></span>
 <span><span class="co">#&gt; System capable of parallel processing with multisession backend</span></span>
 <span><span class="co">#&gt; Maximum available workers: 16</span></span>
 <span><span class="co">#&gt; Note: Individual functions will determine optimal core usage at runtime</span></span>
@@ -95,13 +96,11 @@
 <span><span class="co"># Initialize data once at the start</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/init.html">init</a></span><span class="op">(</span><span class="va">sem_malmo_synth</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/sim_te.html">sim_te</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-25 12:18:12.661321"</span></span>
-<span><span class="co">#&gt; [1] "Initial segments: 9784 Total patients: 124311"</span></span>
+<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-26 07:31:46.659185"</span></span>
 <span><span class="co">#&gt; [1] "Filtered to 1486 segments with LOSET cases"</span></span>
 <span><span class="co">#&gt; [1] "Total LOSET cases: 5491"</span></span>
-<span><span class="co">#&gt; [1] "Creating batches 2025-02-25 12:18:18.163727"</span></span>
-<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-02-25 12:18:18.170069"</span></span>
-<span><span class="co">#&gt; [1] "Simulations are done! 2025-02-25 12:18:22.853399"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-02-26 07:31:46.799846"</span></span>
+<span><span class="co">#&gt; [1] "Simulations are done! 2025-02-26 07:31:51.195679"</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
@@ -160,8 +159,8 @@ We’ll use overall_only=TRUE to keep the output focused:</p>
 <span><span class="va">te_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_te.html">calc_te</a></span><span class="op">(</span><span class="va">data</span>, </span>
 <span>                     bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>                     overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-02-25 12:18:23.379289"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-02-25 12:18:42.551348"</span></span>
+<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-02-26 07:31:51.898334"</span></span>
+<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-02-26 07:32:10.705499"</span></span>
 <span></span>
 <span><span class="co"># View results</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">te_results</span><span class="op">)</span></span>
@@ -193,7 +192,7 @@ We’ll use overall_only=TRUE to keep the output focused:</p>
 <span><span class="co">#&gt; Number of iterations: 2000</span></span>
 <span><span class="co">#&gt; Sample percentage: 100%</span></span>
 <span><span class="co">#&gt; Distribution span: 95%</span></span>
-<span><span class="co">#&gt; Calculation time: 2025-02-25 12:18:42.570381</span></span></code></pre></div>
+<span><span class="co">#&gt; Calculation time: 2025-02-26 07:32:10.721789</span></span></code></pre></div>
 <p>The output now includes confidence intervals for each TE metric,
 showing the uncertainty in our estimates.</p>
 </div>
@@ -212,8 +211,8 @@ showing the uncertainty in our estimates.</p>
 <span>                       n_iterations <span class="op">=</span> <span class="fl">1000</span>,      <span class="co"># decrease iterations</span></span>
 <span>                       distribution_span <span class="op">=</span> <span class="fl">0.99</span>  <span class="co"># Wider confidence intervals</span></span>
 <span>                     <span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-02-25 12:18:42.970912"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-02-25 12:18:53.235534"</span></span>
+<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-02-26 07:32:11.117514"</span></span>
+<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-02-26 07:32:21.423947"</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">te_custom</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -244,7 +243,7 @@ showing the uncertainty in our estimates.</p>
 <span><span class="co">#&gt; Number of iterations: 1000</span></span>
 <span><span class="co">#&gt; Sample percentage: 80%</span></span>
 <span><span class="co">#&gt; Distribution span: 99%</span></span>
-<span><span class="co">#&gt; Calculation time: 2025-02-25 12:18:53.246096</span></span></code></pre></div>
+<span><span class="co">#&gt; Calculation time: 2025-02-26 07:32:21.434391</span></span></code></pre></div>
 <p>Key parameters:</p>
 <ul>
 <li>sample_percentage: Controls resample size (default = 1)</li>
@@ -269,8 +268,8 @@ approach.</p>
 <code class="sourceCode R"><span><span class="co"># Standard bootstrap</span></span>
 <span><span class="va">standard_bootstrap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_te.html">calc_te</a></span><span class="op">(</span><span class="va">data</span>,</span>
 <span>                             bootstrap <span class="op">=</span> <span class="st">"standard"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-02-25 12:18:53.61837"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-02-25 12:19:13.80191"</span></span>
+<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-02-26 07:32:21.823983"</span></span>
+<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-02-26 07:32:40.712829"</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">standard_bootstrap</span><span class="op">)</span></span></code></pre></div>
 <p><img src="bootstrap_files/figure-html/standard-bootstrap-1.png" width="960"></p>
@@ -286,9 +285,9 @@ patients who were in the ED during the same time period.</p>
 <code class="sourceCode R"><span><span class="co"># Segment bootstrap</span></span>
 <span><span class="va">segment_bootstrap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_te.html">calc_te</a></span><span class="op">(</span><span class="va">data</span>,</span>
 <span>                            bootstrap <span class="op">=</span> <span class="st">"segment"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Creating segments for segment bootstrap 2025-02-25 12:19:14.285367"</span></span>
-<span><span class="co">#&gt; [1] "Starting segment bootstrap with 9784 segments, 9784 samples per iteration, 2000 iterations 2025-02-25 12:19:18.521017"</span></span>
-<span><span class="co">#&gt; [1] "Block bootstrap iterations done 2025-02-25 12:21:06.357685"</span></span>
+<span><span class="co">#&gt; [1] "Creating segments for segment bootstrap 2025-02-26 07:32:41.21773"</span></span>
+<span><span class="co">#&gt; [1] "Starting segment bootstrap with 9784 unit-segment pairs, 9784 samples per iteration, 2000 iterations 2025-02-26 07:32:42.696254"</span></span>
+<span><span class="co">#&gt; [1] "Segment bootstrap iterations done 2025-02-26 07:32:53.961683"</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">segment_bootstrap</span><span class="op">)</span></span></code></pre></div>
 <p><img src="bootstrap_files/figure-html/segment-bootstrap-1.png" width="960"></p>
@@ -347,10 +346,10 @@ cannot be said to have.</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 4</span></span></span>
 <span><span class="co">#&gt;   unit        ote_ci_width_standard ote_ci_width_segment difference</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> overall                    0.060<span style="text-decoration: underline;">9</span>               0.067<span style="text-decoration: underline;">9</span>    0.007<span style="text-decoration: underline;">05</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> medical                    0.065<span style="text-decoration: underline;">9</span>               0.080<span style="text-decoration: underline;">9</span>    0.015<span style="text-decoration: underline;">0</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> orthopedics                0.314                0.307    -<span style="color: #BB0000;">0.007</span><span style="color: #BB0000; text-decoration: underline;">02</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> surgical                   0.128                0.137     0.009<span style="text-decoration: underline;">63</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> overall                    0.060<span style="text-decoration: underline;">9</span>               0.068<span style="text-decoration: underline;">0</span>   0.007<span style="text-decoration: underline;">12</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> medical                    0.065<span style="text-decoration: underline;">9</span>               0.082<span style="text-decoration: underline;">2</span>   0.016<span style="text-decoration: underline;">3</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> orthopedics                0.314                0.315    0.000<span style="text-decoration: underline;">394</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> surgical                   0.128                0.127   -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">06</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="how-segment-bootstrap-works">How Segment Bootstrap Works<a class="anchor" aria-label="anchor" href="#how-segment-bootstrap-works"></a>
@@ -411,8 +410,8 @@ estimates</li>
 <span>                         bootstrap <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                         overall_only <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                         check_convergence <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-02-25 12:21:07.199906"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-02-25 12:21:26.991941"</span></span>
+<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-02-26 07:32:54.802689"</span></span>
+<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-02-26 07:33:13.698503"</span></span>
 <span></span>
 <span><span class="co"># View convergence plots</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">te_convergence</span><span class="op">$</span><span class="va">convergence</span><span class="op">)</span></span>

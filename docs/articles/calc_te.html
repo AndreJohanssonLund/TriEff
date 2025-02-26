@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">trieff</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.7</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,6 +48,7 @@
     <li><a class="dropdown-item" href="../articles/publications.html">Publications Using trieff</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">News</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -78,7 +79,7 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://AndreJohanssonLund.github.io/trieff/" class="external-link">trieff</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loaded trieff 0.8.6</span></span>
+<span><span class="co">#&gt; Loaded trieff 0.8.7</span></span>
 <span><span class="co">#&gt; System capable of parallel processing with multisession backend</span></span>
 <span><span class="co">#&gt; Maximum available workers: 16</span></span>
 <span><span class="co">#&gt; Note: Individual functions will determine optimal core usage at runtime</span></span>
@@ -126,13 +127,11 @@ they typically operate as independent queues:</p>
 <span></span>
 <span><span class="co"># Run simulation to get theoretical wait times</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_te.html">sim_te</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-25 12:21:32.940701"</span></span>
-<span><span class="co">#&gt; [1] "Initial segments: 9784 Total patients: 124311"</span></span>
+<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-26 07:33:19.854962"</span></span>
 <span><span class="co">#&gt; [1] "Filtered to 1486 segments with LOSET cases"</span></span>
 <span><span class="co">#&gt; [1] "Total LOSET cases: 5491"</span></span>
-<span><span class="co">#&gt; [1] "Creating batches 2025-02-25 12:21:38.535041"</span></span>
-<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-02-25 12:21:38.544466"</span></span>
-<span><span class="co">#&gt; [1] "Simulations are done! 2025-02-25 12:21:43.436367"</span></span>
+<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-02-26 07:33:19.988719"</span></span>
+<span><span class="co">#&gt; [1] "Simulations are done! 2025-02-26 07:33:24.876778"</span></span>
 <span></span>
 <span><span class="co"># Calculate TE metrics</span></span>
 <span><span class="va">te_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_te.html">calc_te</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
@@ -198,7 +197,7 @@ they typically operate as independent queues:</p>
 <span><span class="co">#&gt; Computation Information</span></span>
 <span><span class="co">#&gt; =====================</span></span>
 <span><span class="co">#&gt; Method: Direct calculation</span></span>
-<span><span class="co">#&gt; Calculation time: 2025-02-25 12:21:43.528483</span></span></code></pre></div>
+<span><span class="co">#&gt; Calculation time: 2025-02-26 07:33:25.16646</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="overall-results-only">Overall Results Only<a class="anchor" aria-label="anchor" href="#overall-results-only"></a>
@@ -234,7 +233,7 @@ introduce it here:</p>
 <span><span class="co">#&gt; Computation Information</span></span>
 <span><span class="co">#&gt; =====================</span></span>
 <span><span class="co">#&gt; Method: Direct calculation</span></span>
-<span><span class="co">#&gt; Calculation time: 2025-02-25 12:21:43.578031</span></span></code></pre></div>
+<span><span class="co">#&gt; Calculation time: 2025-02-26 07:33:25.212052</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="subgroup-analysis">Subgroup Analysis<a class="anchor" aria-label="anchor" href="#subgroup-analysis"></a>
@@ -417,7 +416,7 @@ and age group:</p>
 <span><span class="co">#&gt; Computation Information</span></span>
 <span><span class="co">#&gt; =====================</span></span>
 <span><span class="co">#&gt; Method: Direct calculation</span></span>
-<span><span class="co">#&gt; Calculation time: 2025-02-25 12:21:43.625249</span></span></code></pre></div>
+<span><span class="co">#&gt; Calculation time: 2025-02-26 07:33:25.25924</span></span></code></pre></div>
 <p>For a clearer overview when working with subgroups, we can use
 <code>overall_only</code> to focus on the main patterns:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -472,7 +471,7 @@ and age group:</p>
 <span><span class="co">#&gt; Computation Information</span></span>
 <span><span class="co">#&gt; =====================</span></span>
 <span><span class="co">#&gt; Method: Direct calculation</span></span>
-<span><span class="co">#&gt; Calculation time: 2025-02-25 12:21:43.685488</span></span></code></pre></div>
+<span><span class="co">#&gt; Calculation time: 2025-02-26 07:33:25.321641</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a>
