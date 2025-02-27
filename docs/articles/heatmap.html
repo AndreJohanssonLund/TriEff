@@ -175,11 +175,11 @@ from 0.</li>
 <span><span class="co"># WARNING: Even with this small dataset, this may take several minutes</span></span>
 <span><span class="va">heatmap_data</span> <span class="op">&lt;-</span> <span class="va">data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/sim_heat.html">sim_heat</a></span><span class="op">(</span>n_workers <span class="op">=</span> <span class="fl">12</span>, step_size <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-26 07:34:25.793805"</span></span>
+<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-27 09:49:33.411072"</span></span>
 <span><span class="co">#&gt; [1] "Identified segments, filtering LOSET segments.."</span></span>
 <span><span class="co">#&gt; [1] "Processing 527 segments with LOSET cases"</span></span>
-<span><span class="co">#&gt; [1] "Starting simulations with  combinations 2025-02-26 07:34:26.865474"</span></span>
-<span><span class="co">#&gt; [1] "Simulations complete 2025-02-26 07:35:14.046014"</span></span>
+<span><span class="co">#&gt; [1] "Starting simulations with  combinations 2025-02-27 09:49:34.503491"</span></span>
+<span><span class="co">#&gt; [1] "Simulations complete 2025-02-27 09:50:23.269134"</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plot_te_heatmap.html">plot_te_heatmap</a></span><span class="op">(</span><span class="va">heatmap_data</span><span class="op">)</span> <span class="co"># Create heatmap</span></span></code></pre></div>
 <p><img src="heatmap_files/figure-html/example_of_heatmap-1.png" alt="A heatmap showing TE over Sensitivity/specificity, unnormalized" width="672"></p>
@@ -197,11 +197,11 @@ accessed using <code>alt_calc = TRUE</code> in
 <code class="sourceCode R"><span><span class="co"># Example of alternative calculations</span></span>
 <span><span class="va">alt_calc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_heat_alt.html">sim_heat_alt</a></span><span class="op">(</span><span class="va">data</span>, alt_calc <span class="op">=</span> <span class="cn">TRUE</span>, step_size <span class="op">=</span> <span class="fl">25</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/plot_te_heatmap.html">plot_te_heatmap</a></span><span class="op">(</span>show_alt_calc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-26 07:35:14.382921"</span></span>
+<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-27 09:50:23.635482"</span></span>
 <span><span class="co">#&gt; [1] "Processing segments."</span></span>
-<span><span class="co">#&gt; [1] "Calculating global median from reference simulation 2025-02-26 07:35:15.129246"</span></span>
-<span><span class="co">#&gt; [1] "Starting simulations with  combinations 2025-02-26 07:35:18.862977"</span></span>
-<span><span class="co">#&gt; [1] "Simulations complete 2025-02-26 07:35:34.088653"</span></span>
+<span><span class="co">#&gt; [1] "Calculating global median from reference simulation 2025-02-27 09:50:24.391835"</span></span>
+<span><span class="co">#&gt; [1] "Starting simulations with  combinations 2025-02-27 09:50:28.179573"</span></span>
+<span><span class="co">#&gt; [1] "Simulations complete 2025-02-27 09:50:43.722627"</span></span>
 <span></span>
 <span><span class="va">alt_calc</span><span class="op">$</span><span class="va">te_batch</span> <span class="co"># The first possible alternative heat map</span></span></code></pre></div>
 <p><img src="heatmap_files/figure-html/example_alt_calc_1-1.png" alt="The first of three heatmaps from the alternative calculations - plain TE where TE is calculated based on on different normalisation techniques" width="960"></p>

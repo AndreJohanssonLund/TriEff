@@ -96,11 +96,11 @@
 <span><span class="co"># Initialize data once at the start</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/init.html">init</a></span><span class="op">(</span><span class="va">sem_malmo_synth</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/sim_te.html">sim_te</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-26 07:31:46.659185"</span></span>
+<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-02-27 09:46:51.104147"</span></span>
 <span><span class="co">#&gt; [1] "Filtered to 1486 segments with LOSET cases"</span></span>
 <span><span class="co">#&gt; [1] "Total LOSET cases: 5491"</span></span>
-<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-02-26 07:31:46.799846"</span></span>
-<span><span class="co">#&gt; [1] "Simulations are done! 2025-02-26 07:31:51.195679"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-02-27 09:46:51.238683"</span></span>
+<span><span class="co">#&gt; [1] "Simulations are done! 2025-02-27 09:46:55.812319"</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
@@ -159,8 +159,8 @@ We’ll use overall_only=TRUE to keep the output focused:</p>
 <span><span class="va">te_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_te.html">calc_te</a></span><span class="op">(</span><span class="va">data</span>, </span>
 <span>                     bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>                     overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-02-26 07:31:51.898334"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-02-26 07:32:10.705499"</span></span>
+<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-02-27 09:46:56.530392"</span></span>
+<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-02-27 09:47:15.43704"</span></span>
 <span></span>
 <span><span class="co"># View results</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">te_results</span><span class="op">)</span></span>
@@ -192,7 +192,7 @@ We’ll use overall_only=TRUE to keep the output focused:</p>
 <span><span class="co">#&gt; Number of iterations: 2000</span></span>
 <span><span class="co">#&gt; Sample percentage: 100%</span></span>
 <span><span class="co">#&gt; Distribution span: 95%</span></span>
-<span><span class="co">#&gt; Calculation time: 2025-02-26 07:32:10.721789</span></span></code></pre></div>
+<span><span class="co">#&gt; Calculation time: 2025-02-27 09:47:15.453535</span></span></code></pre></div>
 <p>The output now includes confidence intervals for each TE metric,
 showing the uncertainty in our estimates.</p>
 </div>
@@ -211,8 +211,8 @@ showing the uncertainty in our estimates.</p>
 <span>                       n_iterations <span class="op">=</span> <span class="fl">1000</span>,      <span class="co"># decrease iterations</span></span>
 <span>                       distribution_span <span class="op">=</span> <span class="fl">0.99</span>  <span class="co"># Wider confidence intervals</span></span>
 <span>                     <span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-02-26 07:32:11.117514"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-02-26 07:32:21.423947"</span></span>
+<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-02-27 09:47:15.883075"</span></span>
+<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-02-27 09:47:26.199806"</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">te_custom</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -243,7 +243,7 @@ showing the uncertainty in our estimates.</p>
 <span><span class="co">#&gt; Number of iterations: 1000</span></span>
 <span><span class="co">#&gt; Sample percentage: 80%</span></span>
 <span><span class="co">#&gt; Distribution span: 99%</span></span>
-<span><span class="co">#&gt; Calculation time: 2025-02-26 07:32:21.434391</span></span></code></pre></div>
+<span><span class="co">#&gt; Calculation time: 2025-02-27 09:47:26.21045</span></span></code></pre></div>
 <p>Key parameters:</p>
 <ul>
 <li>sample_percentage: Controls resample size (default = 1)</li>
@@ -255,8 +255,7 @@ showing the uncertainty in our estimates.</p>
 <div class="section level2">
 <h2 id="standard-vs--segment-bootstrap">Standard vs. Segment Bootstrap<a class="anchor" aria-label="anchor" href="#standard-vs--segment-bootstrap"></a>
 </h2>
-<p>The trieff package offers two different bootstrapping methods, each
-with its own strengths:</p>
+<p>The trieff package offers two different bootstrapping methods:</p>
 <div class="section level3">
 <h3 id="standard-bootstrap">Standard Bootstrap<a class="anchor" aria-label="anchor" href="#standard-bootstrap"></a>
 </h3>
@@ -268,8 +267,8 @@ approach.</p>
 <code class="sourceCode R"><span><span class="co"># Standard bootstrap</span></span>
 <span><span class="va">standard_bootstrap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_te.html">calc_te</a></span><span class="op">(</span><span class="va">data</span>,</span>
 <span>                             bootstrap <span class="op">=</span> <span class="st">"standard"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-02-26 07:32:21.823983"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-02-26 07:32:40.712829"</span></span>
+<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-02-27 09:47:26.579917"</span></span>
+<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-02-27 09:47:45.523302"</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">standard_bootstrap</span><span class="op">)</span></span></code></pre></div>
 <p><img src="bootstrap_files/figure-html/standard-bootstrap-1.png" width="960"></p>
@@ -285,45 +284,29 @@ patients who were in the ED during the same time period.</p>
 <code class="sourceCode R"><span><span class="co"># Segment bootstrap</span></span>
 <span><span class="va">segment_bootstrap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_te.html">calc_te</a></span><span class="op">(</span><span class="va">data</span>,</span>
 <span>                            bootstrap <span class="op">=</span> <span class="st">"segment"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Creating segments for segment bootstrap 2025-02-26 07:32:41.21773"</span></span>
-<span><span class="co">#&gt; [1] "Starting segment bootstrap with 9784 unit-segment pairs, 9784 samples per iteration, 2000 iterations 2025-02-26 07:32:42.696254"</span></span>
-<span><span class="co">#&gt; [1] "Segment bootstrap iterations done 2025-02-26 07:32:53.961683"</span></span>
+<span><span class="co">#&gt; [1] "Creating segments for segment bootstrap 2025-02-27 09:47:45.988882"</span></span>
+<span><span class="co">#&gt; [1] "Starting segment bootstrap with 9784 unit-segment pairs, 9784 samples per iteration, 2000 iterations 2025-02-27 09:47:47.468561"</span></span>
+<span><span class="co">#&gt; [1] "Segment bootstrap iterations done 2025-02-27 09:47:58.811297"</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">segment_bootstrap</span><span class="op">)</span></span></code></pre></div>
 <p><img src="bootstrap_files/figure-html/segment-bootstrap-1.png" width="960"></p>
-</div>
-<div class="section level3">
-<h3 id="when-to-use-each-method">When to Use Each Method<a class="anchor" aria-label="anchor" href="#when-to-use-each-method"></a>
-</h3>
-<ul>
-<li><p><strong>Standard Bootstrap</strong>: Use when cases can be
-considered independent or when computational efficiency is a priority
-(it is about 6 times faster).</p></li>
-<li>
-<p><strong>Segment Bootstrap</strong>: Use when temporal patterns
-and dependencies between concurrent patients are important. This method
-is particularly valuable for:</p>
-<ul>
-<li>Data with strong temporal variations (e.g., day/night
-differences)</li>
-<li>Analysis of systems where queue dynamics significantly impact
-patient flow</li>
-<li>Studies focusing on crowding or surge effects</li>
-</ul>
-</li>
-</ul>
-<p>We recomend that segment bootstrapping should be the standard when
-looking at Emergency department data.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="comparing-bootstrap-methods">Comparing Bootstrap Methods<a class="anchor" aria-label="anchor" href="#comparing-bootstrap-methods"></a>
 </h2>
-<p>The two methods often produce similar confidence intervals with
-segment bootstrapping often giving slightly wider intervals but somtimes
-slighly narrower, however the segment version is theoretically more
-valid based on assumptions of independence of data, which queue data
-cannot be said to have.</p>
+<p>While our theoretical understanding suggests segment bootstrapping
+should be preferred for emergency department data, our empirical testing
+has shown that both methods typically produce equivalent results in
+practice with comparable confidence intervals amd neither consistently
+producing wider or narrower intervals than the other. Despite
+theoretical differences in how they handle data dependencies, their
+practical outputs in terms of running means and confidence interval
+convergence are remarkably similar. Both methods are maintained in the
+package to support methodological research and to allow users to
+validate results across different bootstrapping approaches, but for most
+practical applications, the standard bootstrap provides an efficient and
+reliable option.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Function to extract confidence intervals</span></span>
 <span><span class="va">get_ci_width</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">result</span><span class="op">)</span> <span class="op">{</span></span>
@@ -410,8 +393,8 @@ estimates</li>
 <span>                         bootstrap <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                         overall_only <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                         check_convergence <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-02-26 07:32:54.802689"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-02-26 07:33:13.698503"</span></span>
+<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-02-27 09:47:59.662453"</span></span>
+<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-02-27 09:48:18.70499"</span></span>
 <span></span>
 <span><span class="co"># View convergence plots</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">te_convergence</span><span class="op">$</span><span class="va">convergence</span><span class="op">)</span></span>
