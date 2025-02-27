@@ -95,7 +95,7 @@ Key parameters:
 
 ## Standard vs. Segment Bootstrap
 
-The trieff package offers two different bootstrapping methods, each with its own strengths:
+The trieff package offers two different bootstrapping methods:
 
 ### Standard Bootstrap
 
@@ -121,20 +121,11 @@ segment_bootstrap <- calc_te(data,
 plot_te(segment_bootstrap)
 ```
 
-### When to Use Each Method
-
-- **Standard Bootstrap**: Use when cases can be considered independent or when computational efficiency is a priority (it is about 6 times faster).
-
-- **Segment Bootstrap**: Use when temporal patterns and dependencies between concurrent patients are important. This method is particularly valuable for:
-  * Data with strong temporal variations (e.g., day/night differences)
-  * Analysis of systems where queue dynamics significantly impact patient flow
-  * Studies focusing on crowding or surge effects
-
-We recomend that segment bootstrapping should be the standard when looking at Emergency department data.
 
 ## Comparing Bootstrap Methods
 
-The two methods often produce similar confidence intervals with segment bootstrapping often giving slightly wider intervals but somtimes slighly narrower, however the segment version is theoretically more valid based on assumptions of independence of data, which queue data cannot be said to have.
+While our theoretical understanding suggests segment bootstrapping should be preferred for emergency department data, our empirical testing has shown that both methods typically produce equivalent results in practice with comparable confidence intervals amd neither consistently producing wider or narrower intervals than the other. Despite theoretical differences in how they handle data dependencies, their practical outputs in terms of running means and confidence interval convergence are remarkably similar.
+Both methods are maintained in the package to support methodological research and to allow users to validate results across different bootstrapping approaches, but for most practical applications, the standard bootstrap provides an efficient and reliable option.
 
 ```{r compare-methods}
 # Function to extract confidence intervals
