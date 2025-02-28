@@ -167,7 +167,7 @@ This approach preserves the temporal structure of patient flow, including:
 
 - Priority interrelationships
 
-While block bootstrapping reduces the effect of temporal effects, we argue that this approach should remove this effect altogether.
+While block bootstrapping reduces the effect of temporal effects, we argue that this approach should remove this effect altogether. However, keep in mind that this does not seem to affect the results, as stated above.
 
 
 ## Convergence Analysis

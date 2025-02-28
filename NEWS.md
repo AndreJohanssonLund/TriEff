@@ -1,5 +1,10 @@
 # NEWS
 
+## v 1.0.0 - 2025-02-28
+
+* Increased the version number to signify that this is the version that is sent in to review togeather with the original article. No changes to code or API from previous version
+
+
 ## v 0.8.7 - 2025-02-25
 
 * Reworked segmentation logic to reduce memory overhead and increase speed.
