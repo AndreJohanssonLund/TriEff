@@ -14,13 +14,13 @@ NULL
 utils::globalVariables(c(
   # Basic identifiers and metadata
   "id", "unit", ".", ".data", "all_of", "any_of", "everything", "lag", "matches",
-  "runif", "starts_with",
+  "runif", "starts_with", "segment_id",
 
   # Time-related variables
   "arrival", "resolve", "arrival_minute", "resolve_minute", "event_minute",
 
   # Priority and classification
-  "priority", "priority_binary", "loset", "tp", "fp", "fn", "tn",
+  "priority", "priority_binary", "loset", "tp", "fp", "fn", "tn", "has_loset",
 
   # Wait time calculations
   "observed_wait_time", "theoretical_wait_time", "binary_theoretical_wait_time",

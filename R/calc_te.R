@@ -832,6 +832,14 @@ calculate_bootstrap_metrics <- function(results, results_df, bootstrap_params, m
       boot_btte_var_lower = quantile(btte_te, probs = alpha, na.rm = TRUE),
       boot_btte_var_upper = quantile(btte_te, probs = 1 - alpha, na.rm = TRUE),
 
+      # OTE metrics (if available)
+      boot_otg_mean = mean(ote_te - tte_te, na.rm = TRUE),
+      boot_otg_sd = sd(ote_te - tte_te, na.rm = TRUE),
+      boot_otg_sd_q = (quantile(ote_te - tte_te, 0.75, na.rm = TRUE) -
+                         quantile(ote_te - tte_te, 0.25, na.rm = TRUE)) / 1.349,
+      boot_otg_var_lower = quantile(ote_te - tte_te, probs = alpha, na.rm = TRUE),
+      boot_otg_var_upper = quantile(ote_te - tte_te, probs = 1 - alpha, na.rm = TRUE),
+
       # Basic statistics
       boot_mean_n_patients = mean(n_patients, na.rm = TRUE),
       boot_mean_n_loset = mean(n_patients_loset, na.rm = TRUE),
@@ -1241,8 +1249,8 @@ print.calc_te <- function(x, ...) {
 
         cat("  OTG: ", format_metric_ci(
           row$otg_te,
-          row$boot_ote_var_lower - row$boot_tte_var_lower,
-          row$boot_ote_var_upper - row$boot_tte_var_upper
+          row$boot_otg_var_lower,
+          row$boot_otg_var_upper
         ), "\n")
       }
 

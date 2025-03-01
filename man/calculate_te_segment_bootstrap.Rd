@@ -40,15 +40,6 @@ Calculate Triage Effectiveness with Segment Bootstrap
 }
 \details{
 Performs segment-based bootstrap analysis of TE metrics, where entire queue
-segments are resampled rather than individual patients. This approach preserves
-temporal dependencies and queue dynamics within segments, providing more
-statistically valid confidence intervals for time series queue data.
-
-Key differences from standard bootstrapping:
-\itemize{
-\item Segments (periods where queue goes from 0 to 0) are the resampling unit
-\item Temporal patterns and dependencies within segments are preserved
-\item More accurately reflects uncertainty in systems with queue dynamics
-}
+segments are resampled rather than individual patients.
 }
 \keyword{internal}

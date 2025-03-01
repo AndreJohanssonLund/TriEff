@@ -101,7 +101,7 @@ The trieff package offers two different bootstrapping methods:
 
 The standard bootstrap method (`bootstrap = "standard"` or simply `bootstrap = TRUE`) randomly samples individual patient cases with replacement. This is the traditional bootstrap approach.
 
-```{r standard-bootstrap}
+```{r standard-bootstrap, fig.alt="Triage Effectiveness with confidence intervals calculated using standard bootstrap"}
 # Standard bootstrap
 standard_bootstrap <- calc_te(data,
                              bootstrap = "standard")
@@ -113,7 +113,7 @@ plot_te(standard_bootstrap)
 
 The segment bootstrap method (`bootstrap = "segment"`) preserves temporal patterns by sampling segments of continuous queue activity. This approach maintains the dependency structure between patients who were in the ED during the same time period.
 
-```{r segment-bootstrap}
+```{r segment-bootstrap, fig.alt="Triage Effectiveness with confidence intervals calculated using segment bootstrap"}
 # Segment bootstrap
 segment_bootstrap <- calc_te(data,
                             bootstrap = "segment")

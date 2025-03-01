@@ -2,7 +2,7 @@
 % Please edit documentation in R/sim_helper_classes.R
 \name{create_segments}
 \alias{create_segments}
-\title{Create Segments from Patient Data}
+\title{Create Segment Identifiers in Patient Data}
 \usage{
 create_segments(df, n_workers = detectCores() - 1)
 }
@@ -12,16 +12,17 @@ create_segments(df, n_workers = detectCores() - 1)
 \item{n_workers}{Integer. Number of cores to use for parallel processing. Default is (detectCores() - 1).}
 }
 \value{
-A list of data frames, where each data frame represents a segment of continuous queue activity.
+A data frame with an additional 'segment' column that identifies continuous queue segments.
 }
 \description{
-This function divides the input patient data into segments based on continuous queue periods.
+This function adds a segment identifier column to the input patient data based on continuous queue periods.
 Each segment represents a period where the queue starts at 0 and ends at 0, allowing for
 independent processing of these time periods.
 }
 \details{
 The function identifies periods where the queue size goes from 0 to 1, marking the start of a new segment.
-It then groups patient data into these segments, which can be processed independently in parallel simulations.
-This segmentation is crucial for maintaining chronological integrity while enabling parallelization.
+It then assigns segment IDs to patients based on these boundaries, which can be used for grouped processing
+in parallel simulations. This segmentation is crucial for maintaining chronological integrity while enabling
+parallelization.
 }
 \keyword{internal}
