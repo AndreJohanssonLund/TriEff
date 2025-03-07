@@ -175,11 +175,11 @@ from 0.</li>
 <span><span class="co"># WARNING: Even with this small dataset, this may take several minutes</span></span>
 <span><span class="va">heatmap_data</span> <span class="op">&lt;-</span> <span class="va">data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/sim_heat.html">sim_heat</a></span><span class="op">(</span>n_workers <span class="op">=</span> <span class="fl">12</span>, step_size <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-03-07 12:05:20.02518"</span></span>
+<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-03-07 13:17:05.252771"</span></span>
 <span><span class="co">#&gt; [1] "Identified segments, filtering LOSET segments.."</span></span>
 <span><span class="co">#&gt; [1] "Processing 527 segments with LOSET cases"</span></span>
-<span><span class="co">#&gt; [1] "Starting simulations with  combinations 2025-03-07 12:05:21.052937"</span></span>
-<span><span class="co">#&gt; [1] "Simulations complete 2025-03-07 12:05:58.236733"</span></span>
+<span><span class="co">#&gt; [1] "Starting simulations with  combinations 2025-03-07 13:17:06.284955"</span></span>
+<span><span class="co">#&gt; [1] "Simulations complete 2025-03-07 13:17:44.24941"</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plot_te_heatmap.html">plot_te_heatmap</a></span><span class="op">(</span><span class="va">heatmap_data</span><span class="op">)</span> <span class="co"># Create heatmap</span></span></code></pre></div>
 <p><img src="heatmap_files/figure-html/example_of_heatmap-1.png" alt="A heatmap showing TE over Sensitivity/specificity, unnormalized" width="672"></p>
@@ -197,11 +197,11 @@ accessed using <code>alt_calc = TRUE</code> in
 <code class="sourceCode R"><span><span class="co"># Example of alternative calculations</span></span>
 <span><span class="va">alt_calc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_heat_alt.html">sim_heat_alt</a></span><span class="op">(</span><span class="va">data</span>, alt_calc <span class="op">=</span> <span class="cn">TRUE</span>, step_size <span class="op">=</span> <span class="fl">25</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/plot_te_heatmap.html">plot_te_heatmap</a></span><span class="op">(</span>show_alt_calc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-03-07 12:05:58.560475"</span></span>
+<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-03-07 13:17:44.580443"</span></span>
 <span><span class="co">#&gt; [1] "Processing segments."</span></span>
-<span><span class="co">#&gt; [1] "Calculating global median from reference simulation 2025-03-07 12:05:59.214372"</span></span>
-<span><span class="co">#&gt; [1] "Starting simulations with  combinations 2025-03-07 12:06:02.227981"</span></span>
-<span><span class="co">#&gt; [1] "Simulations complete 2025-03-07 12:06:14.952309"</span></span>
+<span><span class="co">#&gt; [1] "Calculating global median from reference simulation 2025-03-07 13:17:45.2455"</span></span>
+<span><span class="co">#&gt; [1] "Starting simulations with  combinations 2025-03-07 13:17:48.229438"</span></span>
+<span><span class="co">#&gt; [1] "Simulations complete 2025-03-07 13:18:01.061832"</span></span>
 <span></span>
 <span><span class="va">alt_calc</span><span class="op">$</span><span class="va">te_batch</span> <span class="co"># The first possible alternative heat map</span></span></code></pre></div>
 <p><img src="heatmap_files/figure-html/example_alt_calc_1-1.png" alt="The first of three heatmaps from the alternative calculations - plain TE where TE is calculated based on on different normalisation techniques" width="960"></p>
@@ -237,7 +237,6 @@ different audiences, including options that are colorblind-friendly.</p>
 <span>  <span class="va">color_scheme_plots</span><span class="op">[[</span><span class="va">scheme</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te_heatmap.html">plot_te_heatmap</a></span><span class="op">(</span></span>
 <span>    <span class="va">heatmap_data</span>, </span>
 <span>    normalize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>    show_labels <span class="op">=</span> <span class="cn">FALSE</span>,  <span class="co"># Turning off labels for cleaner comparison</span></span>
 <span>    color_scheme <span class="op">=</span> <span class="va">scheme</span>,</span>
 <span>    title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/chartr.html" class="external-link">toupper</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">scheme</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">scheme</span>, <span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nchar</a></span><span class="op">(</span><span class="va">scheme</span><span class="op">)</span><span class="op">)</span>, <span class="st">"Scheme"</span>, sep<span class="op">=</span><span class="st">""</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
@@ -247,15 +246,21 @@ different audiences, including options that are colorblind-friendly.</p>
 <span><span class="fu">patchwork</span><span class="fu">::</span><span class="fu"><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">wrap_plots</a></span><span class="op">(</span><span class="va">color_scheme_plots</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="heatmap_files/figure-html/color_schemes-1.png" alt="Four heatmaps showing the same TE data with different color schemes" width="1152"></p>
 <p>Each color scheme has different characteristics:</p>
-<p>Triage: Uses classic triage colors (red, orange, yellow, green)
-familiar in healthcare settings. Not colorblind-safe but may be
-intuitive for healthcare professionals.</p>
-<p>OceanSky (default): Uses navy, light blue, light yellow, and gold.
-Fully colorblind-safe and provides good contrast.</p>
-<p>BlueOrange: Uses a blue to orange to red gradient. Colorblind-safe
-and follows scientific visualization best practices.</p>
-<p>ThermalSafe: Uses purple, light blue, yellow, and orange.
-Colorblind-safe and mimics thermal imaging.</p>
+<p><strong>OceanSky</strong> (default): Uses medium blue (#3a75c4),
+light blue, light yellow, and gold. Fully colorblind-safe with excellent
+text readability across all colors. Provides an intuitive “cool-to-warm”
+progression that works well for diverse audiences.</p>
+<p><strong>BlueOrange</strong>: Implements a scientifically-designed
+diverging color palette based on ColorBrewer’s “RdBu” (Red-Blue) scale
+(#2c7bb6, #abd9e9, #fdae61, #d7191c).</p>
+<p><strong>ThermalSafe</strong>: Uses purple, light blue, yellow, and
+orange. Colorblind-safe and evokes thermal imaging aesthetics. Provides
+strong differentiation between values while maintaining
+accessibility.</p>
+<p><strong>Triage</strong>: Uses classic triage colors (red, orange,
+yellow, green) familiar in healthcare settings. Not colorblind-safe but
+immediately recognizable to healthcare professionals who work with
+triage systems.</p>
 </div>
 </div>
 <div class="section level2">

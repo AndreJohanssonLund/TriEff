@@ -112,7 +112,7 @@ The `plot_te_heatmap` function now supports different color schemes through the 
 
 ```{r color_schemes, fig.width=12, fig.height=10, fig.alt="Four heatmaps showing the same TE data with different color schemes"}
 # Create a 2x2 grid of heatmaps with different color schemes
-color_schemes <- c("triage", "oceansky", "blueorange", "thermalsafe")
+color_schemes <- c("oceansky", "blueorange", "thermalsafe", "triage")
 
 # Generate plots with each color scheme
 color_scheme_plots <- list()
@@ -121,7 +121,6 @@ for (scheme in color_schemes) {
   color_scheme_plots[[scheme]] <- plot_te_heatmap(
     heatmap_data, 
     normalize = TRUE,
-    show_labels = FALSE,  # Turning off labels for cleaner comparison
     color_scheme = scheme,
     title = paste(toupper(substr(scheme, 1, 1)), substr(scheme, 2, nchar(scheme)), "Scheme", sep="")
   )
@@ -133,14 +132,13 @@ patchwork::wrap_plots(color_scheme_plots, ncol = 2)
 
 Each color scheme has different characteristics:
 
-Triage: Uses classic triage colors (red, orange, yellow, green) familiar in healthcare settings. Not colorblind-safe but may be intuitive for healthcare professionals.
+**OceanSky** (default): Uses medium blue (#3a75c4), light blue, light yellow, and gold. Fully colorblind-safe with excellent text readability across all colors. Provides an intuitive "cool-to-warm" progression that works well for diverse audiences.
 
-OceanSky (default): Uses navy, light blue, light yellow, and gold. Fully colorblind-safe and provides good contrast.
+**BlueOrange**: Implements a scientifically-designed diverging color palette based on ColorBrewer's "RdBu" (Red-Blue) scale (#2c7bb6, #abd9e9, #fdae61, #d7191c). 
 
-BlueOrange: Uses a blue to orange to red gradient. Colorblind-safe and follows scientific visualization best practices.
+**ThermalSafe**: Uses purple, light blue, yellow, and orange. Colorblind-safe and evokes thermal imaging aesthetics. Provides strong differentiation between values while maintaining accessibility.
 
-ThermalSafe: Uses purple, light blue, yellow, and orange. Colorblind-safe and mimics thermal imaging.
-
+**Triage**: Uses classic triage colors (red, orange, yellow, green) familiar in healthcare settings. Not colorblind-safe but immediately recognizable to healthcare professionals who work with triage systems.
 
 ## Summary
 

@@ -99,7 +99,7 @@ plot_te_heatmap <- function(data,
     } else if (color_scheme == "oceansky") {
       # OceanSky scheme - completely colorblind safe
       if (min_value < -1) {
-        colors <- c("navy", "lightblue", "lightyellow", "gold")
+        colors <- c("#2c7bb6", "lightblue", "lightyellow", "gold")
         values <- scales::rescale(c(min_value, -1, 0, max_value))
       } else if (min_value < 0) {
         colors <- c("lightblue", "lightyellow", "gold")
