@@ -104,6 +104,44 @@ alt_calc$all_batch # The third possible alternative heat map
 ```
 These alternatives help validate that the patterns we observe aren't artifacts of our calculation method.
 
+## Color Scheme Options
+
+The `plot_te_heatmap` function now supports different color schemes through the `color_scheme` parameter. This is particularly useful for choosing appropriate visualizations for different audiences, including options that are colorblind-friendly.
+
+### Available Color Schemes
+
+```{r color_schemes, fig.width=12, fig.height=10, fig.alt="Four heatmaps showing the same TE data with different color schemes"}
+# Create a 2x2 grid of heatmaps with different color schemes
+color_schemes <- c("triage", "oceansky", "blueorange", "thermalsafe")
+
+# Generate plots with each color scheme
+color_scheme_plots <- list()
+
+for (scheme in color_schemes) {
+  color_scheme_plots[[scheme]] <- plot_te_heatmap(
+    heatmap_data, 
+    normalize = TRUE,
+    show_labels = FALSE,  # Turning off labels for cleaner comparison
+    color_scheme = scheme,
+    title = paste(toupper(substr(scheme, 1, 1)), substr(scheme, 2, nchar(scheme)), "Scheme", sep="")
+  )
+}
+
+# Combine the plots in a grid
+patchwork::wrap_plots(color_scheme_plots, ncol = 2)
+```
+
+Each color scheme has different characteristics:
+
+Triage: Uses classic triage colors (red, orange, yellow, green) familiar in healthcare settings. Not colorblind-safe but may be intuitive for healthcare professionals.
+
+OceanSky (default): Uses navy, light blue, light yellow, and gold. Fully colorblind-safe and provides good contrast.
+
+BlueOrange: Uses a blue to orange to red gradient. Colorblind-safe and follows scientific visualization best practices.
+
+ThermalSafe: Uses purple, light blue, yellow, and orange. Colorblind-safe and mimics thermal imaging.
+
+
 ## Summary
 
 Heatmap analysis in trieff is a powerful research tool for understanding TE properties, but it requires:

@@ -211,6 +211,7 @@ run_simulation <- function(segment, tte = TRUE, btte = FALSE) {
 validate_sim_heat_data <- function(df) {
   # Required columns for sim_heat functions
   required_cols <- c(
+    "id",            # Added by init()
     "arrival_minute",     # Added by init()
     "resolve_minute",     # Added by init()
     "loset",             # Required original column

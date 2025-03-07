@@ -17,6 +17,7 @@
 #'   relevant variables for this.
 #' @param normalize Logical. If TRUE, normalizes values to 0-100 scale. Ignored if
 #'   show_alt_calc=TRUE. Default FALSE.
+#' @param color_scheme Character. Either "triage", "oceansky", "blueorange" or "thermalsafe". The triage alternative is not color blind safe but is included since it mimics classic triage colors
 #' @param title Character. Title for the plot. Default "Triage Effectiveness Heatmap".
 #'
 #' @return A ggplot object (single heatmap) or a list of patchwork objects (multiple heatmaps)
@@ -31,6 +32,7 @@ plot_te_heatmap <- function(data,
                             show_labels = TRUE,
                             show_alt_calc = FALSE,
                             normalize = FALSE,
+                            color_scheme = "oceansky",
                             title = "Triage Effectiveness Heatmap") {
 
   # Helper function to normalize data
@@ -72,15 +74,64 @@ plot_te_heatmap <- function(data,
     max_value <- max(data[[metric]], na.rm = TRUE)
 
     # Determine color scale based on data range
-    if (min_value < -1) {
-      colors <- c("red", "orange", "yellow", "green")
-      values <- scales::rescale(c(min_value, -1, 0, max_value))
-    } else if (min_value < 0) {
-      colors <- c("orange", "yellow", "green")
-      values <- scales::rescale(c(min_value, 0, max_value))
-    } else {
-      colors <- c("yellow", "green")
-      values <- scales::rescale(c(0, max_value))
+    # Validate color_scheme parameter
+    valid_schemes <- c("triage", "oceansky", "blueorange", "thermalsafe")
+
+    if (!color_scheme %in% valid_schemes) {
+      warning(paste("Invalid color scheme '", color_scheme, "'. Using 'oceansky' instead. Valid options are: ",
+                    paste(valid_schemes, collapse = ", ")))
+      color_scheme <- "oceansky"
+    }
+
+    # Determine color scale based on data range and selected scheme
+    if (color_scheme == "triage") {
+      # Original triage scheme (not colorblind safe)
+      if (min_value < -1) {
+        colors <- c("red", "orange", "yellow", "green")
+        values <- scales::rescale(c(min_value, -1, 0, max_value))
+      } else if (min_value < 0) {
+        colors <- c("orange", "yellow", "green")
+        values <- scales::rescale(c(min_value, 0, max_value))
+      } else {
+        colors <- c("yellow", "green")
+        values <- scales::rescale(c(0, max_value))
+      }
+    } else if (color_scheme == "oceansky") {
+      # OceanSky scheme - completely colorblind safe
+      if (min_value < -1) {
+        colors <- c("navy", "lightblue", "lightyellow", "gold")
+        values <- scales::rescale(c(min_value, -1, 0, max_value))
+      } else if (min_value < 0) {
+        colors <- c("lightblue", "lightyellow", "gold")
+        values <- scales::rescale(c(min_value, 0, max_value))
+      } else {
+        colors <- c("lightyellow", "gold")
+        values <- scales::rescale(c(0, max_value))
+      }
+    } else if (color_scheme == "blueorange") {
+      # BlueOrange scheme - colorblind safe
+      if (min_value < -1) {
+        colors <- c("#2c7bb6", "#abd9e9", "#fdae61", "#d7191c")
+        values <- scales::rescale(c(min_value, -1, 0, max_value))
+      } else if (min_value < 0) {
+        colors <- c("#abd9e9", "#fdae61", "#d7191c")
+        values <- scales::rescale(c(min_value, 0, max_value))
+      } else {
+        colors <- c("#fdae61", "#d7191c")
+        values <- scales::rescale(c(0, max_value))
+      }
+    } else if (color_scheme == "thermalsafe") {
+      # ThermalSafe scheme - colorblind safe
+      if (min_value < -1) {
+        colors <- c("purple", "lightblue", "yellow", "orange")
+        values <- scales::rescale(c(min_value, -1, 0, max_value))
+      } else if (min_value < 0) {
+        colors <- c("lightblue", "yellow", "orange")
+        values <- scales::rescale(c(min_value, 0, max_value))
+      } else {
+        colors <- c("yellow", "orange")
+        values <- scales::rescale(c(0, max_value))
+      }
     }
 
 

@@ -99,6 +99,9 @@ sim_heat_alt <- function(df, step_size, n_workers = detectCores() - 1,
 
   validate_sim_heat_data(df)
 
+  df <- df %>%
+    select("id", "arrival_minute", "resolve_minute", "loset", "observed_wait_time", "unit")
+
   # Create sensitivity and specificity combinations
   steps <- seq(0, 1, by = step_size / 100)
   combinations <- expand_grid(sensitivity = steps, specificity = steps)
@@ -137,7 +140,10 @@ sim_heat_alt <- function(df, step_size, n_workers = detectCores() - 1,
 
       df_segmented <- bind_rows(df_copies)
       new_total_loset <- sum(df_segmented$loset)
+      new_total_rows <- nrow(df_segmented)
       print(paste("New total LOSET cases:", new_total_loset))
+      print(paste("Total patient count:", new_total_rows))
+      print(paste("Total patient count in original df:", nrow(df)))
     }
   }
 

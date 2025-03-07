@@ -9,6 +9,7 @@ plot_te_heatmap(
   show_labels = TRUE,
   show_alt_calc = FALSE,
   normalize = FALSE,
+  color_scheme = "oceansky",
   title = "Triage Effectiveness Heatmap"
 )
 }
@@ -29,6 +30,8 @@ relevant variables for this.}
 
 \item{normalize}{Logical. If TRUE, normalizes values to 0-100 scale. Ignored if
 show_alt_calc=TRUE. Default FALSE.}
+
+\item{color_scheme}{Character. Either "triage", "oceansky", "blueorange" or "thermalsafe". The triage alternative is not color blind safe but is included since it mimics classic triage colors}
 
 \item{title}{Character. Title for the plot. Default "Triage Effectiveness Heatmap".}
 }

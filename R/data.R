@@ -43,4 +43,3 @@
 #' doi: https://doi.org/10.1186/s13049-024-01206-0
 #'
 "sem_malmo_synth"
-"sem_malmo_synth_mini"

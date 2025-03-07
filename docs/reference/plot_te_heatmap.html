@@ -61,6 +61,7 @@ a single heatmap or multiple heatmaps showing alternative calculations.</p>
 <span>  show_labels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  show_alt_calc <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  normalize <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  color_scheme <span class="op">=</span> <span class="st">"oceansky"</span>,</span>
 <span>  title <span class="op">=</span> <span class="st">"Triage Effectiveness Heatmap"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -90,6 +91,10 @@ relevant variables for this.</p></dd>
 <dt id="arg-normalize">normalize<a class="anchor" aria-label="anchor" href="#arg-normalize"></a></dt>
 <dd><p>Logical. If TRUE, normalizes values to 0-100 scale. Ignored if
 show_alt_calc=TRUE. Default FALSE.</p></dd>
+
+
+<dt id="arg-color-scheme">color_scheme<a class="anchor" aria-label="anchor" href="#arg-color-scheme"></a></dt>
+<dd><p>Character. Either "triage", "oceansky", "blueorange" or "thermalsafe". The triage alternative is not color blind safe but is included since it mimics classic triage colors</p></dd>
 
 
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>

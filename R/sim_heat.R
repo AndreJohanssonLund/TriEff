@@ -78,6 +78,9 @@ sim_heat <- function(df, step_size, n_workers = detectCores() - 1,
 
   validate_sim_heat_data(df)
 
+  df <- df %>%
+    select("id", "arrival_minute", "resolve_minute", "loset", "observed_wait_time", "unit")
+
   # Calculate mean_all once at the start
   mean_all <- mean(df$observed_wait_time)
 
@@ -131,7 +134,11 @@ sim_heat <- function(df, step_size, n_workers = detectCores() - 1,
 
       df_segmented <- bind_rows(df_copies)
       new_total_loset <- sum(df_segmented$loset)
+      new_total_rows <- nrow(df_segmented)
       print(paste("New total LOSET cases:", new_total_loset))
+      print(paste("Total patient count:", new_total_rows))
+      print(paste("Total patient count in original df:", nrow(df)))
+      print(paste("Total patient count based on duplication", nrow(df) * n_duplications))
     }
   }
 
