@@ -1,0 +1,331 @@
+---
+title: "Waiting Time vs. Rank-based Triage Effectiveness"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Waiting Time vs. Rank-based Triage Effectiveness}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 10,
+  fig.height = 4
+)
+```
+
+```{r setup}
+library(trieff)
+library(dplyr)
+library(ggplot2)
+```
+
+## Introduction
+
+The trieff package offers two complementary approaches for calculating Triage Effectiveness (TE): 
+
+1. **Waiting Time-based TE (WTE)**: Measures how well triage reduces the actual waiting time for time-critical patients.
+
+2. **Rank-based TE (RTE)**: Evaluates how effectively triage improves queue positions for time-critical patients.
+
+This vignette demonstrates how to use both methods, compares their results, and explains when to use each approach.
+
+## Prerequisites
+- Initialized data (see `vignette("getting_started")`)
+- Simulated theoretical wait times (see `vignette("sim_te")`), only required if theoretical TE is of interest.
+
+## Basic Usage
+
+Let's start by initializing our data and running the simulation to get theoretical wait times:
+
+```{r basic-setup}
+# Initialize the data
+data <- init(sem_malmo_synth)
+
+# Run simulation to get theoretical wait times
+data <- sim_te(data)
+```
+
+### Waiting Time-based TE (WTE)
+
+First, let's calculate WTE metrics:
+
+```{r wte-calculation}
+# Calculate WTE metrics
+wte_results <- calc_wte(data, overall_only = TRUE)
+
+# Print results
+print(wte_results)
+```
+
+### Rank-based TE (RTE)
+
+Now, let's calculate RTE metrics using the same data:
+
+```{r rte-calculation}
+# Calculate RTE metrics
+rte_results <- calc_rte(data, overall_only = TRUE)
+
+# Print results
+print(rte_results)
+```
+
+Note that we are using the argument 'overall_only = TRUE' in both examples above. This returns only the overall TE value for the ED. Trieff calculates this based on units that represents separate queues. For example if the ED has separate queues for medical or surgical patients. 
+
+
+## Comparing the Results
+
+Let's create a visual comparison of the two methods:
+
+```{r compare-visually, fig.width=10, fig.height=6, fig.alt="Comparison of WTE and RTE plot visualizations"}
+# Create plots for comparison
+wte_plot <- plot_te(wte_results, title = "Waiting Time-based TE (WTE)")
+rte_plot <- plot_te(rte_results, title = "Rank-based TE (RTE)", ci_vars_override = "none")
+
+# Display plots one below the other using patchwork
+patchwork::wrap_plots(wte_plot, rte_plot, ncol = 1)
+```
+Note that we are overriding confidence intervals to not be show with the argument ci_vars_override = "none". The reason for this can be found in the print statement above. calc_rte will recommend confidence interval based on a Shapiro test. Since queue position is not generally normally distributed it will recommend "non_parametric" which produces very wide confidence intervals. An alternative will be introduced further bellow with bootstrapping and further explored in the `vignette("bootstrap")`
+
+## Subgroup Analysis
+
+Both methods support subgroup analysis. Let's compare them using age groups:
+
+```{r subgroup-analysis fig.alt="Comparison of WTE and RTE plot visualizations for subgroups"}
+# Create age groups
+data <- data %>%
+  mutate(age_group = cut(age_at_arrival, 
+                        breaks = c(0, 59, 79, Inf),
+                        labels = c("18-59", "60-79", "80+")))
+
+# Calculate WTE and RTE by age group
+wte_age <- calc_wte(data, var1 = "age_group", overall_only = TRUE)
+rte_age <- calc_rte(data, var1 = "age_group", overall_only = TRUE)
+
+# Create comparison plots
+wte_age_plot <- plot_te(wte_age, title = "WTE by Age Group")
+rte_age_plot <- plot_te(rte_age, title = "RTE by Age Group", ci_vars_override = "none")
+
+# Display plots
+patchwork::wrap_plots(wte_age_plot, rte_age_plot, ncol = 1)
+```
+
+## Bootstrap Analysis
+
+Both methods support bootstrap confidence interval generation:
+
+```{r bootstrap-comparison, fig.width=10, fig.height=6, fig.alt="Comparison of WTE and RTE plot visualizations with bootstraped confidence intervals"}
+# Calculate with bootstrap
+wte_bootstrap <- calc_wte(data, 
+                         bootstrap = TRUE,
+                         overall_only = TRUE)
+
+rte_bootstrap <- calc_rte(data,
+                         bootstrap = TRUE,
+                         overall_only = TRUE)
+
+# Create plots with confidence intervals
+wte_boot_plot <- plot_te(wte_bootstrap, title = "WTE with Bootstrap CI")
+rte_boot_plot <- plot_te(rte_bootstrap, title = "RTE with Bootstrap CI")
+
+# Display plots
+patchwork::wrap_plots(wte_boot_plot, rte_boot_plot, ncol = 1)
+```
+
+Both functions bootstraps the final, calculated value.
+
+
+## Understanding TE Calculation Methods
+
+Both WTE and RTE aim to measure how effectively a triage system prioritizes time-critical patients, but they do so using different approaches. This section details the internal calculation mechanisms for each method.
+
+### Waiting Time-based TE (WTE) Calculation
+
+WTE measures how well triage reduces waiting times for time-critical patients relative to the overall average. The formula is conceptually straightforward:
+
+```r
+# The formula for WTE
+WTE = 1 - (mean waiting time for time-critical patients / mean waiting time for all patients)
+```
+
+This creates a scale where:
+
+- **WTE = 100%**: Time-critical patients have 0 wait time
+
+- **WTE = 0%**: Time-critical patients wait as long as the average patient (equivalent to no triage)
+
+- **WTE < 0%**: Time-critical patients wait longer than the average (worse than no triage)
+
+The calculation uses two reference points:
+
+1. **Mean waiting time for all patients**: Represents the expected waiting time in a first-come, first-served system
+
+2. **Zero waiting time**: Represents the theoretical minimum achievable with perfect prioritization
+
+We can demonstrate the calculation with a simple example:
+
+```{r wte-calculation-example}
+# Create example data
+example_wait_times <- data.frame(
+  patient_id = 1:10,
+  wait_time = c(45, 60, 30, 90, 15, 75, 60, 45, 30, 120),  # minutes
+  loset = c(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE, FALSE, TRUE, FALSE, FALSE)
+)
+
+# Calculate TE
+mean_all <- mean(example_wait_times$wait_time)
+mean_loset <- mean(example_wait_times$wait_time[example_wait_times$loset])
+wte <- 1 - (mean_loset / mean_all)
+
+# Display results
+cat("Mean wait time for all patients:", mean_all, "minutes\n")
+cat("Mean wait time for LOSET patients:", mean_loset, "minutes\n")
+cat("Waiting Time-based TE:", round(wte * 100, 1), "%\n")
+```
+
+While conceptually simple, WTE can be affected by system throughput, capacity constraints, and other factors beyond triage decisions themselves. This is where RTE offers a complementary perspective.
+
+### Rank-based TE (RTE) Calculation
+
+RTE focuses on queue positions rather than actual waiting times. It measures how effectively triage moves time-critical patients forward in the queue, relative to where they would be in a first-come, first-served system.
+
+The calculation is more complex and involves several key variables:
+
+1. **L (Queue Length)**: The number of patients in queue when a given patient arrives, including that patient. This represents the position the patient would have in a first-come, first-served system.
+
+2. **p (Position)**: The patient's actual position in the resolution sequence, counting from their arrival time. A position of 1 means the patient was the first to be resolved among all patients in queue, including those that arrived after, but before the next resolve event.
+
+3. **n_tc (Time-critical Count)**: The number of time-critical patients in the concurrent window between the last resolution before the patient's arrival and the first resolution after, including the patient themselves.
+
+#### RTE Calculation Logic
+
+The RTE calculation first determines which method to use based on the relationship between L, p, and n_tc, then applies the appropriate formula:
+
+```{r rte-calculation-functions}
+# Function to determine which RTE method to use
+RTE_method <- function(L, p, n_tc, ambiguity_perfect = TRUE) {
+  # Perfect triage: patient is seen within n_tc positions
+  if (p <= n_tc) {
+    if (n_tc >= L & ambiguity_perfect) {
+      return("perfect")
+    } else if(n_tc >= L & !ambiguity_perfect) {
+      return("zero")
+    } else {
+      return("perfect")
+    }
+  }
+  # Positive triage: patient is seen after n_tc but within or at L
+  else if (p <= L) {
+    return("positive")
+  }
+  # Negative triage: patient is seen after L
+  else {
+    return("negative")
+  }
+}
+
+# Function to calculate RTE based on the determined method
+RTE_calculate <- function(L, p, n_tc, method) {
+  switch(method,
+         "perfect" = 1,
+         "positive" = return((L - p) / (L - n_tc)),
+         "negative" = (L - p) / L,
+         "zero" = 0,
+         NA_real_  # Default case
+  )
+}
+```
+
+Let's break down the different scenarios:
+
+1. **Perfect Triage** (when p ≤ n_tc):
+   * The patient is resolved within the first n_tc positions
+   * If n_tc ≥ L, we have an ambiguous case (explained in "Ambiguity Handling" below)
+   * Otherwise, RTE = 1 (perfect score)
+
+2. **Positive Triage** (when n_tc < p ≤ L):
+   * The patient is resolved after the first n_tc positions but within L positions
+   * RTE = (L - p) / (L - n_tc)
+
+3. **Negative Triage** (when p > L):
+   * The patient is resolved after L positions (worse than first-come, first-served)
+   * RTE = (L - p) / L (this will be negative)
+
+#### Ambiguity Handling
+
+An ambiguous case occurs when n_tc ≥ L, meaning there are as many or more time-critical patients than the queue length. In this situation:
+
+The position would be the same with perfect prioritization as in a first come, first serve system. Thus RTE can both be viewed as being 100% and 0% at the same time. This is treated as invalid by default but can be changed by setting the variable `ambiguity_invalid = FALSE`, in which case the `ambiguity_perfect` parameter becomes interesting:
+
+* When `TRUE` (default), these cases are scored as "perfect" (RTE = 1)
+
+* When `FALSE`, these cases are scored as "zero" (RTE = 0)
+
+
+#### Validity Considerations
+
+Not all queue scenarios allow for meaningful RTE calculation. A time-critical patient's RTE calculation is considered valid only when:
+
+1. There's at least one non-time-critical patient in the ED within the relevant time window, OR
+2. L ≠ n_tc (queue composition allows for meaningful prioritization)
+
+Cases where all patients in queue are time-critical make prioritization meaningless, as any ordering would result in the same average waiting time and queue position for time-critical patients.
+
+#### Example RTE Calculations
+
+Let's illustrate with some examples:
+
+```{r rte-examples}
+# Example scenarios
+examples <- data.frame(
+  scenario = c("Standard positive", "Perfect triage", "Negative triage", "Ambiguous case"),
+  L = c(6, 4, 3, 3),
+  p = c(3, 1, 5, 1),
+  n_tc = c(1, 2, 1, 4)
+)
+
+# Calculate RTE for each scenario
+examples$method <- mapply(RTE_method, examples$L, examples$p, examples$n_tc)
+examples$rte <- mapply(
+  function(L, p, n_tc, method) RTE_calculate(L, p, n_tc, method),
+  examples$L, examples$p, examples$n_tc, examples$method
+)
+
+# Display results
+examples$rte_percent <- paste0(round(examples$rte * 100, 1), "%")
+print(examples[, c("scenario", "L", "p", "n_tc", "method", "rte_percent")])
+```
+
+Let's analyze each example:
+
+1. **Standard Positive**: A time-critical patient (n_tc = 1) arrives with 5 others already in queue (L = 6) and is resolved third (p = 3). This shows good but not perfect prioritization.
+
+2. **Perfect Triage**: A time-critical patient is among 2 time-critical patients (n_tc = 2) in a queue of 4 (L = 4) and gets resolved first (p = 1). This is optimal prioritization.
+
+3. **Negative Triage**: A time-critical patient (n_tc = 1) in a queue of 3 (L = 3) isn't resolved until position 5 (p = 5), meaning patients arrived after them and were resolved first. This shows poor prioritization.
+
+4. **Ambiguous Case**: There are more time-critical patients (n_tc = 4) than the queue length (L = 3), making meaningful prioritization impossible. The default setting treats this as invalid.
+
+### Which Measure is More "Correct"?
+
+Neither WTE nor RTE is inherently more "correct" - they measure different aspects of triage performance:
+
+- **WTE** directly reflects the real-world impact on patient waiting times, which is ultimately what matters to patients' experience and outcomes. However, it can be influenced by factors beyond triage decisions.
+
+- **RTE** isolates the quality of triage decisions by focusing purely on queue positioning, independent of system throughput. This makes it useful for comparing triage systems across EDs with different capacities. Or within the same ED but comparing performance between cases where the mean waiting time might differs significantly, for example comparing night to day.
+
+In practice, RTE typically gives slightly higher values than WTE since it does not assume perfect preemptive interventions (i.e., zero waiting time as the ideal). However, both perspectives should be considered valid, and analyzing both measures provides a more complete picture of triage performance.
+
+## Summary
+
+This vignette has demonstrated:
+
+1. How to calculate both WTE and RTE
+3. The key differences between the approaches
+4. When to use each method
+
+By understanding both perspectives, you can gain a more complete picture of triage performance.
+
+For more detailed information, refer to the function documentation (`?calc_wte` and `?calc_rte`), and for more in depth information on bootstrapping, see `vignette("bootstrap")`. To learn about visualization options, see `vignette("plot_te")`.

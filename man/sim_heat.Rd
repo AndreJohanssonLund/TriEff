@@ -10,7 +10,9 @@ sim_heat(
   n_workers = detectCores() - 1,
   pos_values_only = FALSE,
   n_loset = NULL,
-  seed = NULL
+  seed = NULL,
+  calc_method = "rte",
+  include_dataframes = FALSE
 )
 }
 \arguments{
@@ -30,6 +32,12 @@ sensitivity + specificity >= 1. Default is FALSE.}
 the data to reach this. Can by doing this get more LOSET cases.}
 
 \item{seed}{Seed for reproducible heat maps (default: null - no seed)}
+
+\item{calc_method}{String. Method to use for calculating TE: "wte" for waiting time-based TE,
+or "rte" for rank-based TE (default).}
+
+\item{include_dataframes}{Logical. If TRUE, includes complete simulation data frames
+in output for detailed analysis. Default is FALSE to minimize memory usage.}
 }
 \value{
 A Tibble with sensitivity, specificity and TE values
@@ -57,13 +65,13 @@ The function processes data through these key steps:
 \item For each combination:
 \itemize{
 \item Scholastically applies priority assignment based on sensitivity/specificity
-\item Simulates queue processing for each segment
+\item Simulates queue processing for each step
 \item Calculates resulting (binary) TE value
 }
 }
 \item Progress Tracking:
 \itemize{
-\item Updates progress after each segment
+\item Updates progress after each step
 }
 }
 
@@ -77,16 +85,21 @@ Performance considerations:
 \examples{
 \dontrun{
 # Basic usage
-results <- sim_heat_fast(patient_data, step_size = 10)
+results <- sim_heat(patient_data, step_size = 10)
 
 # Only positive values
-results <- sim_heat_fast(patient_data,
-                        step_size = 10,
-                        pos_values_only = TRUE)
+results <- sim_heat(patient_data,
+                    step_size = 10,
+                    pos_values_only = TRUE)
 
 # Adjust worker count
-results <- sim_heat_fast(patient_data,
-                        step_size = 10,
-                        n_workers = 4)
+results <- sim_heat(patient_data,
+                    step_size = 10,
+                    n_workers = 4)
+
+# Include simulation data frames
+results <- sim_heat(patient_data,
+                    step_size = 10,
+                    include_dataframes = TRUE)
 }
 }

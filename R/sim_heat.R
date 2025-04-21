@@ -17,11 +17,11 @@
 #'    - Processes each combination independently across workers
 #'    - For each combination:
 #'      * Scholastically applies priority assignment based on sensitivity/specificity
-#'      * Simulates queue processing for each segment
+#'      * Simulates queue processing for each step
 #'      * Calculates resulting (binary) TE value
 #'
 #' 3. Progress Tracking:
-#'    - Updates progress after each segment
+#'    - Updates progress after each step
 #'
 #' Performance considerations:
 #' - Large step_sizes (e.g., 25) are suitable for initial exploration
@@ -39,7 +39,10 @@
 #' @param n_loset Integer, least number of LOSET cases in the data frame. Will duplicate
 #' the data to reach this. Can by doing this get more LOSET cases.
 #' @param seed Seed for reproducible heat maps (default: null - no seed)
-#'
+#' @param calc_method String. Method to use for calculating TE: "wte" for waiting time-based TE,
+#'   or "rte" for rank-based TE (default).
+#' @param include_dataframes Logical. If TRUE, includes complete simulation data frames
+#'   in output for detailed analysis. Default is FALSE to minimize memory usage.
 #'
 #' @return A Tibble with sensitivity, specificity and TE values
 #'
@@ -55,33 +58,45 @@
 #' @examples
 #' \dontrun{
 #' # Basic usage
-#' results <- sim_heat_fast(patient_data, step_size = 10)
+#' results <- sim_heat(patient_data, step_size = 10)
 #'
 #' # Only positive values
-#' results <- sim_heat_fast(patient_data,
-#'                         step_size = 10,
-#'                         pos_values_only = TRUE)
+#' results <- sim_heat(patient_data,
+#'                     step_size = 10,
+#'                     pos_values_only = TRUE)
 #'
 #' # Adjust worker count
-#' results <- sim_heat_fast(patient_data,
-#'                         step_size = 10,
-#'                         n_workers = 4)
+#' results <- sim_heat(patient_data,
+#'                     step_size = 10,
+#'                     n_workers = 4)
+#'
+#' # Include simulation data frames
+#' results <- sim_heat(patient_data,
+#'                     step_size = 10,
+#'                     include_dataframes = TRUE)
 #' }
 #' @export
 sim_heat <- function(df, step_size, n_workers = detectCores() - 1,
-                     pos_values_only = FALSE, n_loset = NULL, seed = NULL) {
+                     pos_values_only = FALSE, n_loset = NULL, seed = NULL,
+                     calc_method = "rte", include_dataframes = FALSE) {
   # Input validation
   valid_step_sizes <- c(25, 10, 5, 2.5, 1)
   if (!step_size %in% valid_step_sizes) {
     stop("Invalid step_size. Must be one of: 25, 10, 5, 2.5, or 1.")
   }
 
+  # Validate calculation method
+  valid_methods <- c("wte", "rte")
+  if (!calc_method %in% valid_methods) {
+    stop("Invalid calc_method. Must be one of: 'wte' or 'rte'.")
+  }
+
   validate_sim_heat_data(df)
 
   df <- df %>%
-    select("id", "arrival_minute", "resolve_minute", "loset", "observed_wait_time", "unit")
+    select("id", "arrival_minute", "resolve_minute", "loset", "observed_wait_time", "unit", "segment")
 
-  # Calculate mean_all once at the start
+  # Calculate mean_all once at the start (only needed for WTE)
   mean_all <- mean(df$observed_wait_time)
 
   # Create sensitivity and specificity combinations
@@ -93,27 +108,22 @@ sim_heat <- function(df, step_size, n_workers = detectCores() - 1,
       filter(sensitivity + specificity >= 1)
   }
 
-  # Create segments with LOSET cases
-  print(paste("Creating segments out of dataframe", Sys.time()))
-  df_segmented <- create_segments(df, n_workers)
-  print(paste("Identified segments, filtering LOSET segments.."))
-
   # Filter to segments containing LOSET cases
-  segments_with_loset <- df_segmented %>%
+  segments_with_loset <- df %>%
     group_by(segment) %>%
     summarize(has_loset = any(loset), .groups = "drop") %>%
     filter(has_loset) %>%
     pull(segment)
 
-  df_segmented <- df_segmented %>%
+  df <- df %>%
     filter(segment %in% segments_with_loset)
 
-  print(paste("Processing", length(unique(df_segmented$segment)), "segments with LOSET cases"))
+  print(paste("Processing", length(unique(df$segment)), "segments with LOSET cases"))
 
   # If n_loset specified, handle replication differently with the segment column approach
   if (!is.null(n_loset)) {
     # Count current LOSET cases
-    total_loset <- sum(df_segmented$loset)
+    total_loset <- sum(df$loset)
 
     # Calculate needed duplications (rounding up)
     n_duplications <- ceiling(n_loset / total_loset)
@@ -123,18 +133,18 @@ sim_heat <- function(df, step_size, n_workers = detectCores() - 1,
 
       # Create the original plus n_duplications-1 copies
       df_copies <- c(
-        list(df_segmented),  # Original data
+        list(df),  # Original data
         lapply(2:n_duplications, function(i) {
           # Create copy with modified segment IDs
-          copy <- df_segmented
+          copy <- df
           copy$segment <- paste0(copy$segment, "_dup", i)
           return(copy)
         })
       )
 
-      df_segmented <- bind_rows(df_copies)
-      new_total_loset <- sum(df_segmented$loset)
-      new_total_rows <- nrow(df_segmented)
+      df <- bind_rows(df_copies)
+      new_total_loset <- sum(df$loset)
+      new_total_rows <- nrow(df)
       print(paste("New total LOSET cases:", new_total_loset))
       print(paste("Total patient count:", new_total_rows))
       print(paste("Total patient count in original df:", nrow(df)))
@@ -151,9 +161,9 @@ sim_heat <- function(df, step_size, n_workers = detectCores() - 1,
   # Initialize progress reporting
   init_progressr()
 
-  print(paste("Starting simulations with", nrow(combinations), "combinations", Sys.time()))
+  print(paste("Starting simulations with", length(combinations), "combinations", Sys.time()))
 
-  # Run parallel simulations by sesitivity/specificity combination
+  # Run parallel simulations by sensitivity/specificity combination
   results <- with_progress({
     p <- progressor(steps = length(combinations))
 
@@ -171,7 +181,7 @@ sim_heat <- function(df, step_size, n_workers = detectCores() - 1,
 
         # Instead of processing each segment separately, process all segments together
         # with proper grouping
-        df_copy <- df_segmented
+        df_copy <- df
         random_values <- runif(nrow(df_copy))
 
         df_copy$priority_binary <- data.table::fifelse(
@@ -181,25 +191,50 @@ sim_heat <- function(df, step_size, n_workers = detectCores() - 1,
         )
 
         # Process by segment groups
-        wait_times_by_segment <- df_copy %>%
+        sim_results <- df_copy %>%
           group_by(segment) %>%
           group_split() %>%
           map(~ run_simulation(.x, tte = FALSE, btte = TRUE)) %>%
           bind_rows()
 
-        # Extract wait times and LOSET status
-        all_wait_times <- wait_times_by_segment$binary_theoretical_wait_time
-        loset_indices <- wait_times_by_segment$loset
+        # Different calculation methods for TE
+        if (calc_method == "wte") {
+          # Original waiting time-based TE calculation
+          # Extract wait times and LOSET status
+          all_wait_times <- sim_results$binary_theoretical_wait_time
+          loset_indices <- sim_results$loset
 
-        # Calculate TE for this combination
-        mean_loset <- mean(all_wait_times[loset_indices])
-        te <- 1 - (mean_loset / mean_all)
+          # Calculate TE for this combination
+          mean_loset <- mean(all_wait_times[loset_indices])
+          te <- 1 - (mean_loset / mean_all)
+        } else if (calc_method == "rte") {
+          # Rank-based TE calculation
+          # Apply calculate_queue_metrics to get RTE values
+          rte_results <- calculate_queue_metrics(sim_results,
+                                                 verbose = include_dataframes)
 
-        list(
+          # Extract valid RTE values for LOSET patients
+          valid_rte <- rte_results %>%
+            filter(loset == TRUE, valid == TRUE) %>%
+            pull(binary_theoretical_RTE)
+
+          # Calculate mean RTE if there are valid values, otherwise 0
+          te <- if (length(valid_rte) > 0) mean(valid_rte, na.rm = TRUE) else NA_integer_
+        }
+
+        # Create result structure
+        result <- list(
           sensitivity = sens,
           specificity = spec,
           te = te
         )
+
+        # Store complete data if requested
+        if (include_dataframes) {
+          result$sim_data <- sim_results
+        }
+
+        result
       })
 
       p()
@@ -214,9 +249,13 @@ sim_heat <- function(df, step_size, n_workers = detectCores() - 1,
     te = map_dbl(unlist(results, recursive = FALSE), ~.x$te)
   )
 
-  print(paste("Simulations complete", Sys.time()))
+  # Add simulation data if requested
+  if (include_dataframes) {
+    results_df$sim_data <- map(unlist(results, recursive = FALSE), ~.x$sim_data)
+  }
 
+  print(paste("Simulations complete", Sys.time()))
+  print(paste("Calculation method used:", calc_method))
 
   return(results_df)
-
 }

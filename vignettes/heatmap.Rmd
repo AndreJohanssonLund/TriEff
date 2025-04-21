@@ -19,25 +19,26 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(trieff)
 library(dplyr)
+library(patchwork)
 ```
 
 ## Introduction
 
 The heatmap functionality in trieff is primarily a research tool designed to explore and validate the theoretical properties of Triage Effectiveness (TE). Unlike other features in the package, heatmap generation is computationally intensive and typically used for understanding fundamental relationships rather than day-to-day analysis.
 
+trieff supports both Waiting Time-based TE (WTE) and Rank-based TE (RTE) methods for heatmap generation, each offering different perspectives on triage system performance. However RTE is naturaly normalizes between 0% and 100% which makes its results more directly comparable across different ED settings and sensitivity/specificity combinations.
+
 ## Prerequisites
 - Understanding of TE concepts (`vignette("getting_started")`)
-
 - Familiarity with simulation (`vignette("sim_te")`)
-
-- Could require some computational resources.
+- Understanding of WTE and RTE differences (`vignette("calc_wte_rte")`)
+- Computational resources for processing
 
 
 ## Relationship to Simulation
 The heatmap analysis builds on the simulation framework described in `vignette("sim_te")`. However, it requires significantly more computational resources due to repeated simulations across sensitivity/specificity combinations.
 
 ### Important Considerations
-
 1. **Computational Cost**: Full heatmap generation with typical ED datasets (>100,000 visits) can take several minutes up to hours depending on step size.
 2. **Intended Use**: This tool is meant for researchers validating TE properties or comparing results across different ED settings.
 3. **Limitation**: The heatmap does not naturally handle different units and it is recommended to only simulate one unit per heatmap.
@@ -49,12 +50,12 @@ A TE heatmap visualizes how different combinations of sensitivity and specificit
 1. The sum of sensitivity and specificity must exceed 1 for positive TE values
 2. When this sum exceeds 1, improving sensitivity yields slightly better gains
 3. When below 1, improving specificity is more beneficial
-4. Above rules are generally hard to validate when the sum is very close to 1, likely due to stochastic reasons.
-5. If inflow of LOSET patients are uneven during operational hours and the mean waiting time is also uneven, such as that more time critical cases arrives during the night when waiting times are longer the values where the sensitivity specificity sum is close to 1 can diverge further from 0.
+4. Above rules are generally hard to validate when the sum is very close to 1, likely due to stochastic reasons
+5. If inflow of LOSET patients are uneven during operational hours and the mean waiting time is also uneven, such as that more time critical cases arrives during the night when waiting times are longer the values where the sensitivity specificity sum is close to 1 can diverge further from 0 for WTE, but not RTE.
 
-Let's examine these patterns with a small dataset:
+Let's compare WTE and RTE heatmaps with a small dataset:
 
-```{r example_of_heatmap, fig.width=7, fig.height=6, fig.alt="A heatmap showing TE over Sensitivity/specificity, unnormalized"}
+```{r example_of_heatmaps, fig.width=12, fig.height=6, fig.alt="Comparison of WTE and RTE heatmaps showing TE over sensitivity/specificity combinations"}
 # Get a small sample (1 week) of data
 small_data <- init(sem_malmo_synth[
   sem_malmo_synth$arrival >= min(sem_malmo_synth$arrival) &
@@ -62,51 +63,73 @@ small_data <- init(sem_malmo_synth[
 ])
 
 data <- sem_malmo_synth %>%
-    filter(unit == "medical") %>% # As noted before - use only one unit per sim.
+    filter(unit == "medical") %>% # Use only one unit per sim
     init()
 
-# Generate heatmap data
+# Generate heatmap data using both calculation methods
 # WARNING: Even with this small dataset, this may take several minutes
-heatmap_data <- data %>% 
-  sim_heat(n_workers = 12, step_size = 10)
+wte_heatmap <- data %>% 
+  sim_heat(n_workers = 4, step_size = 10, calc_method = "wte")
 
-plot_te_heatmap(heatmap_data) # Create heatmap
+rte_heatmap <- data %>% 
+  sim_heat(n_workers = 4, step_size = 10, calc_method = "rte")
+
+# Create and combine heatmaps
+wte_plot <- plot_te_heatmap(wte_heatmap, title = "WTE Heatmap")
+rte_plot <- plot_te_heatmap(rte_heatmap, title = "RTE Heatmap")
+
+# Display side by side
+wte_plot | rte_plot
 ```
 
-We can also normalize the heatmap with a single argument:
+Notice how both heatmaps reveal similar patterns, but the RTE heatmap (right) may show a more consistent scale due to its natural normalization properties.
 
-```{r example_of_heatmap_normalized, fig.width=7, fig.height=6, fig.alt="A heatmap showing TE over Sensitivity/specificity, normalized"}
-plot_te_heatmap(heatmap_data, normalize = TRUE) # Create heatmap
+## Normalization in Heatmaps
 
+Normalization is particularly important when comparing heatmaps across different EDs or datasets. While RTE is naturally normalized due to its definition, WTE may benefit from explicit normalization to facilitate comparison:
+
+```{r example_of_heatmap_normalized, fig.width=12, fig.height=6, fig.alt="Comparison of WTE and RTE heatmaps with WTE normalized"}
+# Create normalized WTE heatmap
+wte_norm_plot <- plot_te_heatmap(wte_heatmap, normalize = TRUE, 
+                             title = "WTE Heatmap (Normalized)")
+
+# RTE doesn't typically require normalization
+rte_norm_plot <- plot_te_heatmap(rte_heatmap, 
+                             title = "RTE Heatmap (No Normalization Needed)")
+
+# Display side by side
+wte_norm_plot | rte_norm_plot
 ```
+
+Normalization in WTE scales values to make them more visually comparable. For RTE, normalization is less necessary since the values are already on a scale that naturally runs from negative values (worse than random) through 0 (equivalent to random) to 1 (perfect prioritization).
+
 ## Alternative Calculations
 
-The package includes several alternative TE calculations (cube root, log, median-based) primarily for research validation. These can be accessed using `alt_calc = TRUE` in `sim_heat_alt()`, i.e. it is not possible based on the `sim_heat()`:
+The package includes several alternative TE calculations (cube root, log, median-based) primarily for research validation. These are currently only available for WTE and can be accessed using `sim_heat_alt()`:
 
-```{r example_alt_calc_1, fig.width=10, fig.height=5, fig.alt="The first of three heatmaps from the alternative calculations - plain TE where TE is calculated based on on different normalisation techniques"}
-# Example of alternative calculations
+```{r example_alt_calc_1, fig.width=10, fig.height=5, fig.alt="The first of three heatmaps from the alternative calculations - TE calculated based on different normalization techniques"}
+# Example of alternative calculations with WTE
 alt_calc <- sim_heat_alt(data, alt_calc = TRUE, step_size = 25) %>% 
   plot_te_heatmap(show_alt_calc = TRUE)
 
 alt_calc$te_batch # The first possible alternative heat map
 ```
 
-```{r example_alt_calc_2, fig.width=10, fig.height=5, fig.alt="The second of three heatmaps from the alternative calculations - normalized TE where TE is calculated based on on different normalisation techniques"}
+```{r example_alt_calc_2, fig.width=10, fig.height=5, fig.alt="The second of three heatmaps from the alternative calculations - normalized TE where TE is calculated based on different normalization techniques"}
 
 alt_calc$normalized_te_batch # The second possible alternative heat map
 ```
 
-
-```{r example_alt_calc_3, fig.width=10, fig.height=5, fig.alt="The second of three heatmaps from the alternative calculations - normalized TE where TE is calculated based on on different normalisation techniques"}
+```{r example_alt_calc_3, fig.width=10, fig.height=5, fig.alt="The third of three heatmaps from the alternative calculations - TE where TE is calculated based on different normalization techniques"}
 
 alt_calc$all_batch # The third possible alternative heat map
-
 ```
-These alternatives help validate that the patterns we observe aren't artifacts of our calculation method.
+
+These alternatives help validate that the patterns we observe aren't artifacts of our calculation method. Note that these alternative calculations are primarily applicable to WTE and not necessary for RTE due to its already normalized nature.
 
 ## Color Scheme Options
 
-The `plot_te_heatmap` function now supports different color schemes through the `color_scheme` parameter. This is particularly useful for choosing appropriate visualizations for different audiences, including options that are colorblind-friendly.
+The `plot_te_heatmap` function supports different color schemes through the `color_scheme` parameter. This is particularly useful for choosing appropriate visualizations for different audiences, including options that are colorblind-friendly.
 
 ### Available Color Schemes
 
@@ -119,8 +142,7 @@ color_scheme_plots <- list()
 
 for (scheme in color_schemes) {
   color_scheme_plots[[scheme]] <- plot_te_heatmap(
-    heatmap_data, 
-    normalize = TRUE,
+    rte_heatmap, # Using RTE heatmap for color scheme examples
     color_scheme = scheme,
     title = paste(toupper(substr(scheme, 1, 1)), substr(scheme, 2, nchar(scheme)), "Scheme", sep="")
   )
@@ -140,16 +162,17 @@ Each color scheme has different characteristics:
 
 **Triage**: Uses classic triage colors (red, orange, yellow, green) familiar in healthcare settings. Not colorblind-safe but immediately recognizable to healthcare professionals who work with triage systems.
 
+
 ## Summary
 
-Heatmap analysis in trieff is a powerful research tool for understanding TE properties, but it requires:
+Heatmap analysis in trieff is a powerful research tool for understanding TE properties. Key takeaways:
 
-1. Significant computational resources/patience
+1. Both WTE and RTE calculation methods are available for heatmap generation
+2. RTE offers naturally normalized results, making it well-suited for comparative analysis
+3. WTE may require explicit normalization for optimal visualization
+4. Both methods reveal similar fundamental patterns in the relationship between sensitivity, specificity, and TE
+5. Use the `calc_method` parameter in `sim_heat()` to select your preferred calculation approach
 
-2. Careful interpretation of results
+For researchers interested in detailed heatmap analysis, we recommend reviewing the methods section of the TE paper (see `vignette("original_study")`) and ensuring sufficient computational resources before beginning analysis.
 
-3. Understanding of the theoretical background
-
-For regular TE analysis of your ED, we recommend using the main `calc_te()` function as demonstrated in other vignettes.
-
-For researchers interested in detailed heatmap analysis, we recommend reviewing the methods section of the TE paper (see `vignette("original_study")`and ensuring sufficient computational resources before beginning analysis.
+For regular TE analysis of your ED, we recommend using the main `calc_wte()` or `calc_rte()` functions as demonstrated in other vignettes.

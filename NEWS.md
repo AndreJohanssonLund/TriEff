@@ -1,8 +1,15 @@
 # NEWS
 
+## v 1.1.0 - 2025-04-21
+
+* Added RTE as metric. 
+
+* Multiple small changes that improves performance
+
+
 ## v 1.0.0 - 2025-02-28
 
-* Increased the version number to signify that this is the version that is sent in to review togeather with the original article. No changes to code or API from previous version
+* Increase in version number to signify the complete first version of the package.
 
 
 ## v 0.8.7 - 2025-02-25

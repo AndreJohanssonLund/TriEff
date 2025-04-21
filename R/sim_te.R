@@ -70,16 +70,19 @@
 #'
 #' @export
 sim_te_alt <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
+  # Check data columns and verify this data hasn't been simulated before
+  if ((("theoretical_wait_time" %in% names(df)) && any(!is.na(df$theoretical_wait_time))) ||
+      (("binary_theoretical_wait_time" %in% names(df)) && any(!is.na(df$binary_theoretical_wait_time)))) {
+    stop("Data appears to have already been simulated. Each dataset should only be simulated once. ",
+         "If you need to re-simulate, please start with the original initialized data.")
+  }
   # Extracting only relevant fields for simulation for RAM conservation
   df_sim <- df %>%
     select(id, unit, arrival_minute, resolve_minute,
-           priority, priority_binary, loset)
+           priority, priority_binary, loset, segment)
   df <- df %>%
     select(-c(unit, arrival_minute, resolve_minute,
               priority, priority_binary, loset))
-
-  print(paste("Creating segments out of dataframe", Sys.time()))
-  df_sim <- create_segments(df_sim, n_workers)
 
   print(paste("Starting multisession with", n_workers, "cores.", Sys.time()))
   setup_parallel(n_workers = n_workers)
@@ -188,18 +191,16 @@ sim_te_alt <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
 #'
 #' @export
 sim_te <- function(df, tte = TRUE, btte = FALSE, n_workers = 1) {
-  if (any(!is.na(df$theoretical_wait_time)) || any(!is.na(df$binary_theoretical_wait_time))) {
+  # Check data columns and verify this data hasn't been simulated before
+  if ((("theoretical_wait_time" %in% names(df)) && any(!is.na(df$theoretical_wait_time))) ||
+      (("binary_theoretical_wait_time" %in% names(df)) && any(!is.na(df$binary_theoretical_wait_time)))) {
     stop("Data appears to have already been simulated. Each dataset should only be simulated once. ",
          "If you need to re-simulate, please start with the original initialized data.")
   }
   # Extract minimal data for simulation while preserving original
   df_sim <- df %>%
-    select(id, unit, arrival_minute, resolve_minute,
-           priority, priority_binary, loset)
-
-  # Create segments with minimal data - now returns df with segment column
-  print(paste("Creating segments out of dataframe", Sys.time()))
-  df_sim <- create_segments(df_sim, n_workers)
+    dplyr::select(id, unit, arrival_minute, resolve_minute,
+           priority, priority_binary, loset, segment)
 
   # Filter to keep only rows in segments containing LOSET cases
   loset_segments <- df_sim %>%

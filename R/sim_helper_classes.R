@@ -23,7 +23,7 @@
 #' parallelization.
 #'
 #' @keywords internal
-create_segments <- function(df, n_workers = detectCores() - 1) {
+create_segments <- function(df, n_workers = 1) {
   # Split data by unit for parallel processing
   unit_data <- split(df, df$unit)
 
@@ -148,7 +148,15 @@ run_simulation <- function(segment, tte = TRUE, btte = FALSE) {
   dt <- data.table::as.data.table(segment)
   data.table::setkey(dt, id)
 
-  resolve_events <- dt[, .(id = NA_integer_, resolve_minute = resolve_minute, priority = NA_integer_)]
+  # Create resolve_events with appropriate columns based on simulation type
+  if (tte) {
+    # If we're doing TTE simulation, include priority column
+    resolve_events <- dt[, .(id = NA_integer_, resolve_minute = resolve_minute, priority = NA_integer_)]
+  } else {
+    # If we're not doing TTE simulation, exclude priority column
+    resolve_events <- dt[, .(id = NA_integer_, resolve_minute = resolve_minute)]
+  }
+
   data.table::setorder(resolve_events, resolve_minute)
   resolve_events[, resolve_event_order := .I]
 

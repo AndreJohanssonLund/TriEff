@@ -4,7 +4,7 @@
 \alias{create_segments}
 \title{Create Segment Identifiers in Patient Data}
 \usage{
-create_segments(df, n_workers = detectCores() - 1)
+create_segments(df, n_workers = 1)
 }
 \arguments{
 \item{df}{A data frame containing patient data, including ID, unit, arrival times, and resolve times.}

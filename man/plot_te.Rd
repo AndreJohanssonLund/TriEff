@@ -16,7 +16,8 @@ plot_te(
   var_end_width = 1,
   var_end_height = 0.1,
   label_style = "half",
-  min_x = NULL
+  min_x = NULL,
+  ci_vars_override = NULL
 )
 }
 \arguments{
@@ -52,6 +53,10 @@ plot_te(
 \item{label_style}{categorical, valid inputs - "none", "small", "full" & "half". Decides the style of the label for TTE/OTE on the rights side of the graph. Default is half witch nets the label style as: "Theoretical TE". Small: "TTE", Full: "Theoretical Triage Effectiveness".}
 
 \item{min_x}{Percentual value that is the minimum value that the plot will stretch to. Default is null which uses the min value in the data rounded to the next 10\%. Useful to set if you have several plots with one that has negative values to keep the same aspect ratio.}
+
+\item{ci_vars_override}{Character string. Explicitly specify which CI variables to use:
+"parametric", "nonparametric", or "boot". If NULL (default), uses recommended variables
+from metadata based on calculation method and normality tests.}
 }
 \value{
 A ggplot object representing the Triage Effectiveness plot.

@@ -45,6 +45,38 @@ utils::globalVariables(c(
   "boot_btte_mean", "boot_btte_sd", "boot_btte_sd_q", "boot_btte_var_lower", "boot_btte_var_upper",
   "boot_mean_n_patients", "boot_mean_n_loset", "iteration", "n_iterations", "include_distributions",
 
+  # RTE specific variables
+  "observed_RTE", "theoretical_RTE", "binary_theoretical_RTE", "valid", "n_distinct",
+  "n_valid_rte", "observed_p", "theoretical_p", "binary_theoretical_p", "n_tc",
+
+  # RTE calculation components
+  "arrivals_up_to_now", "observed_resolves_before", "L", "is_cluster", "cluster_id",
+  "last_resolve_before", "first_resolve_after", "window_id", "carryover",
+  "adjusted_n_tc", "window_end", "loset_arrivals", "min_arrival", "resolve_times",
+  "n_resolves", "segment_has_non_loset", "facet_wrap",
+
+  # RTE statistical metrics
+  "ote_se", "tte_se", "btte_se", "t_value",
+  "observed_RTE_mean", "observed_RTE_sd", "observed_RTE_q025", "observed_RTE_q975", "observed_RTE_sd_q",
+  "theoretical_RTE_mean", "theoretical_RTE_sd", "theoretical_RTE_q025", "theoretical_RTE_q975", "theoretical_RTE_sd_q",
+  "binary_theoretical_RTE_mean", "binary_theoretical_RTE_sd", "binary_theoretical_RTE_q025", "binary_theoretical_RTE_q975", "binary_theoretical_RTE_sd_q",
+  "n_samples", "observed_RTE_case", "theoretical_RTE_case", "binary_theoretical_RTE_case", ".valid_observed_RTE", ".valid_theoretical_RTE", ".valid_binary_theoretical_RTE",
+
+  # Parametric and nonparametric stats
+  "parametric_ote_mean", "parametric_ote_sd", "parametric_ote_sd_q", "parametric_ote_var_lower", "parametric_ote_var_upper",
+  "parametric_tte_mean", "parametric_tte_sd", "parametric_tte_sd_q", "parametric_tte_var_lower", "parametric_tte_var_upper",
+  "parametric_btte_mean", "parametric_btte_sd", "parametric_btte_sd_q", "parametric_btte_var_lower", "parametric_btte_var_upper",
+  "nonparametric_ote_var_lower", "nonparametric_ote_var_upper",
+  "nonparametric_tte_var_lower", "nonparametric_tte_var_upper",
+  "nonparametric_btte_var_lower", "nonparametric_btte_var_upper",
+  "ote_shapiro_p", "tte_shapiro_p", "btte_shapiro_p", "recommended_ci_type",
+
+  # All window related
+  "all_resolves", "all_patients", "candidates", "arrival_t", "resolve_t", "current_priority",
+  "my_segment", "candidate_times", "candidate_priorities", "candidate_arrivals",
+  "order_index", "my_pos", "window_stats", "seg_windows", "unresolved_tc", "L_min_p",
+  ".N",
+
   # Event processing
   "event_type", "cum_arrivals", "cum_resolves", "queue_size", "segment_start", "segment",
 

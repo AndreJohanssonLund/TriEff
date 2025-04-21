@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">trieff</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,7 +35,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/getting_started.html">Getting Started</a></li>
     <li><a class="dropdown-item" href="../articles/sim_te.html">Simulation in trieff</a></li>
-    <li><a class="dropdown-item" href="../articles/calc_te.html">Calculating Triage Effectiveness</a></li>
+    <li><a class="dropdown-item" href="../articles/calc_wte_rte.html">Calculating Triage Effectiveness</a></li>
     <li><a class="dropdown-item" href="../articles/bootstrap.html">Bootstrap Analysis</a></li>
     <li><a class="dropdown-item" href="../articles/plot_te.html">Plotting Results</a></li>
     <li><a class="dropdown-item" href="../articles/heatmap.html">Heatmap Analysis</a></li>
@@ -79,7 +79,7 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://AndreJohanssonLund.github.io/trieff/" class="external-link">trieff</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loaded trieff 1.0.0</span></span>
+<span><span class="co">#&gt; Loaded trieff 1.1.0</span></span>
 <span><span class="co">#&gt; System capable of parallel processing with multisession backend</span></span>
 <span><span class="co">#&gt; Maximum available workers: 16</span></span>
 <span><span class="co">#&gt; Note: Individual functions will determine optimal core usage at runtime</span></span></code></pre></div>
@@ -87,9 +87,9 @@
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
 <p>The trieff package provides tools for analyzing and evaluating triage
-effectiveness in emergency departments. At its core, it measures how
-well triage systems achieve their fundamental purpose: reducing waiting
-times for time-critical patients.</p>
+effectiveness, for example in emergency departments. At its core, it
+measures how well triage systems achieve their fundamental purpose:
+reducing waiting times for time-critical patients.</p>
 <p>The package uses two key reference points:</p>
 <ol style="list-style-type: decimal">
 <li><p>The waiting time without any triage system (first-come,
@@ -133,15 +133,14 @@ by calculating wait times and setting up required variables:</p>
 <p>To understand how well the triage system performs without the effect
 of changes in priority that can happen after triage we simulate
 theoretical wait times. This shows what would happen if patients were
-seen strictly in order of their assigned priority:</p>
+seen strictly in order of their assigned priority/arrival time:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Run simulation for theoretical wait times</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_te.html">sim_te</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-03-07 13:16:11.05095"</span></span>
 <span><span class="co">#&gt; [1] "Filtered to 3 segments with LOSET cases"</span></span>
 <span><span class="co">#&gt; [1] "Total LOSET cases: 5491"</span></span>
-<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-03-07 13:16:11.171065"</span></span>
-<span><span class="co">#&gt; [1] "Simulations are done! 2025-03-07 13:17:02.129644"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-04-21 14:47:34.095724"</span></span>
+<span><span class="co">#&gt; [1] "Simulations are done! 2025-04-21 14:48:36.727472"</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="calculate-triage-effectiveness">3. Calculate Triage Effectiveness<a class="anchor" aria-label="anchor" href="#calculate-triage-effectiveness"></a>
@@ -150,7 +149,7 @@ seen strictly in order of their assigned priority:</p>
 Theoretical Triage Effectiveness (TTE):</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Calculate TE metrics</span></span>
-<span><span class="va">te_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_te.html">calc_te</a></span><span class="op">(</span><span class="va">data</span>, overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">te_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_wte.html">calc_wte</a></span><span class="op">(</span><span class="va">data</span>, overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">te_results</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Triage Effectiveness Analysis Results</span></span>
@@ -171,12 +170,15 @@ Theoretical Triage Effectiveness (TTE):</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Computation Information</span></span>
 <span><span class="co">#&gt; =====================</span></span>
-<span><span class="co">#&gt; Method: Direct calculation</span></span>
-<span><span class="co">#&gt; Calculation time: 2025-03-07 13:17:02.190918</span></span></code></pre></div>
+<span><span class="co">#&gt; Method: Direct calculation (waiting-time-based)</span></span>
+<span><span class="co">#&gt; Calculation time: 2025-04-21 14:48:36.794857</span></span></code></pre></div>
 <p>The results show us: - OTE: How well the ED actually performed - TTE:
 How well it would have performed based on triage decisions alone - OTG
 (Observed-Theoretical Gap): The difference between OTE and TTE,
-indicating the impact of post-triage processes</p>
+indicating the impact of post-triage processes.</p>
+<p>Note: TE can be calculated using two complementary approaches:
+Waiting Time-based TE (WTE) which measures actual time reduction, and
+Rank-based TE (RTE) which focuses on queue position improvement.</p>
 </div>
 <div class="section level3">
 <h3 id="visualize-results">4. Visualize Results<a class="anchor" aria-label="anchor" href="#visualize-results"></a>
@@ -196,8 +198,8 @@ error handling, and advanced features:</p>
 <ul>
 <li><p><code><a href="../articles/sim_te.html">vignette("sim_te")</a></code> for simulation details and
 performance considerations</p></li>
-<li><p><code><a href="../articles/calc_te.html">vignette("calc_te")</a></code> for analyzing TE
-metrics</p></li>
+<li><p><code><a href="../articles/calc_wte_rte.html">vignette("calc_wte_rte")</a></code> for calculating TE metrics
+with either WTE or RTE</p></li>
 <li><p><code><a href="../articles/bootstrap.html">vignette("bootstrap")</a></code> for statistical validation and
 variance calculation</p></li>
 <li><p><code><a href="../articles/plot_te.html">vignette("plot_te")</a></code> for visualization
@@ -226,8 +228,6 @@ gets its priority, named “arrival”</p></li>
 <ul>
 <li>Missing or incorrect column names -&gt; Use init() to validate data
 structure</li>
-<li>Unexpected TE values -&gt; Check unit groupings and LOSET
-definitions</li>
 </ul>
 <p>See <code><a href="../reference/sem_malmo_synth.html">?sem_malmo_synth</a></code> for an example of how to structure
 your data.</p>

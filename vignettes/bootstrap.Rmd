@@ -39,7 +39,7 @@ Two bootstrapping methods are available in trieff:
 Both methods work by repeatedly sampling from the dataset, calculating TE metrics for each sample, and using the distribution of these calculations to estimate confidence intervals.
 
 ## Prerequisites
-- Knowledge on basic TE calculation (see `vignette("calc_te")`)
+- Knowledge on basic TE calculation (see `vignette("calc_wte")`)
 - Simulated theoretical wait times (see `vignette("sim_te")`)
 
 ## Why Bootstrap?
@@ -58,7 +58,7 @@ Let's start with a basic example using default bootstrap parameters. We'll use o
 
 ```{r basic-bootstrap}
 # Calculate TE with bootstrap
-te_results <- calc_te(data, 
+te_results <- calc_wte(data, 
                      bootstrap = TRUE, 
                      overall_only = TRUE)
 
@@ -74,7 +74,7 @@ The bootstrap process can be customized using several parameters:
 
 ```{r custom-bootstrap}
 # Custom bootstrap settings
-te_custom <- calc_te(data,
+te_custom <- calc_wte(data,
                      bootstrap = TRUE,
                      overall_only = TRUE,
                      seed = 123, # use seed to make your results reproducible
@@ -103,7 +103,7 @@ The standard bootstrap method (`bootstrap = "standard"` or simply `bootstrap = T
 
 ```{r standard-bootstrap, fig.alt="Triage Effectiveness with confidence intervals calculated using standard bootstrap"}
 # Standard bootstrap
-standard_bootstrap <- calc_te(data,
+standard_bootstrap <- calc_wte(data,
                              bootstrap = "standard")
 
 plot_te(standard_bootstrap)
@@ -115,7 +115,7 @@ The segment bootstrap method (`bootstrap = "segment"`) preserves temporal patter
 
 ```{r segment-bootstrap, fig.alt="Triage Effectiveness with confidence intervals calculated using segment bootstrap"}
 # Segment bootstrap
-segment_bootstrap <- calc_te(data,
+segment_bootstrap <- calc_wte(data,
                             bootstrap = "segment")
 
 plot_te(segment_bootstrap)
@@ -172,7 +172,7 @@ While block bootstrapping reduces the effect of temporal effects, we argue that 
 
 ## Convergence Analysis
 
-Convergence analysis helps verify that our bootstrap estimates are stable. When check_convergence=TRUE (which it is by standard), calc_te generates three types of diagnostic plots:
+Convergence analysis helps verify that our bootstrap estimates are stable. When check_convergence=TRUE (which it is by standard), calc_wte generates three types of diagnostic plots:
 
 1. Running Mean Plot
    - Shows how the average TE estimate evolves with more iterations
@@ -193,7 +193,7 @@ Let's examine convergence for our analysis:
 
 ```{r convergence, fig.width=10, fig.height=5, fig.alt="Convergence plots for the bootstrap."}
 # Calculate TE with convergence checking
-te_convergence <- calc_te(data,
+te_convergence <- calc_wte(data,
                          bootstrap = TRUE,
                          overall_only = TRUE,
                          check_convergence = TRUE)
@@ -211,6 +211,37 @@ If convergence looks poor, consider:
 - Increasing n_iterations
 - Checking for data quality issues
 - Verifying sufficient sample size
+
+
+## Comparing Confidence Intervals for RTE
+
+While RTE CAN use direct calculation to show confidence intervals, bootstrapping offers the best balance of validity and usable results in our experience. Let's examine the different approaches:
+
+```{r rte-ci-comparison, fig.width=10, fig.height=8, fig.alt="Comparison of different confidence interval approaches for RTE"}
+
+# Calculate RTE with bootstrap
+rte_bootstrap <- calc_rte(data, bootstrap = TRUE, overall_only = TRUE)
+
+# Calculate RTE with direct calculation (no bootstrap)
+rte_direct <- calc_rte(data, bootstrap = FALSE, overall_only = TRUE)
+
+# Create plots with different CI approaches
+plot_bootstrap <- plot_te(rte_bootstrap, 
+                         title = "RTE with Bootstrap CI",
+                         min_x = -2.6)
+
+plot_parametric <- plot_te(rte_direct, 
+                          ci_vars_override = "parametric",
+                          title = "RTE with Parametric CI",
+                          min_x = -2.6)
+
+plot_nonparametric <- plot_te(rte_direct, 
+                             ci_vars_override = "nonparametric",
+                             title = "RTE with Non-parametric CI")
+
+# Display plots
+patchwork::wrap_plots(plot_bootstrap, plot_parametric, plot_nonparametric, ncol = 1)
+```
 
 ## Summary
 

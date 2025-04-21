@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">trieff</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,7 +20,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/getting_started.html">Getting Started</a></li>
     <li><a class="dropdown-item" href="../articles/sim_te.html">Simulation in trieff</a></li>
-    <li><a class="dropdown-item" href="../articles/calc_te.html">Calculating Triage Effectiveness</a></li>
+    <li><a class="dropdown-item" href="../articles/calc_wte_rte.html">Calculating Triage Effectiveness</a></li>
     <li><a class="dropdown-item" href="../articles/bootstrap.html">Bootstrap Analysis</a></li>
     <li><a class="dropdown-item" href="../articles/plot_te.html">Plotting Results</a></li>
     <li><a class="dropdown-item" href="../articles/heatmap.html">Heatmap Analysis</a></li>
@@ -70,10 +70,16 @@
         <dd>Triage Efficacy Simulation</dd>
       </dl><dl><dt>
 
-          <code><a href="calc_te.html">calc_te()</a></code>
+          <code><a href="calc_wte.html">calc_wte()</a></code>
 
         </dt>
         <dd>Calculate Triage Effectiveness</dd>
+      </dl><dl><dt>
+
+          <code><a href="calc_rte.html">calc_rte()</a></code>
+
+        </dt>
+        <dd>Calculate Rank-based Triage Effectiveness (RTE)</dd>
       </dl><dl><dt>
 
           <code><a href="print.calc_te.html">print(<i>&lt;calc_te&gt;</i>)</a></code>
@@ -131,11 +137,17 @@
           <code><a href="sim_heat_alt.html">sim_heat_alt()</a></code>
 
         </dt>
-        <dd>Simulate Triage Effectiveness including potential normalization techniques - mainly for validation and methodological research</dd>
+        <dd>Simulate Triage Effectiveness including alternative calculations for methodology research</dd>
+      </dl><dl><dt>
+
+          <code><a href="calculate_queue_metrics.html">calculate_queue_metrics()</a></code>
+
+        </dt>
+        <dd>Calculate Queue Metrics for Rank-based Triage Effectiveness (RTE) Analysis</dd>
       </dl></div><div class="section level2">
       <h2 id="convergence-analysis">Convergence Analysis<a class="anchor" aria-label="anchor" href="#convergence-analysis"></a></h2>
 
-      <div class="section-desc"><p>Functions for analyzing bootstrap convergence</p></div>
+      <div class="section-desc"><p>Functions for analyzing bootstrap convergence and variance</p></div>
 
 
     </div><div class="section level2">
@@ -155,6 +167,12 @@
 
         </dt>
         <dd>Print Method for TE Convergence Results</dd>
+      </dl><dl><dt>
+
+          <code><a href="plot_rte_distribution.html">plot_rte_distribution()</a></code>
+
+        </dt>
+        <dd>Plot RTE Distribution</dd>
       </dl></div><div class="section level2">
       <h2 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a></h2>
 

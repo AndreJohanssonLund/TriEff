@@ -3,11 +3,11 @@ pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   bootstrap: bootstrap.html
-  calc_te: calc_te.html
+  calc_wte_rte: calc_wte_rte.html
   getting_started: getting_started.html
   heatmap: heatmap.html
   original_study: original_study.html
   plot_te: plot_te.html
   publications: publications.html
   sim_te: sim_te.html
-last_built: 2025-03-07T12:44Z
+last_built: 2025-04-21T12:44Z

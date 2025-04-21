@@ -204,6 +204,13 @@ init <- function(Df, start = NULL, stop = NULL, Logg_level = 0, time_critical_pr
     message("arrival_minute and resolve_minute fields added successfully.")
   }
 
+  # Create segments
+  Df <- create_segments(Df)
+
+  if (Logg_level == 1) {
+    message("Queue segments created successfully.")
+  }
+
   return(Df)
 }
 

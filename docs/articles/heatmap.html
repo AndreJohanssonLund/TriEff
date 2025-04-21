@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">trieff</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,7 +35,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/getting_started.html">Getting Started</a></li>
     <li><a class="dropdown-item" href="../articles/sim_te.html">Simulation in trieff</a></li>
-    <li><a class="dropdown-item" href="../articles/calc_te.html">Calculating Triage Effectiveness</a></li>
+    <li><a class="dropdown-item" href="../articles/calc_wte_rte.html">Calculating Triage Effectiveness</a></li>
     <li><a class="dropdown-item" href="../articles/bootstrap.html">Bootstrap Analysis</a></li>
     <li><a class="dropdown-item" href="../articles/plot_te.html">Plotting Results</a></li>
     <li><a class="dropdown-item" href="../articles/heatmap.html">Heatmap Analysis</a></li>
@@ -79,7 +79,7 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://AndreJohanssonLund.github.io/trieff/" class="external-link">trieff</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loaded trieff 1.0.0</span></span>
+<span><span class="co">#&gt; Loaded trieff 1.1.0</span></span>
 <span><span class="co">#&gt; System capable of parallel processing with multisession backend</span></span>
 <span><span class="co">#&gt; Maximum available workers: 16</span></span>
 <span><span class="co">#&gt; Note: Individual functions will determine optimal core usage at runtime</span></span>
@@ -91,7 +91,8 @@
 <span><span class="co">#&gt;     filter, lag</span></span>
 <span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span></code></pre></div>
+<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
@@ -101,16 +102,23 @@ Effectiveness (TE). Unlike other features in the package, heatmap
 generation is computationally intensive and typically used for
 understanding fundamental relationships rather than day-to-day
 analysis.</p>
+<p>trieff supports both Waiting Time-based TE (WTE) and Rank-based TE
+(RTE) methods for heatmap generation, each offering different
+perspectives on triage system performance. However RTE is naturaly
+normalizes between 0% and 100% which makes its results more directly
+comparable across different ED settings and sensitivity/specificity
+combinations.</p>
 </div>
 <div class="section level2">
 <h2 id="prerequisites">Prerequisites<a class="anchor" aria-label="anchor" href="#prerequisites"></a>
 </h2>
 <ul>
-<li><p>Understanding of TE concepts
-(<code><a href="../articles/getting_started.html">vignette("getting_started")</a></code>)</p></li>
-<li><p>Familiarity with simulation
-(<code><a href="../articles/sim_te.html">vignette("sim_te")</a></code>)</p></li>
-<li><p>Could require some computational resources.</p></li>
+<li>Understanding of TE concepts
+(<code><a href="../articles/getting_started.html">vignette("getting_started")</a></code>)</li>
+<li>Familiarity with simulation (<code><a href="../articles/sim_te.html">vignette("sim_te")</a></code>)</li>
+<li>Understanding of WTE and RTE differences
+(<code><a href="../articles/calc_wte_rte.html">vignette("calc_wte_rte")</a></code>)</li>
+<li>Computational resources for processing</li>
 </ul>
 </div>
 <div class="section level2">
@@ -152,14 +160,14 @@ values</li>
 better gains</li>
 <li>When below 1, improving specificity is more beneficial</li>
 <li>Above rules are generally hard to validate when the sum is very
-close to 1, likely due to stochastic reasons.</li>
+close to 1, likely due to stochastic reasons</li>
 <li>If inflow of LOSET patients are uneven during operational hours and
 the mean waiting time is also uneven, such as that more time critical
 cases arrives during the night when waiting times are longer the values
 where the sensitivity specificity sum is close to 1 can diverge further
-from 0.</li>
+from 0 for WTE, but not RTE.</li>
 </ol>
-<p>Let’s examine these patterns with a small dataset:</p>
+<p>Let’s compare WTE and RTE heatmaps with a small dataset:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get a small sample (1 week) of data</span></span>
 <span><span class="va">small_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/init.html">init</a></span><span class="op">(</span><span class="va">sem_malmo_synth</span><span class="op">[</span></span>
@@ -168,59 +176,96 @@ from 0.</li>
 <span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">sem_malmo_synth</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">unit</span> <span class="op">==</span> <span class="st">"medical"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="co"># As noted before - use only one unit per sim.</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">unit</span> <span class="op">==</span> <span class="st">"medical"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="co"># Use only one unit per sim</span></span>
 <span>    <span class="fu"><a href="../reference/init.html">init</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Generate heatmap data</span></span>
+<span><span class="co"># Generate heatmap data using both calculation methods</span></span>
 <span><span class="co"># WARNING: Even with this small dataset, this may take several minutes</span></span>
-<span><span class="va">heatmap_data</span> <span class="op">&lt;-</span> <span class="va">data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="../reference/sim_heat.html">sim_heat</a></span><span class="op">(</span>n_workers <span class="op">=</span> <span class="fl">12</span>, step_size <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-03-07 13:17:05.252771"</span></span>
-<span><span class="co">#&gt; [1] "Identified segments, filtering LOSET segments.."</span></span>
+<span><span class="va">wte_heatmap</span> <span class="op">&lt;-</span> <span class="va">data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="../reference/sim_heat.html">sim_heat</a></span><span class="op">(</span>n_workers <span class="op">=</span> <span class="fl">4</span>, step_size <span class="op">=</span> <span class="fl">10</span>, calc_method <span class="op">=</span> <span class="st">"wte"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "Processing 527 segments with LOSET cases"</span></span>
-<span><span class="co">#&gt; [1] "Starting simulations with  combinations 2025-03-07 13:17:06.284955"</span></span>
-<span><span class="co">#&gt; [1] "Simulations complete 2025-03-07 13:17:44.24941"</span></span>
+<span><span class="co">#&gt; [1] "Starting simulations with 121 combinations 2025-04-21 14:48:40.576104"</span></span>
+<span><span class="co">#&gt; [1] "Simulations complete 2025-04-21 14:50:06.508623"</span></span>
+<span><span class="co">#&gt; [1] "Calculation method used: wte"</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/plot_te_heatmap.html">plot_te_heatmap</a></span><span class="op">(</span><span class="va">heatmap_data</span><span class="op">)</span> <span class="co"># Create heatmap</span></span></code></pre></div>
-<p><img src="heatmap_files/figure-html/example_of_heatmap-1.png" alt="A heatmap showing TE over Sensitivity/specificity, unnormalized" width="672"></p>
-<p>We can also normalize the heatmap with a single argument:</p>
+<span><span class="va">rte_heatmap</span> <span class="op">&lt;-</span> <span class="va">data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="../reference/sim_heat.html">sim_heat</a></span><span class="op">(</span>n_workers <span class="op">=</span> <span class="fl">4</span>, step_size <span class="op">=</span> <span class="fl">10</span>, calc_method <span class="op">=</span> <span class="st">"rte"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Processing 527 segments with LOSET cases"</span></span>
+<span><span class="co">#&gt; [1] "Starting simulations with 121 combinations 2025-04-21 14:50:06.698093"</span></span>
+<span><span class="co">#&gt; [1] "Simulations complete 2025-04-21 14:52:21.904291"</span></span>
+<span><span class="co">#&gt; [1] "Calculation method used: rte"</span></span>
+<span></span>
+<span><span class="co"># Create and combine heatmaps</span></span>
+<span><span class="va">wte_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te_heatmap.html">plot_te_heatmap</a></span><span class="op">(</span><span class="va">wte_heatmap</span>, title <span class="op">=</span> <span class="st">"WTE Heatmap"</span><span class="op">)</span></span>
+<span><span class="va">rte_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te_heatmap.html">plot_te_heatmap</a></span><span class="op">(</span><span class="va">rte_heatmap</span>, title <span class="op">=</span> <span class="st">"RTE Heatmap"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display side by side</span></span>
+<span><span class="va">wte_plot</span> <span class="op">|</span> <span class="va">rte_plot</span></span></code></pre></div>
+<p><img src="heatmap_files/figure-html/example_of_heatmaps-1.png" alt="Comparison of WTE and RTE heatmaps showing TE over sensitivity/specificity combinations" width="1152"></p>
+<p>Notice how both heatmaps reveal similar patterns, but the RTE heatmap
+(right) may show a more consistent scale due to its natural
+normalization properties.</p>
+</div>
+<div class="section level2">
+<h2 id="normalization-in-heatmaps">Normalization in Heatmaps<a class="anchor" aria-label="anchor" href="#normalization-in-heatmaps"></a>
+</h2>
+<p>Normalization is particularly important when comparing heatmaps
+across different EDs or datasets. While RTE is naturally normalized due
+to its definition, WTE may benefit from explicit normalization to
+facilitate comparison:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_te_heatmap.html">plot_te_heatmap</a></span><span class="op">(</span><span class="va">heatmap_data</span>, normalize <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># Create heatmap</span></span></code></pre></div>
-<p><img src="heatmap_files/figure-html/example_of_heatmap_normalized-1.png" alt="A heatmap showing TE over Sensitivity/specificity, normalized" width="672">
-## Alternative Calculations</p>
+<code class="sourceCode R"><span><span class="co"># Create normalized WTE heatmap</span></span>
+<span><span class="va">wte_norm_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te_heatmap.html">plot_te_heatmap</a></span><span class="op">(</span><span class="va">wte_heatmap</span>, normalize <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>                             title <span class="op">=</span> <span class="st">"WTE Heatmap (Normalized)"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># RTE doesn't typically require normalization</span></span>
+<span><span class="va">rte_norm_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te_heatmap.html">plot_te_heatmap</a></span><span class="op">(</span><span class="va">rte_heatmap</span>, </span>
+<span>                             title <span class="op">=</span> <span class="st">"RTE Heatmap (No Normalization Needed)"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display side by side</span></span>
+<span><span class="va">wte_norm_plot</span> <span class="op">|</span> <span class="va">rte_norm_plot</span></span></code></pre></div>
+<p><img src="heatmap_files/figure-html/example_of_heatmap_normalized-1.png" alt="Comparison of WTE and RTE heatmaps with WTE normalized" width="1152"></p>
+<p>Normalization in WTE scales values to make them more visually
+comparable. For RTE, normalization is less necessary since the values
+are already on a scale that naturally runs from negative values (worse
+than random) through 0 (equivalent to random) to 1 (perfect
+prioritization).</p>
+</div>
+<div class="section level2">
+<h2 id="alternative-calculations">Alternative Calculations<a class="anchor" aria-label="anchor" href="#alternative-calculations"></a>
+</h2>
 <p>The package includes several alternative TE calculations (cube root,
-log, median-based) primarily for research validation. These can be
-accessed using <code>alt_calc = TRUE</code> in
-<code><a href="../reference/sim_heat_alt.html">sim_heat_alt()</a></code>, i.e. it is not possible based on the
-<code><a href="../reference/sim_heat.html">sim_heat()</a></code>:</p>
+log, median-based) primarily for research validation. These are
+currently only available for WTE and can be accessed using
+<code><a href="../reference/sim_heat_alt.html">sim_heat_alt()</a></code>:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Example of alternative calculations</span></span>
+<code class="sourceCode R"><span><span class="co"># Example of alternative calculations with WTE</span></span>
 <span><span class="va">alt_calc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_heat_alt.html">sim_heat_alt</a></span><span class="op">(</span><span class="va">data</span>, alt_calc <span class="op">=</span> <span class="cn">TRUE</span>, step_size <span class="op">=</span> <span class="fl">25</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/plot_te_heatmap.html">plot_te_heatmap</a></span><span class="op">(</span>show_alt_calc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Creating segments out of dataframe 2025-03-07 13:17:44.580443"</span></span>
-<span><span class="co">#&gt; [1] "Processing segments."</span></span>
-<span><span class="co">#&gt; [1] "Calculating global median from reference simulation 2025-03-07 13:17:45.2455"</span></span>
-<span><span class="co">#&gt; [1] "Starting simulations with  combinations 2025-03-07 13:17:48.229438"</span></span>
-<span><span class="co">#&gt; [1] "Simulations complete 2025-03-07 13:18:01.061832"</span></span>
+<span><span class="co">#&gt; [1] "Starting simulations with 25 combinations 2025-04-21 14:52:22.731448"</span></span>
+<span><span class="co">#&gt; [1] "Simulations complete 2025-04-21 14:52:46.359577"</span></span>
+<span><span class="co">#&gt; [1] "Calculation method used: rte"</span></span>
 <span></span>
 <span><span class="va">alt_calc</span><span class="op">$</span><span class="va">te_batch</span> <span class="co"># The first possible alternative heat map</span></span></code></pre></div>
-<p><img src="heatmap_files/figure-html/example_alt_calc_1-1.png" alt="The first of three heatmaps from the alternative calculations - plain TE where TE is calculated based on on different normalisation techniques" width="960"></p>
+<p><img src="heatmap_files/figure-html/example_alt_calc_1-1.png" alt="The first of three heatmaps from the alternative calculations - TE calculated based on different normalization techniques" width="960"></p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">alt_calc</span><span class="op">$</span><span class="va">normalized_te_batch</span> <span class="co"># The second possible alternative heat map</span></span></code></pre></div>
-<p><img src="heatmap_files/figure-html/example_alt_calc_2-1.png" alt="The second of three heatmaps from the alternative calculations - normalized TE where TE is calculated based on on different normalisation techniques" width="960"></p>
+<p><img src="heatmap_files/figure-html/example_alt_calc_2-1.png" alt="The second of three heatmaps from the alternative calculations - normalized TE where TE is calculated based on different normalization techniques" width="960"></p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">alt_calc</span><span class="op">$</span><span class="va">all_batch</span> <span class="co"># The third possible alternative heat map</span></span></code></pre></div>
-<p><img src="heatmap_files/figure-html/example_alt_calc_3-1.png" alt="The second of three heatmaps from the alternative calculations - normalized TE where TE is calculated based on on different normalisation techniques" width="960">
-These alternatives help validate that the patterns we observe aren’t
-artifacts of our calculation method.</p>
+<span><span class="va">alt_calc</span><span class="op">$</span><span class="va">all_batch</span> <span class="co"># The third possible alternative heat map</span></span>
+<span><span class="co">#&gt; NULL</span></span></code></pre></div>
+<p>These alternatives help validate that the patterns we observe aren’t
+artifacts of our calculation method. Note that these alternative
+calculations are primarily applicable to WTE and not necessary for RTE
+due to its already normalized nature.</p>
 </div>
 <div class="section level2">
 <h2 id="color-scheme-options">Color Scheme Options<a class="anchor" aria-label="anchor" href="#color-scheme-options"></a>
 </h2>
-<p>The <code>plot_te_heatmap</code> function now supports different
-color schemes through the <code>color_scheme</code> parameter. This is
+<p>The <code>plot_te_heatmap</code> function supports different color
+schemes through the <code>color_scheme</code> parameter. This is
 particularly useful for choosing appropriate visualizations for
 different audiences, including options that are colorblind-friendly.</p>
 <div class="section level3">
@@ -228,15 +273,14 @@ different audiences, including options that are colorblind-friendly.</p>
 </h3>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create a 2x2 grid of heatmaps with different color schemes</span></span>
-<span><span class="va">color_schemes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"triage"</span>, <span class="st">"oceansky"</span>, <span class="st">"blueorange"</span>, <span class="st">"thermalsafe"</span><span class="op">)</span></span>
+<span><span class="va">color_schemes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"oceansky"</span>, <span class="st">"blueorange"</span>, <span class="st">"thermalsafe"</span>, <span class="st">"triage"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Generate plots with each color scheme</span></span>
 <span><span class="va">color_scheme_plots</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">scheme</span> <span class="kw">in</span> <span class="va">color_schemes</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">color_scheme_plots</span><span class="op">[[</span><span class="va">scheme</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te_heatmap.html">plot_te_heatmap</a></span><span class="op">(</span></span>
-<span>    <span class="va">heatmap_data</span>, </span>
-<span>    normalize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    <span class="va">rte_heatmap</span>, <span class="co"># Using RTE heatmap for color scheme examples</span></span>
 <span>    color_scheme <span class="op">=</span> <span class="va">scheme</span>,</span>
 <span>    title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/chartr.html" class="external-link">toupper</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">scheme</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">scheme</span>, <span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nchar</a></span><span class="op">(</span><span class="va">scheme</span><span class="op">)</span><span class="op">)</span>, <span class="st">"Scheme"</span>, sep<span class="op">=</span><span class="st">""</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
@@ -267,18 +311,27 @@ triage systems.</p>
 <h2 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a>
 </h2>
 <p>Heatmap analysis in trieff is a powerful research tool for
-understanding TE properties, but it requires:</p>
+understanding TE properties. Key takeaways:</p>
 <ol style="list-style-type: decimal">
-<li><p>Significant computational resources/patience</p></li>
-<li><p>Careful interpretation of results</p></li>
-<li><p>Understanding of the theoretical background</p></li>
+<li>Both WTE and RTE calculation methods are available for heatmap
+generation</li>
+<li>RTE offers naturally normalized results, making it well-suited for
+comparative analysis</li>
+<li>WTE may require explicit normalization for optimal
+visualization</li>
+<li>Both methods reveal similar fundamental patterns in the relationship
+between sensitivity, specificity, and TE</li>
+<li>Use the <code>calc_method</code> parameter in
+<code><a href="../reference/sim_heat.html">sim_heat()</a></code> to select your preferred calculation
+approach</li>
 </ol>
-<p>For regular TE analysis of your ED, we recommend using the main
-<code><a href="../reference/calc_te.html">calc_te()</a></code> function as demonstrated in other vignettes.</p>
 <p>For researchers interested in detailed heatmap analysis, we recommend
 reviewing the methods section of the TE paper (see
-<code><a href="../articles/original_study.html">vignette("original_study")</a></code>and ensuring sufficient
+<code><a href="../articles/original_study.html">vignette("original_study")</a></code>) and ensuring sufficient
 computational resources before beginning analysis.</p>
+<p>For regular TE analysis of your ED, we recommend using the main
+<code><a href="../reference/calc_wte.html">calc_wte()</a></code> or <code><a href="../reference/calc_rte.html">calc_rte()</a></code> functions as
+demonstrated in other vignettes.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

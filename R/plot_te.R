@@ -25,7 +25,9 @@
 #' @param var_end_height Numeric, specifying the height of variability interval end lines as offset from center. Default is 0.05.
 #' @param label_style categorical, valid inputs - "none", "small", "full" & "half". Decides the style of the label for TTE/OTE on the rights side of the graph. Default is half witch nets the label style as: "Theoretical TE". Small: "TTE", Full: "Theoretical Triage Effectiveness".
 #' @param min_x Percentual value that is the minimum value that the plot will stretch to. Default is null which uses the min value in the data rounded to the next 10%. Useful to set if you have several plots with one that has negative values to keep the same aspect ratio.
-#'
+#' @param ci_vars_override Character string. Explicitly specify which CI variables to use:
+#' "parametric", "nonparametric", or "boot". If NULL (default), uses recommended variables
+#' from metadata based on calculation method and normality tests.
 #' @return A ggplot object representing the Triage Effectiveness plot.
 #'
 #' @importFrom ggplot2 ggplot aes geom_vline geom_segment geom_point geom_text scale_x_continuous scale_y_continuous scale_color_manual coord_cartesian labs theme_minimal theme element_blank element_text element_line margin
@@ -57,40 +59,78 @@ plot_te <- function(data, title = "Triage Effectiveness Plot",
                     var_end_width = 1,
                     var_end_height = 0.1,
                     label_style = "half",
-                    min_x = NULL) {
+                    min_x = NULL,
+                    ci_vars_override = NULL) {
 
-  determine_show_metrics <- function(data, show_tte = NULL, show_ote = NULL) {
-    # Check data availability
-    has_tte <- "tte_te" %in% names(data) && !all(is.na(data$tte_te))
-    has_ote <- "ote_te" %in% names(data) && !all(is.na(data$ote_te))
-
-    # Set effective values based on availability and user preference
-    effective_show_tte <- if (is.null(show_tte)) has_tte else show_tte
-    effective_show_ote <- if (is.null(show_ote)) has_ote else show_ote
-
-    # Stop if no metrics will be shown
-    if (!effective_show_tte && !effective_show_ote) {
-      stop("No metrics available to display. Function requires either TTE or OTE data.")
-    }
-
-    # Return both values
-    list(
-      show_tte = effective_show_tte,
-      show_ote = effective_show_ote
-    )
+  # First extract the metadata
+  metadata <- if (is.list(data) && !is.null(data$metadata)) {
+    data$metadata
+  } else {
+    list()  # Empty list if no metadata available
   }
 
-  show_metrics <- determine_show_metrics(data$results, show_tte, show_ote)
-  show_tte <- show_metrics$show_tte
-  show_ote <- show_metrics$show_ote
+  # Then extract the results data
+  results_data <- if (is.data.frame(data)) {
+    data  # If data is directly a data frame
+  } else if (!is.null(data$results) && is.data.frame(data$results)) {
+    data$results  # If data is a list with a results element
+  } else {
+    stop("Data format not recognized. Expected a data frame or a list with a 'results' element.")
+  }
 
   # Validate label_style
   if (!label_style %in% c("none", "small", "full", "half")) {
     stop("label_style must be one of: 'none', 'small', 'full', 'half'")
   }
 
-  metadata <- data$metadata
-  data <- data$results
+  # Check for metrics availability
+  has_tte <- "tte_te" %in% names(results_data) && !all(is.na(results_data$tte_te))
+  has_ote <- "ote_te" %in% names(results_data) && !all(is.na(results_data$ote_te))
+
+  # Determine which metrics to show
+  show_tte <- if (is.null(show_tte)) has_tte else show_tte
+  show_ote <- if (is.null(show_ote)) has_ote else show_ote
+
+  # Stop if no metrics will be shown
+  if (!show_tte && !show_ote) {
+    stop("No metrics available to display. Function requires either TTE or OTE data.")
+  }
+
+  # Determine which CI variables to use
+  ci_var_prefix <- if (!is.null(ci_vars_override)) {
+    ci_vars_override
+  } else if (!is.null(metadata$recommended_ci_vars) && metadata$recommended_ci_vars != "none") {
+    metadata$recommended_ci_vars
+  } else if (!is.null(metadata$calculation_method)) {
+    if (metadata$calculation_method == "rank-based") {
+      "parametric" # Default for RTE
+    } else {
+      "boot" # Default for WTE
+    }
+  } else {
+    "boot" # Fallback default
+  }
+
+  # Determine if we should show variability at all
+  effective_show_var <- if (is.null(show_var)) {
+    if (is.null(metadata$recommended_ci_vars) || metadata$recommended_ci_vars == "none") {
+      FALSE # Don't show variability if no CI recommended
+    } else {
+      TRUE  # Show variability by default if CIs are available
+    }
+  } else {
+    show_var # Use user's explicit preference
+  }
+
+  # Generate actual variable names for CI bounds
+  tte_lower_var <- paste0(ci_var_prefix, "_tte_var_lower")
+  tte_upper_var <- paste0(ci_var_prefix, "_tte_var_upper")
+  ote_lower_var <- paste0(ci_var_prefix, "_ote_var_lower")
+  ote_upper_var <- paste0(ci_var_prefix, "_ote_var_upper")
+
+  # Check for variability data availability
+  can_show_ote_var <- all(c(ote_lower_var, ote_upper_var) %in% names(results_data))
+  can_show_tte_var <- all(c(tte_lower_var, tte_upper_var) %in% names(results_data))
 
   group_var1 = metadata$group_var1
   group_var2 = metadata$group_var2
@@ -99,26 +139,21 @@ plot_te <- function(data, title = "Triage Effectiveness Plot",
   tte_color <- "#00A3A3"
   ote_color <- "#7D3C98"
 
-  # Check for variability data availability
-  can_show_ote_var <- all(c("boot_ote_var_lower", "boot_ote_var_upper") %in% names(data))
-  can_show_tte_var <- all(c("boot_tte_var_lower", "boot_tte_var_upper") %in% names(data))
-
   # Set effective show_var based on availability and user preference
-  effective_show_var <- if (is.null(show_var)) TRUE else show_var
   show_ote_var <- can_show_ote_var && effective_show_var
   show_tte_var <- can_show_tte_var && effective_show_var
 
   # Collect all relevant values for x-axis limits
   x_values <- c(0, 1)
-  if (show_ote) x_values <- c(x_values, data$ote_te)
-  if (show_tte) x_values <- c(x_values, data$tte_te)
+  if (show_ote) x_values <- c(x_values, results_data$ote_te)
+  if (show_tte) x_values <- c(x_values, results_data$tte_te)
 
   if (show_ote_var) {
-    x_values <- c(x_values, data$boot_ote_var_lower, data$boot_ote_var_upper)
+    x_values <- c(x_values, results_data[[ote_lower_var]], results_data[[ote_upper_var]])
   }
 
   if (show_tte_var) {
-    x_values <- c(x_values, data$boot_tte_var_lower, data$boot_tte_var_upper)
+    x_values <- c(x_values, results_data[[tte_lower_var]], results_data[[tte_upper_var]])
   }
 
   # Calculate actual minimum x value
@@ -139,22 +174,21 @@ plot_te <- function(data, title = "Triage Effectiveness Plot",
   }
 
   # Add y position for each unit
-  data <- data %>%
+  results_data <- results_data %>%
     arrange(desc(unit)) %>%
     mutate(y_pos = row_number())
 
   # Handle group labels outside of mutate
   if (!is.null(group_var1) && !is.null(group_var2)) {
-    data$group_label <- paste(data[[group_var1]], data[[group_var2]], sep = " / ")
+    results_data$group_label <- paste(results_data[[group_var1]], results_data[[group_var2]], sep = " / ")
   } else if (!is.null(group_var1)) {
-    data$group_label <- data[[group_var1]]
+    results_data$group_label <- results_data[[group_var1]]
   } else {
-    data$group_label <- ""
+    results_data$group_label <- ""
   }
 
-
   # Create the plot
-  p <- ggplot(data, aes(y = y_pos)) +
+  p <- ggplot(results_data, aes(y = y_pos)) +
     geom_vline(xintercept = seq(x_min, 1, 0.1), color = "lightgray", linewidth = 0.5) +
     geom_vline(xintercept = 1, color = "darkgray", linewidth = 1) +
     geom_vline(xintercept = 0, color = "darkgray", linewidth = 1)
@@ -165,57 +199,58 @@ plot_te <- function(data, title = "Triage Effectiveness Plot",
                           linewidth = dumbell_width)
   }
 
-  # Add TTE points, labels, and variability if requested
+  # Add TTE points and variability if requested
   if (show_tte) {
-    if (show_tte_var) {
-      p <- p +
-        # Main CI line
-        geom_segment(aes(x = boot_tte_var_lower, xend = boot_tte_var_upper,
-                         y = y_pos, yend = y_pos),
-                     color = adjustcolor(tte_color, alpha.f = var_alpha),
-                     linewidth = var_width) +
-        # Left endline
-        geom_segment(aes(x = boot_tte_var_lower, xend = boot_tte_var_lower,
-                         y = y_pos - var_end_height, yend = y_pos + var_end_height),
-                     color = adjustcolor(tte_color, alpha.f = var_alpha),
-                     linewidth = var_end_width) +
-        # Right endline
-        geom_segment(aes(x = boot_tte_var_upper, xend = boot_tte_var_upper,
-                         y = y_pos - var_end_height, yend = y_pos + var_end_height),
-                     color = adjustcolor(tte_color, alpha.f = var_alpha),
-                     linewidth = var_end_width)
-    }
-    p <- p +
-      geom_point(aes(x = tte_te), size = 3, color = tte_color) +
+    p <- p + geom_point(aes(x = tte_te), size = 3, color = tte_color) +
       geom_text(aes(x = tte_te, label = scales::percent(tte_te, accuracy = 0.1)),
                 hjust = 0.5, vjust = -0.7, color = tte_color, size = 3)
   }
 
-  # Add OTE points, labels, and variability if requested
-  if (show_ote) {
-    if (show_ote_var) {
-      p <- p +
-        # Main CI line
-        geom_segment(aes(x = boot_ote_var_lower, xend = boot_ote_var_upper,
-                         y = y_pos, yend = y_pos),
-                     color = adjustcolor(ote_color, alpha.f = var_alpha),
-                     linewidth = var_width) +
-        # Left endline
-        geom_segment(aes(x = boot_ote_var_lower, xend = boot_ote_var_lower,
-                         y = y_pos - var_end_height, yend = y_pos + var_end_height),
-                     color = adjustcolor(ote_color, alpha.f = var_alpha),
-                     linewidth = var_end_width) +
-        # Right endline
-        geom_segment(aes(x = boot_ote_var_upper, xend = boot_ote_var_upper,
-                         y = y_pos - var_end_height, yend = y_pos + var_end_height),
-                     color = adjustcolor(ote_color, alpha.f = var_alpha),
-                     linewidth = var_end_width)
-    }
+  if (show_tte_var & show_tte) {
     p <- p +
-      geom_point(aes(x = ote_te), size = 3, color = ote_color) +
-      geom_text(aes(x = ote_te, label = scales::percent(ote_te, accuracy = 0.1)),
-                hjust = 0.5, vjust = 1.7, color = ote_color, size = 3)
+      # Main CI line
+      geom_segment(aes(x = .data[[tte_lower_var]], xend = .data[[tte_upper_var]],
+                       y = y_pos, yend = y_pos),
+                   color = adjustcolor(tte_color, alpha.f = var_alpha),
+                   linewidth = var_width) +
+      # Left endline
+      geom_segment(aes(x = .data[[tte_lower_var]], xend = .data[[tte_lower_var]],
+                       y = y_pos - var_end_height, yend = y_pos + var_end_height),
+                   color = adjustcolor(tte_color, alpha.f = var_alpha),
+                   linewidth = var_end_width) +
+      # Right endline
+      geom_segment(aes(x = .data[[tte_upper_var]], xend = .data[[tte_upper_var]],
+                       y = y_pos - var_end_height, yend = y_pos + var_end_height),
+                   color = adjustcolor(tte_color, alpha.f = var_alpha),
+                   linewidth = var_end_width)
   }
+
+  # Add OTE points and variability if requested
+  if (show_ote) {
+    p <- p + geom_point(aes(x = ote_te), size = 3, color = ote_color) +
+      geom_text(aes(x = ote_te, label = scales::percent(ote_te, accuracy = 0.1)),
+                hjust = 0.5, vjust = -0.7, color = ote_color, size = 3)
+  }
+
+  if (show_ote_var & show_ote) {
+    p <- p +
+      # Main CI line
+      geom_segment(aes(x = .data[[ote_lower_var]], xend = .data[[ote_upper_var]],
+                       y = y_pos, yend = y_pos),
+                   color = adjustcolor(ote_color, alpha.f = var_alpha),
+                   linewidth = var_width) +
+      # Left endline
+      geom_segment(aes(x = .data[[ote_lower_var]], xend = .data[[ote_lower_var]],
+                       y = y_pos - var_end_height, yend = y_pos + var_end_height),
+                   color = adjustcolor(ote_color, alpha.f = var_alpha),
+                   linewidth = var_end_width) +
+      # Right endline
+      geom_segment(aes(x = .data[[ote_upper_var]], xend = .data[[ote_upper_var]],
+                       y = y_pos - var_end_height, yend = y_pos + var_end_height),
+                   color = adjustcolor(ote_color, alpha.f = var_alpha),
+                   linewidth = var_end_width)
+  }
+
   # Finalize the plot
   p <- p +
     geom_text(aes(x = x_min - 0.01, label = unit), hjust = 1, size = 4) +
@@ -226,7 +261,7 @@ plot_te <- function(data, title = "Triage Effectiveness Plot",
       breaks = seq(x_min, 1, 0.1),
       expand = c(0, 0)
     ) +
-    scale_y_continuous(limits = c(0.5, nrow(data) + 0.5), expand = c(0, 0)) +
+    scale_y_continuous(limits = c(0.5, nrow(results_data) + 0.5), expand = c(0, 0)) +
     theme_minimal() +
     theme(
       axis.title = element_blank(),
@@ -243,7 +278,7 @@ plot_te <- function(data, title = "Triage Effectiveness Plot",
     if (label_style == "small") {
       legend_data <- data.frame(
         x = c(1.05, 1.05),
-        y = c(nrow(data), nrow(data) - 0.15),
+        y = c(nrow(results_data), nrow(results_data) - 0.15),
         label = c("TTE", "OTE"),
         color = c(tte_color, ote_color)
       )
@@ -287,7 +322,7 @@ plot_te <- function(data, title = "Triage Effectiveness Plot",
       )) +
       theme(legend.position = "none") +
       coord_cartesian(xlim = c(x_min - 0.3, 1.2),
-                      ylim = c(0.5, max(nrow(data) + 0.5)),
+                      ylim = c(0.5, max(nrow(results_data) + 0.5)),
                       clip = "off")
   }
 

@@ -19,6 +19,7 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(trieff)
 library(dplyr)
+library(patchwork)
 
 # Initialize and simulate data once at the start
 data <- init(sem_malmo_synth) %>% 
@@ -27,47 +28,114 @@ data <- init(sem_malmo_synth) %>%
 
 ## Introduction
 
-The `plot_te()` function provides flexible visualization of Triage Effectiveness results. This vignette demonstrates how to create and customize these visualizations, building on the analyses shown in the calc_te and bootstrap vignettes.
+The `plot_te()` function provides flexible visualization of Triage Effectiveness results. This vignette demonstrates how to create and customize these visualizations for both Waiting Time-based TE (WTE) and Rank-based TE (RTE) calculations.
 
 ## Prerequisites
-- Calculated TE metrics (see `vignette("calc_te")`)
+- Calculated TE metrics using `calc_wte()` or `calc_rte()` (see `vignette("calc_wte_rte")`)
 - Optional: Bootstrap results for confidence intervals (see `vignette("bootstrap")`)
+
+## Understanding TE Visualization Methods
+
+Before diving into examples, it's important to understand the two complementary approaches to measuring and visualizing Triage Effectiveness:
+
+1. **Waiting Time-based TE (WTE)**: Measures how well triage reduces the actual waiting time for time-critical patients.
+
+2. **Rank-based TE (RTE)**: Evaluates how effectively triage improves queue positions for time-critical patients.
+
+Both approaches have their strengths and different confidence interval calculation methods, which will be demonstrated throughout this vignette.
 
 ## Basic Plotting
 
-Let's start with a basic overall TE plot:
+Let's start with basic plots for both WTE and RTE:
 
-```{r basic-plot, fig.width=7, fig.height=1.2, fig.alt="A simple Triage Effectiveness plot"}
-# Calculate TE metrics
-te_results <- calc_te(data, overall_only = TRUE)
+```{r basic-plots, fig.width=10, fig.height=3, fig.alt="Comparison of WTE and RTE plot visualizations"}
+# Calculate WTE metrics
+wte_results <- calc_wte(data, overall_only = TRUE)
 
-# Create basic plot
-plot_te(te_results)
+# Calculate RTE metrics 
+rte_results <- calc_rte(data, overall_only = TRUE)
+
+# Create basic plots
+wte_plot <- plot_te(wte_results, title = "Waiting Time-based TE (WTE)")
+rte_plot <- plot_te(rte_results, title = "Rank-based TE (RTE)", ci_vars_override = "none")
+
+# Display plots
+wte_plot / rte_plot
 ```
 
-By default, the plot shows both Theoretical TE (teal) and Observed TE (purple) values. The horizontal lines connecting these points represent the Observed-Theoretical Gap (OTG).
+By default, the plots show both Theoretical TE (teal) and Observed TE (purple) values. The horizontal lines connecting these points represent the Observed-Theoretical Gap (OTG).
 
-## Plotting Bootstrap Results
+## Confidence Interval Types
 
-The `plot_te()` function automatically handles bootstrap results when they're available. Let's see how this changes the visualization:
+The `plot_te()` function offers several options for displaying confidence intervals using the `ci_vars_override` parameter. This is particularly important when working with RTE, as queue positions often have non-normal distributions.
 
-```{r bootstrap-plot, fig.width=7, fig.height=1.2, fig.alt="Triage Effectiveness plot with bootstrap"}
-# Calculate TE with bootstrap
-te_bootstrap <- calc_te(data,
-                       bootstrap = TRUE,
-                       overall_only = TRUE)
+The available confidence interval types are:
 
-# Plot with confidence intervals
-plot_te(te_bootstrap)
+1. **Parametric**: Based on normal distribution assumptions (t-distribution)
+2. **Non-parametric**: Based on quantiles of the actual distribution
+3. **Bootstrap**: Derived from bootstrap resampling
+4. **None**: No confidence intervals displayed
+
+Let's see how these different CI types affect our visualizations:
+
+```{r ci-types, fig.width=10, fig.height=6}
+# Calculate RTE with all CI types available
+rte_boot <- calc_rte(data, bootstrap = TRUE, overall_only = TRUE)
+
+# Create plots with different CI types
+plot1 <- plot_te(rte_boot, ci_vars_override = "parametric", 
+                title = "RTE with Parametric CI")
+
+plot2 <- plot_te(rte_boot, ci_vars_override = "nonparametric", 
+                title = "RTE with Non-parametric CI")
+
+plot3 <- plot_te(rte_boot, ci_vars_override = "boot", 
+                title = "RTE with Bootstrap CI")
+
+plot4 <- plot_te(rte_boot, ci_vars_override = "none", 
+                title = "RTE with No CI")
+
+# Display plots
+(plot1 / plot2) | (plot3 / plot4)
 ```
 
-Notice how the plot now includes variability intervals (lighter shaded areas) for both TTE and OTE. These intervals are derived from the bootstrap analysis and help visualize the uncertainty in our estimates.
+Note how the non-parametric confidence intervals are often wider than parametric ones for RTE due to the non-normal distribution of queue positions. For most analyses, bootstrap confidence intervals provide a good balance of validity and interpretability.
+
+## Automatic CI Selection
+
+The `plot_te()` function intelligently selects the most appropriate confidence interval type based on a priority order:
+
+1. User-specified override via `ci_vars_override` parameter
+2. Bootstrap results (if available)
+3. Recommended CIs based on calculation method and normality tests:
+   - For RTE: based on Shapiro-Wilk test results
+   - For WTE: bootstrap CIs are recommended when available
+4. None (if no other options are available)
+
+This automatic selection ensures appropriate uncertainty representation without requiring manual specification in most cases.
+
+## Bootstrap Confidence Intervals
+
+Bootstrap confidence intervals are available for both WTE and RTE when calculated with the `bootstrap = TRUE` parameter:
+
+```{r bootstrap-plots, fig.width=10, fig.height=3}
+# Calculate TE with bootstrap for both methods
+wte_bootstrap <- calc_wte(data, bootstrap = TRUE, overall_only = TRUE)
+rte_bootstrap <- calc_rte(data, bootstrap = TRUE, overall_only = TRUE)
+
+# Plot with bootstrap confidence intervals
+wte_boot_plot <- plot_te(wte_bootstrap, title = "WTE with Bootstrap CI")
+rte_boot_plot <- plot_te(rte_bootstrap, title = "RTE with Bootstrap CI")
+
+# Display plots
+wte_boot_plot / rte_boot_plot
+```
 
 ## Subgroup Analysis
 
-We can visualize TE patterns across subgroups. Let's use the age group example from the calc_te vignette:
+Both WTE and RTE support subgroup analysis. Let's create age groups and visualize TE patterns:
 
-```{r subgroup-plot, fig.width=7, fig.height=2, fig.alt="Triage Effectiveness based on subgroups with bootstrapping"}
+```{r subgroup-plots, fig.width=10, fig.height=6}
 # Create age groups
 data <- data %>%
   mutate(age_group = cut(age_at_arrival, 
@@ -75,67 +143,130 @@ data <- data %>%
                         labels = c("18-59", "60-79", "80+")))
 
 # Calculate and plot TE by age group
-te_age <- calc_te(data,
-                  var1 = "age_group",
-                  bootstrap = TRUE,
-                  overall_only = TRUE)
+wte_age <- calc_wte(data, var1 = "age_group", bootstrap = TRUE, overall_only = TRUE)
+rte_age <- calc_rte(data, var1 = "age_group", bootstrap = TRUE, overall_only = TRUE)
 
-plot_te(te_age)
+# Create plots
+wte_age_plot <- plot_te(wte_age, title = "WTE by Age Group")
+rte_age_plot <- plot_te(rte_age, title = "RTE by Age Group")
+
+# Display plots
+wte_age_plot / rte_age_plot
 ```
 
 ## Handling Negative TE Values
 
-In some cases, particularly when analyzing specific units, we might encounter negative TE values. This requires special handling of the plot's x-axis. Let's demonstrate this with two plots - one showing only orthopedic units (which in the SEM synthpop has negative values) and another showing all units:
+In some cases, particularly when analyzing specific units, we might encounter negative TE values. The `min_x` parameter allows standardization of the x-axis range across multiple plots for easier comparison:
 
-```{r negative-te-1, fig.width=7, fig.height=1.2, fig.alt="A Triage Effectiveness plot that has negative values naturally"}
-# First, let's get results for orthopedic unit only
-ortho_data <- data %>%
-  filter(unit == "orthopedics")
+```{r negative-te, fig.width=10, fig.height=6}
+# Get data for different units
+ortho_data <- data %>% 
+  filter(unit == "orthopedics") 
+medical_data <- data %>% 
+  filter(unit == "medical") 
 
-te_ortho <- calc_te(ortho_data, bootstrap = TRUE)
+# Calculate WTE for both units
+wte_ortho <- calc_wte(ortho_data, bootstrap = TRUE)
+wte_medical <- calc_wte(medical_data, bootstrap = TRUE)
 
-data_other <- data %>% 
-    filter(!unit == "orthopedics")  
+# Plot with default scaling - notice the different axes
+plot1 <- plot_te(wte_ortho, title = "Orthopedics (default scaling)")
+plot2 <- plot_te(wte_medical, title = "Medical (default scaling)")
 
-# Then get results for all units minus orthopedics
-te_all <- calc_te(data_other, bootstrap = TRUE)
+# Plot with standardized x-axis
+plot3 <- plot_te(wte_ortho, min_x = -0.4, title = "Orthopedics (standardized x-axis)")
+plot4 <- plot_te(wte_medical, min_x = -0.4, title = "Medical (standardized x-axis)")
 
-# Plot orthopedic results
-plot_te(te_ortho)
+# Display plots showing the difference
+(plot1 / plot2) | (plot3 / plot4)
 ```
 
-```{r negative-te-2, fig.width=7, fig.height=2, fig.alt="A Triage Effectiveness plot that has negative values forced"}
-
-# Plot all units with adjusted x-axis
-plot_te(te_all, min_x = -0.4)
-```
-
-Notice how setting `min_x = -0.4` ensures consistent scale and alignment between the plots, making it easier to compare results across different units.
+Setting `min_x` ensures consistent scale and alignment between plots, making it easier to compare results across different units or groups.
 
 ## Advanced Plot Customization
 
-While the default settings are suitable for most purposes, `plot_te()` offers several customization options:
+The `plot_te()` function offers several customization options to tailor visualizations to specific needs. Let's explore how different parameters affect the appearance:
 
-```{r customization, fig.width=7, fig.height=1.2, fig.alt="A Triage Effectiveness plot with custom arguments changing its appearance"}
-# Example with custom settings
-plot_te(te_bootstrap,
-        var_alpha = 0.9,          # less transparent variability intervals
-        dumbell_width = 1.5,      # Thicker connecting lines
-        label_style = "small",    # small text labels
-        title = "Custom TE Plot") # Custom title
+```{r customization-label-styles, fig.width=10, fig.height=8}
+# Base plot for comparison
+base_plot <- plot_te(wte_bootstrap, title = "Default label style ('half')")
+
+# Different label styles
+small_labels <- plot_te(wte_bootstrap, 
+                      label_style = "small", 
+                      title = "Small labels")
+
+full_labels <- plot_te(wte_bootstrap, 
+                     label_style = "full", 
+                     title = "Full labels")
+
+no_labels <- plot_te(wte_bootstrap, 
+                   label_style = "none", 
+                   title = "No labels")
+
+# Display label style variations
+base_plot / small_labels / full_labels / no_labels
+```
+
+```{r customization-variability, fig.width=10, fig.height=6}
+# Variability display options
+more_transparent <- plot_te(wte_bootstrap, 
+                          var_alpha = 0.3, 
+                          title = "More transparent variability (alpha = 0.3)")
+
+less_transparent <- plot_te(wte_bootstrap, 
+                          var_alpha = 0.8, 
+                          title = "Less transparent variability (alpha = 0.8)")
+
+# Display variability transparency variations
+more_transparent / less_transparent
+```
+
+```{r customization-line-widths, fig.width=10, fig.height=6}
+# Line width options
+thin_lines <- plot_te(wte_bootstrap, 
+                    dumbell_width = 0.5, 
+                    var_width = 0.8, 
+                    var_end_width = 0.5, 
+                    title = "Thinner lines")
+
+thick_lines <- plot_te(wte_bootstrap, 
+                     dumbell_width = 2, 
+                     var_width = 2.5, 
+                     var_end_width = 1.5, 
+                     title = "Thicker lines")
+
+# Display line width variations
+thin_lines / thick_lines
+```
+
+```{r customization-selective-display, fig.width=10, fig.height=6}
+# Selective display of metrics
+tte_only <- plot_te(wte_bootstrap, 
+                  show_tte = TRUE, 
+                  show_ote = FALSE, 
+                  title = "TTE only")
+
+ote_only <- plot_te(wte_bootstrap, 
+                  show_tte = FALSE, 
+                  show_ote = TRUE, 
+                  title = "OTE only")
+
+# Display selective metrics
+tte_only / ote_only
 ```
 
 Key customization parameters include:
 
 - `var_alpha`: Controls transparency of variability intervals (0-1)
-
 - `dumbell_width`: Width of lines connecting TTE and OTE points
-
+- `var_width`: Width of variability interval main lines
+- `var_end_width`: Width of variability interval end caps
+- `var_end_height`: Height of variability interval end caps
 - `label_style`: Can be "none", "small", "full", or "half" (default)
-
 - `show_tte`/`show_ote`: Toggle display of specific metrics
-
 - `show_var`: Toggle display of variability intervals
+- `ci_vars_override`: Control which confidence interval type to display
 
 For more details on available parameters, see `?plot_te`.
 
@@ -143,14 +274,11 @@ For more details on available parameters, see `?plot_te`.
 
 This vignette has demonstrated how to:
 
-1. Create basic TE plots
+1. Create basic TE plots for both WTE and RTE
+2. Understand and control confidence interval types
+3. Visualize bootstrap confidence intervals
+4. Handle subgroup analyses
+5. Deal with negative TE values
+6. Customize plot appearance
 
-2. Visualize bootstrap confidence intervals
-
-3. Handle subgroup analyses
-
-4. Deal with negative TE values
-
-5. Customize plot appearance
-
-For more complex analyses, consider combining these visualization techniques with the methods described in the calc_te and bootstrap vignettes.
+For more complex analyses, consider combining these visualization techniques with the methods described in the `calc_wte_rte` and `bootstrap` vignettes.

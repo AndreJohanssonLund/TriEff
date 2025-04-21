@@ -11,7 +11,7 @@ for different units, with optional grouping variables and variability intervals.
 
     <a class="navbar-brand me-2" href="../index.html">trieff</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,7 +24,7 @@ for different units, with optional grouping variables and variability intervals.
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/getting_started.html">Getting Started</a></li>
     <li><a class="dropdown-item" href="../articles/sim_te.html">Simulation in trieff</a></li>
-    <li><a class="dropdown-item" href="../articles/calc_te.html">Calculating Triage Effectiveness</a></li>
+    <li><a class="dropdown-item" href="../articles/calc_wte_rte.html">Calculating Triage Effectiveness</a></li>
     <li><a class="dropdown-item" href="../articles/bootstrap.html">Bootstrap Analysis</a></li>
     <li><a class="dropdown-item" href="../articles/plot_te.html">Plotting Results</a></li>
     <li><a class="dropdown-item" href="../articles/heatmap.html">Heatmap Analysis</a></li>
@@ -71,7 +71,8 @@ for different units, with optional grouping variables and variability intervals.
 <span>  var_end_width <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  var_end_height <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  label_style <span class="op">=</span> <span class="st">"half"</span>,</span>
-<span>  min_x <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  min_x <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  ci_vars_override <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -132,6 +133,12 @@ for different units, with optional grouping variables and variability intervals.
 
 <dt id="arg-min-x">min_x<a class="anchor" aria-label="anchor" href="#arg-min-x"></a></dt>
 <dd><p>Percentual value that is the minimum value that the plot will stretch to. Default is null which uses the min value in the data rounded to the next 10%. Useful to set if you have several plots with one that has negative values to keep the same aspect ratio.</p></dd>
+
+
+<dt id="arg-ci-vars-override">ci_vars_override<a class="anchor" aria-label="anchor" href="#arg-ci-vars-override"></a></dt>
+<dd><p>Character string. Explicitly specify which CI variables to use:
+"parametric", "nonparametric", or "boot". If NULL (default), uses recommended variables
+from metadata based on calculation method and normality tests.</p></dd>
 
 </dl></div>
     <div class="section level2">

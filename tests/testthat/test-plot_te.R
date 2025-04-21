@@ -16,7 +16,7 @@ setup_test_data <- function() {
 
 test_that("plot_te creates valid ggplot object", {
   data <- setup_test_data()
-  result <- calc_te(data, min_loset_warning = -1)
+  result <- calc_wte(data, min_loset_warning = -1)
 
   p <- plot_te(result)
 
@@ -38,7 +38,7 @@ test_that("plot_te creates valid ggplot object", {
 
 test_that("plot_te handles bootstrap results correctly", {
   data <- setup_test_data()
-  result <- calc_te(data, bootstrap = TRUE,
+  result <- calc_wte(data, bootstrap = TRUE,
                     bootstrap_params = list(
                       sample_percentage = 0.5,
                       n_iterations = 100,
@@ -57,7 +57,7 @@ test_that("plot_te handles bootstrap results correctly", {
 
 test_that("plot_te respects show parameters", {
   data <- setup_test_data()
-  result <- calc_te(data, min_loset_warning = -1)
+  result <- calc_wte(data, min_loset_warning = -1)
 
   # Test hiding TTE
   p1 <- plot_te(result, show_tte = FALSE)
@@ -80,7 +80,7 @@ test_that("plot_te respects show parameters", {
 
 test_that("plot_te handles label styles correctly", {
   data <- setup_test_data()
-  result <- calc_te(data, min_loset_warning = -1)
+  result <- calc_wte(data, min_loset_warning = -1)
 
   # Test different label styles
   styles <- c("none", "small", "full", "half")
@@ -105,7 +105,7 @@ test_that("plot_te handles label styles correctly", {
 
 test_that("plot_te handles negative values correctly", {
   data <- setup_test_data()
-  result <- calc_te(data, min_loset_warning = -1)
+  result <- calc_wte(data, min_loset_warning = -1)
 
   # Create test results with negative TE
   result$results$ote_te <- -0.2
@@ -124,7 +124,7 @@ test_that("plot_te handles negative values correctly", {
 
 test_that("plot_te handles missing data appropriately", {
   data <- setup_test_data()
-  result <- calc_te(data,min_loset_warning = -1)
+  result <- calc_wte(data,min_loset_warning = -1)
 
   # Test with missing TTE
   result_no_tte <- result
@@ -142,7 +142,7 @@ test_that("plot_te handles missing data appropriately", {
 
 test_that("plot_te handles aesthetic parameters correctly", {
   data <- setup_test_data()
-  result <- calc_te(data, min_loset_warning = -1)
+  result <- calc_wte(data, min_loset_warning = -1)
 
   # Test aesthetic parameters work
   p1 <- plot_te(result, var_alpha = 0.8)
@@ -162,7 +162,7 @@ test_that("plot_te handles subgroup analysis correctly", {
                         breaks = c(0, 59, 79, Inf),
                         labels = c("18-59", "60-79", "80+"))
 
-  result <- calc_te(data, var1 = "age_group", min_loset_warning = -1)
+  result <- calc_wte(data, var1 = "age_group", min_loset_warning = -1)
 
   p <- plot_te(result)
 

@@ -10,7 +10,8 @@ plot_te_heatmap(
   show_alt_calc = FALSE,
   normalize = FALSE,
   color_scheme = "oceansky",
-  title = "Triage Effectiveness Heatmap"
+  title = "Triage Effectiveness Heatmap",
+  axis_step_size = NULL
 )
 }
 \arguments{
@@ -19,6 +20,7 @@ plot_te_heatmap(
 \item sensitivity: Sensitivity values
 \item specificity: Specificity values
 \item te: TE values
+\item calc_method: (Optional) Indicates whether data uses "wte" or "rte" calculations
 \item Additional columns for alternative calculations if available
 }}
 
@@ -34,6 +36,11 @@ show_alt_calc=TRUE. Default FALSE.}
 \item{color_scheme}{Character. Either "triage", "oceansky", "blueorange" or "thermalsafe". The triage alternative is not color blind safe but is included since it mimics classic triage colors}
 
 \item{title}{Character. Title for the plot. Default "Triage Effectiveness Heatmap".}
+
+\item{axis_step_size}{Numeric or NULL. Override for the step size of axis labels (e.g., 0.1 for 10\% steps).
+If NULL (default), automatically determines optimal step size based on data resolution,
+with a minimum of 0.05 (5\%). Automatic detection selects 25\% steps for data with 25\%
+resolution, 10\% steps for data with 10\% resolution, and 5\% steps for finer resolutions.}
 }
 \value{
 A ggplot object (single heatmap) or a list of patchwork objects (multiple heatmaps)

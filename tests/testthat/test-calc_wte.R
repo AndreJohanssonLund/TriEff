@@ -8,17 +8,18 @@ get_test_data <- function() {
   return(data)
 }
 
+
 setup_test_data <- function() {
   data <- get_test_data()
-  # Initialize and simulate data before testing calc_te
+  # Initialize and simulate data before testing calc_wte
   data <- init(data)
   data <- sim_te(data, btte = TRUE)
   return(data)
 }
 
-test_that("calc_te produces expected output structure", {
+test_that("calc_wte produces expected output structure", {
   data <- setup_test_data()
-  result <- calc_te(data, min_loset_warning = -1)
+  result <- calc_wte(data, min_loset_warning = -1)
 
   # Check that result is a list with expected components
   expect_type(result, "list")
@@ -37,7 +38,7 @@ test_that("calc_te produces expected output structure", {
   expect_true("calculation_time" %in% names(result$metadata))
 })
 
-test_that("calc_te handles subgroup analysis correctly", {
+test_that("calc_wte handles subgroup analysis correctly", {
   data <- setup_test_data()
 
   # Add age groups
@@ -46,22 +47,22 @@ test_that("calc_te handles subgroup analysis correctly", {
                         labels = c("18-59", "60-79", "80+"))
 
   # Test with var1
-  result_age <- calc_te(data, var1 = "age_group", min_loset_warning = -1)
+  result_age <- calc_wte(data, var1 = "age_group", min_loset_warning = -1)
   expect_true("age_group" %in% names(result_age$results))
   expect_equal(length(unique(result_age$results$age_group)), 3)
 
   # Test with subgroup
-  elderly_result <- calc_te(data,
+  elderly_result <- calc_wte(data,
                             subgroup = list(age_group = "80+"), min_loset_warning = -1)
   expect_true(all(elderly_result$results$unit != "overall"))
   expect_true(all(elderly_result$results$n_patients > 0))
 })
 
-test_that("calc_te bootstrap analysis works correctly", {
+test_that("calc_wte bootstrap analysis works correctly", {
   data <- setup_test_data()
 
   # Basic bootstrap test
-  result <- calc_te(data,
+  result <- calc_wte(data,
                     bootstrap = TRUE,
                     bootstrap_params = list(
                       sample_percentage = 0.5,
@@ -80,12 +81,12 @@ test_that("calc_te bootstrap analysis works correctly", {
   expect_true(all(result$results$boot_ote_var_upper >= result$results$ote_te))
 })
 
-test_that("calc_te handles convergence analysis correctly", {
+test_that("calc_wte handles convergence analysis correctly", {
   data <- setup_test_data()
 
   # The convergence analysis is now conditionally triggered based on bootstrap type
   # Make sure we're using "standard" bootstrap (not "segment") to get convergence analysis
-  result <- calc_te(data,
+  result <- calc_wte(data,
                     bootstrap = "standard",
                     bootstrap_params = list(
                       sample_percentage = 1,
@@ -102,28 +103,28 @@ test_that("calc_te handles convergence analysis correctly", {
                c("groups", "summary", "metrics_analyzed", "calculation_time"))
 })
 
-test_that("calc_te handles invalid inputs appropriately", {
+test_that("calc_wte handles invalid inputs appropriately", {
   data <- setup_test_data()
 
   # Test invalid var1
-  expect_error(calc_te(data, var1 = "nonexistent_column"))
+  expect_error(calc_wte(data, var1 = "nonexistent_column"))
 
   # Test var2 without var1
-  expect_error(calc_te(data, var2 = "unit"))
+  expect_error(calc_wte(data, var2 = "unit"))
 
   # Test invalid subgroup
-  expect_error(calc_te(data, subgroup = list(nonexistent = "value")))
+  expect_error(calc_wte(data, subgroup = list(nonexistent = "value")))
 
   # Test incompatible subgroup and var1
   data$test_group <- "A"
-  expect_error(calc_te(data,
+  expect_error(calc_wte(data,
                        subgroup = list(test_group = "A"),
                        var1 = "unit", min_loset_warning = -1))
 })
 
-test_that("calc_te calculates metrics correctly", {
+test_that("calc_wte calculates metrics correctly", {
   data <- setup_test_data()
-  result <- calc_te(data, min_loset_warning = -1)
+  result <- calc_wte(data, min_loset_warning = -1)
 
   # Test sensitivity calculation
   test_sensitivity <- function(unit_data) {
@@ -157,23 +158,23 @@ test_that("calc_te calculates metrics correctly", {
                          unit_results$tte_mean_loset))
 })
 
-test_that("calc_te overall_only parameter works correctly", {
+test_that("calc_wte overall_only parameter works correctly", {
   data <- setup_test_data()
 
   # Test with overall_only = TRUE
-  result_overall <- calc_te(data, overall_only = TRUE, min_loset_warning = -1)
+  result_overall <- calc_wte(data, overall_only = TRUE, min_loset_warning = -1)
   expect_equal(nrow(result_overall$results), 1)
   expect_equal(result_overall$results$unit, "overall")
 
   # Compare with full results
-  result_full <- calc_te(data)
+  result_full <- calc_wte(data)
   expect_equal(result_overall$results$ote_te,
                result_full$results$ote_te[result_full$results$unit == "overall"])
 })
 
-test_that("calc_te print method works correctly", {
+test_that("calc_wte print method works correctly", {
   data <- setup_test_data()
-  result <- calc_te(data, min_loset_warning = -1)
+  result <- calc_wte(data, min_loset_warning = -1)
 
   # Capture print output
   output <- capture.output(print(result))
@@ -185,14 +186,14 @@ test_that("calc_te print method works correctly", {
   expect_true(any(grepl("Computation Information", output)))
 })
 
-test_that("calc_te segment bootstrap works correctly", {
+test_that("calc_wte segment bootstrap works correctly", {
   # Use a larger dataset for segment bootstrap to ensure enough segments
   data <- get_test_data()
   data <- init(data)
   data <- sim_te(data)
 
   # Run with smaller iteration count and ensure sample_percentage is valid
-  result <- calc_te(data,
+  result <- calc_wte(data,
                     bootstrap = "segment",
                     bootstrap_params = list(
                       sample_percentage = 1,  # Use full sample to avoid small-sample issues
@@ -213,7 +214,7 @@ test_that("calc_te segment bootstrap works correctly", {
   expect_equal(length(unique(result$bootstrap_distributions$iteration)), 5)
 })
 
-test_that("calc_te segment bootstrap preserves data structure differently than standard bootstrap", {
+test_that("calc_wte segment bootstrap preserves data structure differently than standard bootstrap", {
   data <- setup_test_data()
 
   # Add a temporal pattern to make differences more detectable
@@ -222,7 +223,7 @@ test_that("calc_te segment bootstrap preserves data structure differently than s
   data$cycle_group <- as.factor(rep(1:5, length.out = nrow(data)))
 
   # Run both bootstrap types with same parameters
-  segment_result <- calc_te(data,
+  segment_result <- calc_wte(data,
                             bootstrap = "segment",
                             bootstrap_params = list(
                               sample_percentage = 0.8,
@@ -232,7 +233,7 @@ test_that("calc_te segment bootstrap preserves data structure differently than s
                             n_workers = 1,
                             min_loset_warning = -1)
 
-  standard_result <- calc_te(data,
+  standard_result <- calc_wte(data,
                              bootstrap = "standard",
                              bootstrap_params = list(
                                sample_percentage = 0.8,
@@ -262,14 +263,14 @@ test_that("calc_te segment bootstrap preserves data structure differently than s
   expect_equal(standard_result$metadata$bootstrap_method, "standard")
 })
 
-test_that("calc_te compares segment and standard bootstrap methods", {
+test_that("calc_wte compares segment and standard bootstrap methods", {
   # Use a larger dataset and reduce test complexity
   data <- get_test_data()
   data <- init(data)
   data <- sim_te(data)
 
   # Minimal test to verify bootstrap method is stored correctly
-  segment_result <- calc_te(data,
+  segment_result <- calc_wte(data,
                             bootstrap = "segment",
                             bootstrap_params = list(
                               sample_percentage = 1,   # Use full sample
@@ -278,7 +279,7 @@ test_that("calc_te compares segment and standard bootstrap methods", {
                             ),
                             min_loset_warning = -1)
 
-  standard_result <- calc_te(data,
+  standard_result <- calc_wte(data,
                              bootstrap = "standard",
                              bootstrap_params = list(
                                sample_percentage = 1,   # Use full sample
@@ -293,13 +294,13 @@ test_that("calc_te compares segment and standard bootstrap methods", {
 })
 
 
-test_that("calc_te handles bootstrap parameter options correctly", {
+test_that("calc_wte handles bootstrap parameter options correctly", {
   data <- get_test_data()
   data <- init(data)
   data <- sim_te(data)
 
   # Test logical TRUE (should convert to "standard")
-  result_true <- calc_te(data,
+  result_true <- calc_wte(data,
                          bootstrap = TRUE,
                          bootstrap_params = list(
                            sample_percentage = 1,
@@ -311,5 +312,5 @@ test_that("calc_te handles bootstrap parameter options correctly", {
   expect_equal(result_true$metadata$bootstrap_method, "standard")
 
   # Test invalid bootstrap parameter
-  expect_error(calc_te(data, bootstrap = "invalid_method"))
+  expect_error(calc_wte(data, bootstrap = "invalid_method"))
 })

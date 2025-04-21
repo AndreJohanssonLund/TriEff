@@ -2,7 +2,7 @@
 % Please edit documentation in R/sim_heat_alt.R
 \name{sim_heat_alt}
 \alias{sim_heat_alt}
-\title{Simulate Triage Effectiveness including potential normalization techniques - mainly for validation and methodological research}
+\title{Simulate Triage Effectiveness including alternative calculations for methodology research}
 \usage{
 sim_heat_alt(
   df,
@@ -12,7 +12,8 @@ sim_heat_alt(
   alt_calc = FALSE,
   pos_values_only = FALSE,
   n_loset = NULL,
-  seed = NULL
+  seed = NULL,
+  calc_method = "rte"
 )
 }
 \arguments{
@@ -27,40 +28,51 @@ Default is (detectCores() - 1).}
 \item{include_dataframes}{Logical. If TRUE, includes complete simulation data frames
 in output for detailed analysis. Default is FALSE to minimize memory usage.}
 
-\item{alt_calc}{Logical. If TRUE, calculates alternative TE metrics using cube root,
-log, and median-based normalization. Default is FALSE.}
+\item{alt_calc}{Logical. If TRUE, calculates alternative TE metrics using transformations
+appropriate to the calculation method. Default is FALSE.}
 
 \item{pos_values_only}{Logical. If TRUE, only includes combinations where
 sensitivity + specificity >= 1. Default is FALSE.}
 
-\item{n_loset}{Integer, least number of LOSET cases in the datafram. Will duplicate
-the data to reach this.}
+\item{n_loset}{Integer. Minimum number of LOSET cases desired. Will duplicate
+the data to reach this threshold. Default is NULL (no duplication).}
 
-\item{seed}{Seed for reprorucible heatmaps (default: null - no seed)}
+\item{seed}{Integer. Seed for reproducible heatmaps. Default is NULL (no seed).}
+
+\item{calc_method}{String. Method to use for calculating TE: "wte" for waiting time-based TE,
+or "rte" for rank-based TE (default).}
 }
 \value{
 A tibble containing:
 \itemize{
 \item sensitivity: Sensitivity value for the simulation
 \item specificity: Specificity value for the simulation
-\item te: Standard Triage Effectiveness value
-\item te_cube: (If alt_calc=TRUE) TE with cube root normalization
-\item te_log: (If alt_calc=TRUE) TE with log normalization
-\item te_median_local: (If alt_calc=TRUE) TE using median-based calculation using the simulations median
-\item te_median_global: (If alt_calc=TRUE) TE using median-based calculations using the median_all from 100\% sensitivity/0\%specificity
+\item te: Standard TE value (WTE or RTE based on calc_method)
+\item When alt_calc=TRUE and calc_method="wte":
+\itemize{
+\item te_cube: TE with cube root normalization of waiting times
+\item te_log: TE with log normalization of waiting times
+\item te_median_local: TE using local median-based calculation
+\item te_median_global: TE using global median-based calculation
+\item Additional columns with raw metrics (mean_all, cube_all, etc.)
+}
+\item When alt_calc=TRUE and calc_method="rte":
+\itemize{
+\item te_cube: RTE with cube root transformation
+\item te_log: RTE with signed logarithmic transformation
+\item Additional raw metrics as appropriate
+}
 \item sim_data: (If include_dataframes=TRUE) Complete simulation data frames
 }
 }
 \description{
 Performs simulations to analyze how Triage Effectiveness (TE) varies with different
-combinations of sensitivity and specificity. The function provides options for
-alternative TE calculations and can store complete simulation data for detailed analysis.
+combinations of sensitivity and specificity. This function supports both waiting time-based TE (WTE)
+and rank-based TE (RTE) calculations, with options for alternative transformations to explore
+methodological aspects of triage performance measurement.
 }
 \details{
 The function performs these key steps:
-0. Optional, (if alt_calc=TRUE) runs a simulation to evaluate median TE at
-sensitivity = 100\%, specificity = 0\% - i.e a first come, first serve ED. This
-acts like the denominator for the global median calculation.
 \enumerate{
 \item Creates combinations of sensitivity/specificity values based on step_size
 \item Identifies segments containing time-critical (LOSET) cases
@@ -68,16 +80,23 @@ acts like the denominator for the global median calculation.
 \itemize{
 \item Assigns priorities based on sensitivity/specificity
 \item Simulates queue processing
-\item Calculates TE metrics
+\item Calculates TE metrics (WTE or RTE based on calc_method)
+\item Applies alternative calculations if requested
 }
 \item Returns combined results in a tibble format
 }
 
-Alternative TE calculations (when alt_calc=TRUE):
+WTE alternative calculations (when alt_calc=TRUE and calc_method="wte"):
 \itemize{
 \item Cube root: Normalizes wait times using cube root transformation
 \item Log: Normalizes wait times using log transformation
 \item Median: Uses median instead of mean for central tendency
+}
+
+RTE alternative calculations (when alt_calc=TRUE and calc_method="rte"):
+\itemize{
+\item Cube root: Applies cube root transformation to RTE values (preserves sign)
+\item Signed log: Applies sign-preserving log transformation: sign(x) * log(1 + abs(x))
 }
 
 Performance considerations:
@@ -87,26 +106,4 @@ Performance considerations:
 \item Setting include_dataframes=TRUE significantly increases memory usage
 \item Processing time increases with dataset size and number of combinations
 }
-}
-\examples{
-\dontrun{
-# Basic usage
-results <- sim_heat(patient_data, step_size = 10)
-
-# With alternative calculations
-results <- sim_heat(patient_data,
-                    step_size = 10,
-                    alt_calc = TRUE)
-
-# Include complete simulation data
-results <- sim_heat(patient_data,
-                    step_size = 10,
-                    include_dataframes = TRUE)
-
-# Only positive TE combinations
-results <- sim_heat(patient_data,
-                    step_size = 10,
-                    pos_values_only = TRUE)
-}
-
 }

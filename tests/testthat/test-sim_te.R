@@ -60,7 +60,8 @@ test_that("sim_te_alt correctly prioritizes by wait time within priority levels"
     priority_binary = factor(c(1, 1, 2, 2)),
     loset = c(TRUE, TRUE, FALSE, FALSE),
     observed_wait_time = c(10, 10, 10, 10),
-    unit = factor(rep("medical", 4))
+    unit = factor(rep("medical", 4)),
+    segment = factor(rep("med_1", 4))
   )
 
   result <- sim_te_alt(test_data, n_workers = 1)
@@ -91,7 +92,8 @@ test_that("sim_te_alt respects priority order within time windows", {
     priority_binary = factor(c(1, 2, 1)),
     loset = c(TRUE, FALSE, TRUE),
     observed_wait_time = c(10, 10, 10),
-    unit = factor(rep("medical", 3))
+    unit = factor(rep("medical", 3)),
+    segment = factor(rep("med_1", 3))
   )
 
   result <- sim_te_alt(test_data, n_workers = 1)
@@ -119,7 +121,8 @@ test_that("segmentation does not affect simulation results", {
     priority_binary = factor(c(2, 1, 2, 1, 2, 1)),
     loset = c(FALSE, TRUE, FALSE, TRUE, FALSE, TRUE),
     observed_wait_time = rep(5, 6),
-    unit = factor(rep("medical", 6))
+    unit = factor(rep("medical", 6)),
+    segment = factor(rep("med_1", 6))
   )
 
   # Run with normal segmentation

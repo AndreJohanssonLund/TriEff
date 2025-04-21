@@ -21,7 +21,7 @@ library(dplyr)
 
 ## Introduction
 
-The trieff package uses simulation to calculate Theoretical Triage Effectiveness (TTE) by modeling how patients would be processed if strictly following their assigned priority levels. This vignette explains how the simulation works and demonstrates its efficient implementation.
+The trieff package uses simulation as a prestep to the Theoretical Triage Effectiveness (TTE) calculation by modeling how patients would be processed if strictly following their assigned priority levels. This vignette explains how the simulation works and demonstrates its implementation.
 
 ## Understanding the Simulation
 
@@ -37,7 +37,14 @@ The simulation calculates theoretical wait times that would occur if:
 
 ### Optimized Implementation
 
-The default simulation (`sim_te`) focuses only on segments containing time-critical (LOSET-positive) cases. This is due to that TE calculations are based on the mean wait of LOSET-positive devided by the mean wait time that we extract from the observed wait times - which we show further down is identical. 
+The default simulation (sim_te) optimizes performance by focusing only on segments containing time-critical (LOSET-positive) cases. This optimization works because:
+
+- For WTE calculations, we only need to determine the waiting times of LOSET-positive patients relative to the overall mean waiting time. The overall mean can be directly calculated from observed wait times.
+
+- For RTE calculations, we similarly only need to determine the queue positions of LOSET-positive patients. Non-LOSET segments have no impact on the RTE metrics.
+
+This selective simulation approach dramatically reduces computation time without affecting the accuracy of TE results. For segments without LOSET cases, the function simply uses the observed wait times, which produces mathematically equivalent results to fully simulating those segments.
+For research purposes where complete queue behavior analysis is needed, the package also provides sim_te_alt which simulates waiting times for all patients in all segments.
 
 ## Basic Usage
 
@@ -105,8 +112,8 @@ However, both approaches produce identical TE values:
 
 ```{r compare-results}
 # Calculate TE with both methods
-te_opt <- calc_te(simulated_data, overall_only = TRUE)
-te_full <- calc_te(full_sim_data, overall_only = TRUE)
+te_opt <- calc_wte(simulated_data, overall_only = TRUE)
+te_full <- calc_wte(full_sim_data, overall_only = TRUE)
 
 # Compare results
 print(te_opt)

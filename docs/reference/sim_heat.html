@@ -17,7 +17,7 @@ Parallelizing across sensitivity/specificity combinations
 
     <a class="navbar-brand me-2" href="../index.html">trieff</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,7 +30,7 @@ Parallelizing across sensitivity/specificity combinations
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/getting_started.html">Getting Started</a></li>
     <li><a class="dropdown-item" href="../articles/sim_te.html">Simulation in trieff</a></li>
-    <li><a class="dropdown-item" href="../articles/calc_te.html">Calculating Triage Effectiveness</a></li>
+    <li><a class="dropdown-item" href="../articles/calc_wte_rte.html">Calculating Triage Effectiveness</a></li>
     <li><a class="dropdown-item" href="../articles/bootstrap.html">Bootstrap Analysis</a></li>
     <li><a class="dropdown-item" href="../articles/plot_te.html">Plotting Results</a></li>
     <li><a class="dropdown-item" href="../articles/heatmap.html">Heatmap Analysis</a></li>
@@ -71,7 +71,9 @@ and Triage Effectiveness (TE). This function optimizes performance by:</p><ol><l
 <span>  n_workers <span class="op">=</span> <span class="fu">detectCores</span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span>,</span>
 <span>  pos_values_only <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  n_loset <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  calc_method <span class="op">=</span> <span class="st">"rte"</span>,</span>
+<span>  include_dataframes <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -107,6 +109,16 @@ the data to reach this. Can by doing this get more LOSET cases.</p></dd>
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
 <dd><p>Seed for reproducible heat maps (default: null - no seed)</p></dd>
 
+
+<dt id="arg-calc-method">calc_method<a class="anchor" aria-label="anchor" href="#arg-calc-method"></a></dt>
+<dd><p>String. Method to use for calculating TE: "wte" for waiting time-based TE,
+or "rte" for rank-based TE (default).</p></dd>
+
+
+<dt id="arg-include-dataframes">include_dataframes<a class="anchor" aria-label="anchor" href="#arg-include-dataframes"></a></dt>
+<dd><p>Logical. If TRUE, includes complete simulation data frames
+in output for detailed analysis. Default is FALSE to minimize memory usage.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -120,11 +132,11 @@ the data to reach this. Can by doing this get more LOSET cases.</p></dd>
 </ul></li>
 <li><p>Parallel Processing:</p><ul><li><p>Processes each combination independently across workers</p></li>
 <li><p>For each combination:</p><ul><li><p>Scholastically applies priority assignment based on sensitivity/specificity</p></li>
-<li><p>Simulates queue processing for each segment</p></li>
+<li><p>Simulates queue processing for each step</p></li>
 <li><p>Calculates resulting (binary) TE value</p></li>
 </ul></li>
 </ul></li>
-<li><p>Progress Tracking:</p><ul><li><p>Updates progress after each segment</p></li>
+<li><p>Progress Tracking:</p><ul><li><p>Updates progress after each step</p></li>
 </ul></li>
 </ol><p>Performance considerations:</p><ul><li><p>Large step_sizes (e.g., 25) are suitable for initial exploration</p></li>
 <li><p>Smaller step_sizes provide more detailed analysis but increase computation time</p></li>
@@ -135,17 +147,22 @@ the data to reach this. Can by doing this get more LOSET cases.</p></dd>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># Basic usage</span></span></span>
-<span class="r-in"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">sim_heat_fast</span><span class="op">(</span><span class="va">patient_data</span>, step_size <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">sim_heat</span><span class="op">(</span><span class="va">patient_data</span>, step_size <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Only positive values</span></span></span>
-<span class="r-in"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">sim_heat_fast</span><span class="op">(</span><span class="va">patient_data</span>,</span></span>
-<span class="r-in"><span>                        step_size <span class="op">=</span> <span class="fl">10</span>,</span></span>
-<span class="r-in"><span>                        pos_values_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">sim_heat</span><span class="op">(</span><span class="va">patient_data</span>,</span></span>
+<span class="r-in"><span>                    step_size <span class="op">=</span> <span class="fl">10</span>,</span></span>
+<span class="r-in"><span>                    pos_values_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Adjust worker count</span></span></span>
-<span class="r-in"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">sim_heat_fast</span><span class="op">(</span><span class="va">patient_data</span>,</span></span>
-<span class="r-in"><span>                        step_size <span class="op">=</span> <span class="fl">10</span>,</span></span>
-<span class="r-in"><span>                        n_workers <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">sim_heat</span><span class="op">(</span><span class="va">patient_data</span>,</span></span>
+<span class="r-in"><span>                    step_size <span class="op">=</span> <span class="fl">10</span>,</span></span>
+<span class="r-in"><span>                    n_workers <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Include simulation data frames</span></span></span>
+<span class="r-in"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">sim_heat</span><span class="op">(</span><span class="va">patient_data</span>,</span></span>
+<span class="r-in"><span>                    step_size <span class="op">=</span> <span class="fl">10</span>,</span></span>
+<span class="r-in"><span>                    include_dataframes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

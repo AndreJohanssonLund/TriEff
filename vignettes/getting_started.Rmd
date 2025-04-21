@@ -20,7 +20,7 @@ library(trieff)
 
 ## Introduction
 
-The trieff package provides tools for analyzing and evaluating triage effectiveness in emergency departments. At its core, it measures how well triage systems achieve their fundamental purpose: reducing waiting times for time-critical patients.
+The trieff package provides tools for analyzing and evaluating triage effectiveness, for example in emergency departments. At its core, it measures how well triage systems achieve their fundamental purpose: reducing waiting times for time-critical patients.
 
 The package uses two key reference points:
 
@@ -53,7 +53,7 @@ data <- init(sem_malmo_synth)
 
 ### 2. Simulate Theoretical Wait Times
 
-To understand how well the triage system performs without the effect of changes in priority that can happen after triage we simulate theoretical wait times. This shows what would happen if patients were seen strictly in order of their assigned priority:
+To understand how well the triage system performs without the effect of changes in priority that can happen after triage we simulate theoretical wait times. This shows what would happen if patients were seen strictly in order of their assigned priority/arrival time:
 
 ```{r simulate}
 # Run simulation for theoretical wait times
@@ -64,16 +64,18 @@ data <- sim_te(data)
 
 Now we can calculate both Observed Triage Effectiveness (OTE) and Theoretical Triage Effectiveness (TTE):
 
-```{r calc_te}
+```{r calc_wte}
 # Calculate TE metrics
-te_results <- calc_te(data, overall_only = TRUE)
+te_results <- calc_wte(data, overall_only = TRUE)
 print(te_results)
 ```
 
 The results show us:
 - OTE: How well the ED actually performed
 - TTE: How well it would have performed based on triage decisions alone
-- OTG (Observed-Theoretical Gap): The difference between OTE and TTE, indicating the impact of post-triage processes
+- OTG (Observed-Theoretical Gap): The difference between OTE and TTE, indicating the impact of post-triage processes.
+
+Note: TE can be calculated using two complementary approaches: Waiting Time-based TE (WTE) which measures actual time reduction, and Rank-based TE (RTE) which focuses on queue position improvement.
 
 ### 4. Visualize Results
 
@@ -90,7 +92,7 @@ See the individual vignettes for each component for detailed usage, error handli
 
 - `vignette("sim_te")` for simulation details and performance considerations
 
-- `vignette("calc_te")` for analyzing TE metrics
+- `vignette("calc_wte_rte")` for calculating TE metrics with either WTE or RTE
 
 - `vignette("bootstrap")` for statistical validation and variance calculation
 
@@ -114,7 +116,6 @@ To use trieff, your data needs:
 
 ## Common Issues
 - Missing or incorrect column names -> Use init() to validate data structure
-- Unexpected TE values -> Check unit groupings and LOSET definitions
 
 See `?sem_malmo_synth` for an example of how to structure your data.
 
