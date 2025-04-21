@@ -111,26 +111,37 @@
 #'
 #' @export
 # Create metadata about the calculation
-calc_te <- function(df,
-                          subgroup = NULL,
-                          var1 = NULL,
-                          var2 = NULL,
-                          bootstrap = FALSE,
-                          bootstrap_params = list(
-                            sample_percentage = 1,
-                            n_iterations = 2000,
-                            distribution_span = 0.95
-                          ),
-                          n_workers = parallel::detectCores() - 1,
-                          overall_only = FALSE,
-                          check_convergence = TRUE,
-                          min_loset_warning = 5,
-                          seed = NULL
-                    ) {
+calc_wte <- function(df,
+                    subgroup = NULL,
+                    var1 = NULL,
+                    var2 = NULL,
+                    bootstrap = FALSE,
+                    bootstrap_params = list(
+                      sample_percentage = 1,
+                      n_iterations = 2000,
+                      distribution_span = 0.95
+                    ),
+                    n_workers = parallel::detectCores() - 1,
+                    overall_only = FALSE,
+                    check_convergence = TRUE,
+                    min_loset_warning = 5,
+                    seed = NULL
+) {
 
 
   # Validate input data
   validate_te_data(df, subgroup, var1, var2)
+
+  # Check if there's only one unit and overall_only is TRUE
+  n_units <- length(unique(df$unit))
+  if (n_units == 1 && overall_only) {
+    # Get the unit name for the message
+    unit_name <- unique(df$unit)[1]
+    # Override overall_only setting
+    overall_only <- FALSE
+    # Inform the user
+    message(sprintf("Only one unit ('%s') detected. Setting overall_only=FALSE as overall statistics are equivalent to unit statistics.", unit_name))
+  }
 
   # Validate bootstrap parameter
   if (!is.null(bootstrap)) {
@@ -160,8 +171,8 @@ calc_te <- function(df,
                                                 min_loset_warning, seed)
   } else if (bootstrap == "segment") {
     bootstrap_results <- calculate_te_segment_bootstrap(df, bootstrap_params, n_workers,
-                                                      subgroup, var1, var2,
-                                                      min_loset_warning, seed)
+                                                        subgroup, var1, var2,
+                                                        min_loset_warning, seed)
   }
 
 
@@ -898,11 +909,14 @@ combine_results <- function(base_results, bootstrap_results, var1, var2, subgrou
   # Create metadata about the calculation
   metadata <- list(
     calculation_time = Sys.time(),
+    calculation_method = "waiting-time-based",
     bootstrap_params = bootstrap_results$params,
     bootstrap_method = bootstrap_results$method,
     group_var1 = var1,
     group_var2 = var2,
-    subgr = subgroup
+    subgr = subgroup,
+    ci_method = if(inherits(bootstrap_results$metrics, "tbl_df")) "bootstrap" else "none",
+    recommended_ci_vars = if(inherits(bootstrap_results$metrics, "tbl_df")) "boot" else "none" # Change here
   )
 
   # Return structured output
@@ -912,12 +926,12 @@ combine_results <- function(base_results, bootstrap_results, var1, var2, subgrou
       bootstrap_distributions =  bootstrap_results$distributions,
       metadata = metadata
     )
-    } else {
-      combined_results <- list(
-        results = combined_metrics,
-        metadata = metadata
-      )
-    }
+  } else {
+    combined_results <- list(
+      results = combined_metrics,
+      metadata = metadata
+    )
+  }
 
   return(combined_results)
 }
@@ -1125,10 +1139,6 @@ plot.te_convergence <- function(x, ...) {
 
 
 
-
-
-
-
 ####----------------------------------------- support function to print the result
 #' Print Method for Triage Effectiveness Results
 #'
@@ -1163,11 +1173,29 @@ plot.te_convergence <- function(x, ...) {
 #' @export
 print.calc_te <- function(x, ...) {
   # Helper function to format percentages with CI
-  format_metric_ci <- function(mean, lower, upper) {
+  format_metric_ci <- function(mean, lower, upper, lower_np = NA, upper_np = NA, shapiro_p = NA) {
     if (is.na(mean)) return("NA")
+
+    # Determine whether to use non-parametric CI based on normality test
+    use_nonparametric <- FALSE
+    if (!is.na(shapiro_p) && !is.na(lower_np) && !is.na(upper_np)) {
+      use_nonparametric <- shapiro_p < 0.05
+    }
+
     formatted_mean <- sprintf("%.1f%%", mean * 100)
-    if (is.na(lower) || is.na(upper)) return(formatted_mean)
-    return(sprintf("%s (%.1f%% to %.1f%%)", formatted_mean, lower * 100, upper * 100))
+
+    if (use_nonparametric) {
+      # Use non-parametric CI
+      return(sprintf("%s (%.1f%% to %.1f%%) (non-parametric)",
+                     formatted_mean, lower_np * 100, upper_np * 100))
+    } else if (!is.na(lower) && !is.na(upper)) {
+      # Use parametric CI
+      return(sprintf("%s (%.1f%% to %.1f%%)",
+                     formatted_mean, lower * 100, upper * 100))
+    }
+
+    # Fallback to just the mean if CI not available
+    return(formatted_mean)
   }
 
   # Extract results and metadata
@@ -1177,49 +1205,70 @@ print.calc_te <- function(x, ...) {
   cat("\nTriage Effectiveness Analysis Results\n")
   cat("===================================\n\n")
 
-  # Instead of using group_split(), process rows directly in their original order
+  # Determine if we're displaying RTE or WTE
+  is_rte <- !is.null(metadata$calculation_method) && metadata$calculation_method == "rank-based"
+
+  # Process rows in their original order
   for(i in 1:nrow(results_df)) {
     row <- results_df[i,]
 
     # Get grouping variables for this row
-    group_values <- row %>%
-      select(any_of(c("unit", metadata$group_var1, metadata$group_var2))) %>%
-      distinct()
+    group_vars <- c("unit")
+    if (!is.null(metadata$group_var1)) group_vars <- c(group_vars, metadata$group_var1)
+    if (!is.null(metadata$group_var2)) group_vars <- c(group_vars, metadata$group_var2)
 
-    # Create variable name mapping
-    var_names <- c()
-    if (!is.null(metadata$group_var1)) {
-      var_names[metadata$group_var1] <- metadata$group_var1
+    group_values <- row[, intersect(group_vars, names(row)), drop = FALSE]
+
+    # Create header label
+    if (group_values$unit == "overall") {
+      header <- "Results for Overall"
+
+      # Add grouping variables if present
+      if (!is.null(metadata$group_var1) && metadata$group_var1 %in% names(group_values)) {
+        header <- paste(header, group_values[[metadata$group_var1]], sep = ", ")
+      }
+      if (!is.null(metadata$group_var2) && metadata$group_var2 %in% names(group_values)) {
+        header <- paste(header, group_values[[metadata$group_var2]], sep = ", ")
+      }
+    } else {
+      header <- paste("Results for unit:", group_values$unit)
+
+      # Add grouping variables if present
+      if (!is.null(metadata$group_var1) && metadata$group_var1 %in% names(group_values)) {
+        header <- paste(header, group_values[[metadata$group_var1]], sep = ", ")
+      }
+      if (!is.null(metadata$group_var2) && metadata$group_var2 %in% names(group_values)) {
+        header <- paste(header, group_values[[metadata$group_var2]], sep = ", ")
+      }
     }
-    if (!is.null(metadata$group_var2)) {
-      var_names[metadata$group_var2] <- metadata$group_var2
-    }
 
-    # Create header with variable names
-    group_desc <- group_values %>%
-      # First handle overall case
-      mutate(unit = if_else(unit == "overall", "Overall", paste0("unit: ", unit))) %>%
-      # Add variable names to other columns if they exist
-      rename(!!!setNames(names(var_names), var_names)) %>%
-      tidyr::unite("desc", everything(), sep = ", ") %>%
-      pull(desc)
-
-    header <- paste("Results for", group_desc)
     cat(header, "\n")
     cat(paste(rep("-", nchar(header)), collapse = ""), "\n")
 
-    # Print sample sizes
-    cat(sprintf("Total patients: %d (%.1f%% LOSET positive)\n",
-                row$n_patients,
-                row$loset_prevalence * 100))
+    # Print sample sizes with correct LOSET percentage
+    if (is_rte && "n_valid_rte" %in% names(row)) {
+      cat(sprintf("Total patients: %d (%.1f%% LOSET positive, %d valid for RTE)\n",
+                  row$n_patients,
+                  row$loset_prevalence * 100,
+                  row$n_valid_rte))
+    } else {
+      cat(sprintf("Total patients: %d (%.1f%% LOSET positive)\n",
+                  row$n_patients,
+                  row$loset_prevalence * 100))
+    }
 
     # Print classification metrics
     cat("\nClassification Metrics:\n")
     cat(sprintf("  Sensitivity: %.1f%%\n", row$sensitivity * 100))
     cat(sprintf("  Specificity: %.1f%%\n", row$specificity * 100))
 
-    # Print TE metrics
-    cat("\nTriage Effectiveness Metrics:\n")
+    # Print TE metrics with appropriate header
+    if (is_rte) {
+      cat("\nRank-based Triage Effectiveness Metrics:\n")
+    } else {
+      cat("\nTriage Effectiveness Metrics:\n")
+    }
+
     cat(sprintf("  OTE: %.1f%%\n", row$ote_te * 100))
 
     if (!is.na(row$tte_te)) {
@@ -1231,34 +1280,78 @@ print.calc_te <- function(x, ...) {
       cat(sprintf("  BTTE: %.1f%%\n", row$btte_te * 100))
     }
 
-    # Print bootstrap information if available
-    if ("boot_ote_var_lower" %in% names(row)) {
-      cat("\nBootstrap Variation Intervals:\n")
+    # Determine if we should show confidence intervals
+    show_ci <- !(is.null(metadata$recommended_ci_vars) || metadata$recommended_ci_vars == "none")
+
+    if (show_ci) {
+      # Print confidence intervals
+      cat("\nConfidence Intervals (95%):\n")
+
+      # Determine which CI variables to use based on metadata
+      ci_vars_prefix <- if (!is.null(metadata$recommended_ci_vars)) {
+        metadata$recommended_ci_vars
+      } else {
+        "parametric"  # Default fallback
+      }
+
+      # Determine parametric CI variables
+      par_lower_ote <- paste0(ci_vars_prefix, "_ote_var_lower")
+      par_upper_ote <- paste0(ci_vars_prefix, "_ote_var_upper")
+      par_lower_tte <- paste0(ci_vars_prefix, "_tte_var_lower")
+      par_upper_tte <- paste0(ci_vars_prefix, "_tte_var_upper")
+      par_lower_btte <- paste0(ci_vars_prefix, "_btte_var_lower")
+      par_upper_btte <- paste0(ci_vars_prefix, "_btte_var_upper")
+
+      # Default for non-parametric CI variables
+      np_lower_ote <- "nonparametric_ote_var_lower"
+      np_upper_ote <- "nonparametric_ote_var_upper"
+      np_lower_tte <- "nonparametric_tte_var_lower"
+      np_upper_tte <- "nonparametric_tte_var_upper"
+      np_lower_btte <- "nonparametric_btte_var_lower"
+      np_upper_btte <- "nonparametric_btte_var_upper"
+
+      # Get values or NA if not present
+      get_value <- function(df, col) {
+        if (col %in% names(df)) df[[col]] else NA
+      }
+
+      # Format OTE CI
       cat("  OTE: ", format_metric_ci(
         row$ote_te,
-        row$boot_ote_var_lower,
-        row$boot_ote_var_upper
+        get_value(row, par_lower_ote),
+        get_value(row, par_upper_ote),
+        get_value(row, np_lower_ote),
+        get_value(row, np_upper_ote),
+        get_value(row, "ote_shapiro_p")
       ), "\n")
 
+      # Format TTE CI if available
       if (!is.na(row$tte_te)) {
         cat("  TTE: ", format_metric_ci(
           row$tte_te,
-          row$boot_tte_var_lower,
-          row$boot_tte_var_upper
+          get_value(row, par_lower_tte),
+          get_value(row, par_upper_tte),
+          get_value(row, np_lower_tte),
+          get_value(row, np_upper_tte),
+          get_value(row, "tte_shapiro_p")
         ), "\n")
 
+        # OTG has no direct non-parametric CI
         cat("  OTG: ", format_metric_ci(
           row$otg_te,
-          row$boot_otg_var_lower,
-          row$boot_otg_var_upper
+          NA, NA, NA, NA, NA  # No CIs for OTG
         ), "\n")
       }
 
+      # Format BTTE CI if available
       if ("btte_te" %in% names(row) && !is.na(row$btte_te)) {
         cat("  BTTE: ", format_metric_ci(
           row$btte_te,
-          row$boot_btte_var_lower,
-          row$boot_btte_var_upper
+          get_value(row, par_lower_btte),
+          get_value(row, par_upper_btte),
+          get_value(row, np_lower_btte),
+          get_value(row, np_upper_btte),
+          get_value(row, "btte_shapiro_p")
         ), "\n")
       }
     }
@@ -1269,16 +1362,24 @@ print.calc_te <- function(x, ...) {
   # Print computation information footer
   cat("Computation Information\n")
   cat("=====================\n")
-  if (!is.null(metadata$bootstrap_params)) {
-    cat("Method: Bootstrap calculation\n")
+
+  # Check if this is rank-based or waiting-time-based
+  is_rank_based <- !is.null(metadata$calculation_method) &&
+    metadata$calculation_method == "rank-based"
+
+  if (is_rank_based) {
+    cat("Method: Rank-based triage effectiveness calculation\n")
+  } else if (!is.null(metadata$bootstrap_params)) {
+    cat("Method: Bootstrap calculation (waiting-time-based)\n")
     cat(sprintf("Number of iterations: %d\n", metadata$bootstrap_params$n_iterations))
     cat(sprintf("Sample percentage: %.0f%%\n",
                 metadata$bootstrap_params$sample_percentage * 100))
     cat(sprintf("Distribution span: %.0f%%\n",
                 metadata$bootstrap_params$distribution_span * 100))
   } else {
-    cat("Method: Direct calculation\n")
+    cat("Method: Direct calculation (waiting-time-based)\n")
   }
+
   cat(sprintf("Calculation time: %s\n", metadata$calculation_time))
 
   # Return invisibly
