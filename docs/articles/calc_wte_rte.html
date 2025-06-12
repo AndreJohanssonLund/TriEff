@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">trieff</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,11 +78,8 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://AndreJohanssonLund.github.io/trieff/" class="external-link">trieff</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loaded trieff 1.1.0</span></span>
-<span><span class="co">#&gt; System capable of parallel processing with multisession backend</span></span>
-<span><span class="co">#&gt; Maximum available workers: 16</span></span>
-<span><span class="co">#&gt; Note: Individual functions will determine optimal core usage at runtime</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://andrejohanssonlund.github.io/TriEff/index.html">trieff</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loaded trieff 1.2.0</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
@@ -125,14 +122,15 @@ interest.</li>
 get theoretical wait times:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Initialize the data</span></span>
-<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/init.html">init</a></span><span class="op">(</span><span class="va">sem_malmo_synth</span><span class="op">)</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/load_sem_synth.html">load_sem_synth</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="../reference/init.html">init</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Run simulation to get theoretical wait times</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_te.html">sim_te</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Filtered to 1486 segments with LOSET cases"</span></span>
-<span><span class="co">#&gt; [1] "Total LOSET cases: 5491"</span></span>
-<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-04-21 14:46:33.546217"</span></span>
-<span><span class="co">#&gt; [1] "Simulations are done! 2025-04-21 14:46:38.409975"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Filtered to 1044 segments with LOSET cases"</span></span>
+<span><span class="co">#&gt; [1] "Total LOSET cases: 3843"</span></span>
+<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-06-12 12:43:07.893043"</span></span>
+<span><span class="co">#&gt; [1] "Simulations are done! 2025-06-12 12:43:10.959503"</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="waiting-time-based-te-wte">Waiting Time-based TE (WTE)<a class="anchor" aria-label="anchor" href="#waiting-time-based-te-wte"></a>
 </h3>
@@ -149,21 +147,21 @@ get theoretical wait times:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Results for Overall </span></span>
 <span><span class="co">#&gt; ------------------- </span></span>
-<span><span class="co">#&gt; Total patients: 124311 (4.4% LOSET positive)</span></span>
+<span><span class="co">#&gt; Total patients: 53265 (7.2% LOSET positive)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Classification Metrics:</span></span>
-<span><span class="co">#&gt;   Sensitivity: 73.7%</span></span>
-<span><span class="co">#&gt;   Specificity: 65.9%</span></span>
+<span><span class="co">#&gt;   Sensitivity: 64.3%</span></span>
+<span><span class="co">#&gt;   Specificity: 73.3%</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Triage Effectiveness Metrics:</span></span>
-<span><span class="co">#&gt;   OTE: 29.9%</span></span>
-<span><span class="co">#&gt;   TTE: 52.8%</span></span>
-<span><span class="co">#&gt;   OTG: -23.0%</span></span>
+<span><span class="co">#&gt;   OTE: 36.3%</span></span>
+<span><span class="co">#&gt;   TTE: 49.1%</span></span>
+<span><span class="co">#&gt;   OTG: -12.8%</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Computation Information</span></span>
 <span><span class="co">#&gt; =====================</span></span>
 <span><span class="co">#&gt; Method: Direct calculation (waiting-time-based)</span></span>
-<span><span class="co">#&gt; Calculation time: 2025-04-21 14:46:38.756794</span></span></code></pre></div>
+<span><span class="co">#&gt; Calculation time: 2025-06-12 12:43:11.220976</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="rank-based-te-rte">Rank-based TE (RTE)<a class="anchor" aria-label="anchor" href="#rank-based-te-rte"></a>
@@ -172,6 +170,17 @@ get theoretical wait times:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Calculate RTE metrics</span></span>
 <span><span class="va">rte_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_rte.html">calc_rte</a></span><span class="op">(</span><span class="va">data</span>, overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Processing 2 units with LOSET cases in parallel 2025-06-12 12:43:11.708082"</span></span>
+<span><span class="co">#&gt; Warning in serialize(data, node$con, xdr = FALSE): 'package:ggplot2' may not be</span></span>
+<span><span class="co">#&gt; available when loading</span></span>
+<span><span class="co">#&gt; Warning in serialize(data, node$con, xdr = FALSE): 'package:ggplot2' may not be</span></span>
+<span><span class="co">#&gt; available when loading</span></span>
+<span><span class="co">#&gt; Warning in serialize(data, node$con, xdr = FALSE): 'package:ggplot2' may not be</span></span>
+<span><span class="co">#&gt; available when loading</span></span>
+<span><span class="co">#&gt; Warning in serialize(data, node$con, xdr = FALSE): 'package:ggplot2' may not be</span></span>
+<span><span class="co">#&gt; available when loading</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: C 2025-06-12 12:43:12.612343"</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: E 2025-06-12 12:43:13.439037"</span></span>
 <span></span>
 <span><span class="co"># Print results</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">rte_results</span><span class="op">)</span></span>
@@ -181,26 +190,27 @@ get theoretical wait times:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Results for Overall </span></span>
 <span><span class="co">#&gt; ------------------- </span></span>
-<span><span class="co">#&gt; Total patients: 124311 (4.4% LOSET positive, 5218 valid for RTE)</span></span>
+<span><span class="co">#&gt; Total patients: 53265 (7.2% LOSET positive, 3529 valid for RTE)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Classification Metrics:</span></span>
-<span><span class="co">#&gt;   Sensitivity: 73.7%</span></span>
-<span><span class="co">#&gt;   Specificity: 71.3%</span></span>
+<span><span class="co">#&gt;   Sensitivity: 64.3%</span></span>
+<span><span class="co">#&gt;   Specificity: 73.1%</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Rank-based Triage Effectiveness Metrics:</span></span>
-<span><span class="co">#&gt;   OTE: 31.5%</span></span>
-<span><span class="co">#&gt;   TTE: 59.3%</span></span>
-<span><span class="co">#&gt;   OTG: -27.8%</span></span>
+<span><span class="co">#&gt;   OTE: 39.1%</span></span>
+<span><span class="co">#&gt;   TTE: 55.2%</span></span>
+<span><span class="co">#&gt;   OTG: -16.1%</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Confidence Intervals (95%):</span></span>
-<span><span class="co">#&gt;   OTE:  31.5% (-260.0% to 100.0%) </span></span>
-<span><span class="co">#&gt;   TTE:  59.3% (-138.9% to 100.0%) </span></span>
-<span><span class="co">#&gt;   OTG:  -27.8% </span></span>
+<span><span class="co">#&gt;   OTE:  39.1% (-233.3% to 100.0%) </span></span>
+<span><span class="co">#&gt;   TTE:  55.2% (-107.3% to 100.0%) </span></span>
+<span><span class="co">#&gt;   OTG:  -16.1% </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Computation Information</span></span>
 <span><span class="co">#&gt; =====================</span></span>
 <span><span class="co">#&gt; Method: Rank-based triage effectiveness calculation</span></span>
-<span><span class="co">#&gt; Calculation time: 2025-04-21 14:46:43.936768</span></span></code></pre></div>
+<span><span class="co">#&gt; Confidence intervals: Nonparametric method</span></span>
+<span><span class="co">#&gt; Calculation time: 2025-06-12 12:43:13.922906</span></span></code></pre></div>
 <p>Note that we are using the argument ‘overall_only = TRUE’ in both
 examples above. This returns only the overall TE value for the ED.
 Trieff calculates this based on units that represents separate queues.
@@ -244,6 +254,17 @@ groups:</p>
 <span><span class="co"># Calculate WTE and RTE by age group</span></span>
 <span><span class="va">wte_age</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_wte.html">calc_wte</a></span><span class="op">(</span><span class="va">data</span>, var1 <span class="op">=</span> <span class="st">"age_group"</span>, overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">rte_age</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_rte.html">calc_rte</a></span><span class="op">(</span><span class="va">data</span>, var1 <span class="op">=</span> <span class="st">"age_group"</span>, overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Processing 2 units with LOSET cases in parallel 2025-06-12 12:43:14.707643"</span></span>
+<span><span class="co">#&gt; Warning in serialize(data, node$con, xdr = FALSE): 'package:ggplot2' may not be</span></span>
+<span><span class="co">#&gt; available when loading</span></span>
+<span><span class="co">#&gt; Warning in serialize(data, node$con, xdr = FALSE): 'package:ggplot2' may not be</span></span>
+<span><span class="co">#&gt; available when loading</span></span>
+<span><span class="co">#&gt; Warning in serialize(data, node$con, xdr = FALSE): 'package:ggplot2' may not be</span></span>
+<span><span class="co">#&gt; available when loading</span></span>
+<span><span class="co">#&gt; Warning in serialize(data, node$con, xdr = FALSE): 'package:ggplot2' may not be</span></span>
+<span><span class="co">#&gt; available when loading</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: C 2025-06-12 12:43:15.545011"</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: E 2025-06-12 12:43:16.35852"</span></span>
 <span></span>
 <span><span class="co"># Create comparison plots</span></span>
 <span><span class="va">wte_age_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">wte_age</span>, title <span class="op">=</span> <span class="st">"WTE by Age Group"</span><span class="op">)</span></span>
@@ -251,7 +272,7 @@ groups:</p>
 <span></span>
 <span><span class="co"># Display plots</span></span>
 <span><span class="fu">patchwork</span><span class="fu">::</span><span class="fu"><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">wrap_plots</a></span><span class="op">(</span><span class="va">wte_age_plot</span>, <span class="va">rte_age_plot</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="calc_wte_rte_files/figure-html/subgroup-analysis-1.png" width="960"></p>
+<p><img src="calc_wte_rte_files/figure-html/subgroup-analysis-1.png" alt="Comparison of WTE and RTE plot visualizations for subgroups" width="960"></p>
 </div>
 <div class="section level2">
 <h2 id="bootstrap-analysis">Bootstrap Analysis<a class="anchor" aria-label="anchor" href="#bootstrap-analysis"></a>
@@ -262,14 +283,25 @@ groups:</p>
 <span><span class="va">wte_bootstrap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_wte.html">calc_wte</a></span><span class="op">(</span><span class="va">data</span>, </span>
 <span>                         bootstrap <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                         overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-04-21 14:46:50.167449"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-04-21 14:47:09.396764"</span></span>
+<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-06-12 12:43:17.45036"</span></span>
+<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-06-12 12:43:32.245907"</span></span>
 <span></span>
 <span><span class="va">rte_bootstrap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_rte.html">calc_rte</a></span><span class="op">(</span><span class="va">data</span>,</span>
 <span>                         bootstrap <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                         overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting RTE bootstrap with 2000 iterations, sample size 124311 at 2025-04-21 14:47:15.039847"</span></span>
-<span><span class="co">#&gt; [1] "RTE bootstrap completed at 2025-04-21 14:47:28.782273"</span></span>
+<span><span class="co">#&gt; [1] "Processing 2 units with LOSET cases in parallel 2025-06-12 12:43:32.879703"</span></span>
+<span><span class="co">#&gt; Warning in serialize(data, node$con, xdr = FALSE): 'package:ggplot2' may not be</span></span>
+<span><span class="co">#&gt; available when loading</span></span>
+<span><span class="co">#&gt; Warning in serialize(data, node$con, xdr = FALSE): 'package:ggplot2' may not be</span></span>
+<span><span class="co">#&gt; available when loading</span></span>
+<span><span class="co">#&gt; Warning in serialize(data, node$con, xdr = FALSE): 'package:ggplot2' may not be</span></span>
+<span><span class="co">#&gt; available when loading</span></span>
+<span><span class="co">#&gt; Warning in serialize(data, node$con, xdr = FALSE): 'package:ggplot2' may not be</span></span>
+<span><span class="co">#&gt; available when loading</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: C 2025-06-12 12:43:33.821393"</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: E 2025-06-12 12:43:34.709626"</span></span>
+<span><span class="co">#&gt; [1] "Starting RTE bootstrap with 2000 iterations, sample size 3529 from 3529 valid time-critical patients at 2025-06-12 12:43:35.531929"</span></span>
+<span><span class="co">#&gt; [1] "RTE bootstrap completed at 2025-06-12 12:43:53.702951"</span></span>
 <span></span>
 <span><span class="co"># Create plots with confidence intervals</span></span>
 <span><span class="va">wte_boot_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">wte_bootstrap</span>, title <span class="op">=</span> <span class="st">"WTE with Bootstrap CI"</span><span class="op">)</span></span>
@@ -277,7 +309,7 @@ groups:</p>
 <span></span>
 <span><span class="co"># Display plots</span></span>
 <span><span class="fu">patchwork</span><span class="fu">::</span><span class="fu"><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">wrap_plots</a></span><span class="op">(</span><span class="va">wte_boot_plot</span>, <span class="va">rte_boot_plot</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="calc_wte_rte_files/figure-html/bootstrap-comparison-1.png" width="960"></p>
+<p><img src="calc_wte_rte_files/figure-html/bootstrap-comparison-1.png" alt="Comparison of WTE and RTE plot visualizations with bootstraped confidence intervals" width="960"></p>
 <p>Both functions bootstraps the final, calculated value.</p>
 </div>
 <div class="section level2">
@@ -562,7 +594,7 @@ options, see <code><a href="../articles/plot_te.html">vignette("plot_te")</a></c
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
     </footer>

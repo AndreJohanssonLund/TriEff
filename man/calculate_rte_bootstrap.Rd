@@ -2,7 +2,7 @@
 % Please edit documentation in R/calc_rte.R
 \name{calculate_rte_bootstrap}
 \alias{calculate_rte_bootstrap}
-\title{Calculate RTE Bootstrap Metrics}
+\title{Calculate RTE Bootstrap Metrics (Optimized)}
 \usage{
 calculate_rte_bootstrap(
   df,
@@ -33,11 +33,11 @@ calculate_rte_bootstrap(
 List containing bootstrap metrics and distributions
 }
 \description{
-Calculate RTE Bootstrap Metrics
+Calculate RTE Bootstrap Metrics (Optimized)
 }
 \details{
-Performs bootstrap resampling of patients and recalculates RTE metrics for each
-bootstrap sample. This approach mirrors the WTE bootstrap method by capturing
-uncertainty in the overall metric rather than just patient-level values.
+Performs bootstrap resampling of only valid time-critical patients and their RTE values.
+This optimized version doesn't recalculate queue metrics for each bootstrap sample,
+instead working directly with pre-calculated RTE values.
 }
 \keyword{internal}

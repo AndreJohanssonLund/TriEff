@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">trieff</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,11 +78,8 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://AndreJohanssonLund.github.io/trieff/" class="external-link">trieff</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loaded trieff 1.1.0</span></span>
-<span><span class="co">#&gt; System capable of parallel processing with multisession backend</span></span>
-<span><span class="co">#&gt; Maximum available workers: 16</span></span>
-<span><span class="co">#&gt; Note: Individual functions will determine optimal core usage at runtime</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://andrejohanssonlund.github.io/TriEff/index.html">trieff</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loaded trieff 1.2.0</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
@@ -94,12 +91,13 @@
 <span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
 <span></span>
 <span><span class="co"># Initialize data once at the start</span></span>
-<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/init.html">init</a></span><span class="op">(</span><span class="va">sem_malmo_synth</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/load_sem_synth.html">load_sem_synth</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="../reference/init.html">init</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/sim_te.html">sim_te</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Filtered to 1486 segments with LOSET cases"</span></span>
-<span><span class="co">#&gt; [1] "Total LOSET cases: 5491"</span></span>
-<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-04-21 14:44:33.783656"</span></span>
-<span><span class="co">#&gt; [1] "Simulations are done! 2025-04-21 14:44:38.382946"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Filtered to 1044 segments with LOSET cases"</span></span>
+<span><span class="co">#&gt; [1] "Total LOSET cases: 3843"</span></span>
+<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-06-12 12:41:14.257479"</span></span>
+<span><span class="co">#&gt; [1] "Simulations are done! 2025-06-12 12:41:17.228762"</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
@@ -158,8 +156,8 @@ We’ll use overall_only=TRUE to keep the output focused:</p>
 <span><span class="va">te_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_wte.html">calc_wte</a></span><span class="op">(</span><span class="va">data</span>, </span>
 <span>                     bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>                     overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-04-21 14:44:39.144801"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-04-21 14:44:58.347394"</span></span>
+<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-06-12 12:41:17.920562"</span></span>
+<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-06-12 12:41:32.657718"</span></span>
 <span></span>
 <span><span class="co"># View results</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">te_results</span><span class="op">)</span></span>
@@ -169,21 +167,21 @@ We’ll use overall_only=TRUE to keep the output focused:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Results for Overall </span></span>
 <span><span class="co">#&gt; ------------------- </span></span>
-<span><span class="co">#&gt; Total patients: 124311 (4.4% LOSET positive)</span></span>
+<span><span class="co">#&gt; Total patients: 53265 (7.2% LOSET positive)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Classification Metrics:</span></span>
-<span><span class="co">#&gt;   Sensitivity: 73.7%</span></span>
-<span><span class="co">#&gt;   Specificity: 65.9%</span></span>
+<span><span class="co">#&gt;   Sensitivity: 64.3%</span></span>
+<span><span class="co">#&gt;   Specificity: 73.3%</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Triage Effectiveness Metrics:</span></span>
-<span><span class="co">#&gt;   OTE: 29.9%</span></span>
-<span><span class="co">#&gt;   TTE: 52.8%</span></span>
-<span><span class="co">#&gt;   OTG: -23.0%</span></span>
+<span><span class="co">#&gt;   OTE: 36.3%</span></span>
+<span><span class="co">#&gt;   TTE: 49.1%</span></span>
+<span><span class="co">#&gt;   OTG: -12.8%</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Confidence Intervals (95%):</span></span>
-<span><span class="co">#&gt;   OTE:  29.9% (26.8% to 32.9%) </span></span>
-<span><span class="co">#&gt;   TTE:  52.8% (49.7% to 55.7%) </span></span>
-<span><span class="co">#&gt;   OTG:  -23.0% </span></span>
+<span><span class="co">#&gt;   OTE:  36.3% (32.7% to 39.9%) </span></span>
+<span><span class="co">#&gt;   TTE:  49.1% (45.4% to 52.7%) </span></span>
+<span><span class="co">#&gt;   OTG:  -12.8% (-17.1% to -8.4%) </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Computation Information</span></span>
 <span><span class="co">#&gt; =====================</span></span>
@@ -191,7 +189,8 @@ We’ll use overall_only=TRUE to keep the output focused:</p>
 <span><span class="co">#&gt; Number of iterations: 2000</span></span>
 <span><span class="co">#&gt; Sample percentage: 100%</span></span>
 <span><span class="co">#&gt; Distribution span: 95%</span></span>
-<span><span class="co">#&gt; Calculation time: 2025-04-21 14:44:58.364805</span></span></code></pre></div>
+<span><span class="co">#&gt; Confidence intervals: Boot method</span></span>
+<span><span class="co">#&gt; Calculation time: 2025-06-12 12:41:32.974224</span></span></code></pre></div>
 <p>The output now includes confidence intervals for each TE metric,
 showing the uncertainty in our estimates.</p>
 </div>
@@ -210,8 +209,8 @@ showing the uncertainty in our estimates.</p>
 <span>                       n_iterations <span class="op">=</span> <span class="fl">1000</span>,      <span class="co"># decrease iterations</span></span>
 <span>                       distribution_span <span class="op">=</span> <span class="fl">0.99</span>  <span class="co"># Wider confidence intervals</span></span>
 <span>                     <span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-04-21 14:44:58.791145"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-04-21 14:45:09.482014"</span></span>
+<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-06-12 12:41:33.344341"</span></span>
+<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-06-12 12:41:45.202865"</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">te_custom</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -220,21 +219,21 @@ showing the uncertainty in our estimates.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Results for Overall </span></span>
 <span><span class="co">#&gt; ------------------- </span></span>
-<span><span class="co">#&gt; Total patients: 124311 (4.4% LOSET positive)</span></span>
+<span><span class="co">#&gt; Total patients: 53265 (7.2% LOSET positive)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Classification Metrics:</span></span>
-<span><span class="co">#&gt;   Sensitivity: 73.7%</span></span>
-<span><span class="co">#&gt;   Specificity: 65.9%</span></span>
+<span><span class="co">#&gt;   Sensitivity: 64.3%</span></span>
+<span><span class="co">#&gt;   Specificity: 73.3%</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Triage Effectiveness Metrics:</span></span>
-<span><span class="co">#&gt;   OTE: 29.9%</span></span>
-<span><span class="co">#&gt;   TTE: 52.8%</span></span>
-<span><span class="co">#&gt;   OTG: -23.0%</span></span>
+<span><span class="co">#&gt;   OTE: 36.3%</span></span>
+<span><span class="co">#&gt;   TTE: 49.1%</span></span>
+<span><span class="co">#&gt;   OTG: -12.8%</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Confidence Intervals (95%):</span></span>
-<span><span class="co">#&gt;   OTE:  29.9% (25.2% to 34.6%) </span></span>
-<span><span class="co">#&gt;   TTE:  52.8% (48.0% to 57.0%) </span></span>
-<span><span class="co">#&gt;   OTG:  -23.0% </span></span>
+<span><span class="co">#&gt;   OTE:  36.3% (31.4% to 41.7%) </span></span>
+<span><span class="co">#&gt;   TTE:  49.1% (43.3% to 54.5%) </span></span>
+<span><span class="co">#&gt;   OTG:  -12.8% (-19.9% to -6.1%) </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Computation Information</span></span>
 <span><span class="co">#&gt; =====================</span></span>
@@ -242,7 +241,8 @@ showing the uncertainty in our estimates.</p>
 <span><span class="co">#&gt; Number of iterations: 1000</span></span>
 <span><span class="co">#&gt; Sample percentage: 80%</span></span>
 <span><span class="co">#&gt; Distribution span: 99%</span></span>
-<span><span class="co">#&gt; Calculation time: 2025-04-21 14:45:09.493547</span></span></code></pre></div>
+<span><span class="co">#&gt; Confidence intervals: Boot method</span></span>
+<span><span class="co">#&gt; Calculation time: 2025-06-12 12:41:45.484291</span></span></code></pre></div>
 <p>Key parameters:</p>
 <ul>
 <li>sample_percentage: Controls resample size (default = 1)</li>
@@ -266,8 +266,8 @@ approach.</p>
 <code class="sourceCode R"><span><span class="co"># Standard bootstrap</span></span>
 <span><span class="va">standard_bootstrap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_wte.html">calc_wte</a></span><span class="op">(</span><span class="va">data</span>,</span>
 <span>                             bootstrap <span class="op">=</span> <span class="st">"standard"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-04-21 14:45:09.885378"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-04-21 14:45:29.058234"</span></span>
+<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-06-12 12:41:45.818225"</span></span>
+<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-06-12 12:42:00.609282"</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">standard_bootstrap</span><span class="op">)</span></span></code></pre></div>
 <p><img src="bootstrap_files/figure-html/standard-bootstrap-1.png" alt="Triage Effectiveness with confidence intervals calculated using standard bootstrap" width="960"></p>
@@ -283,9 +283,9 @@ patients who were in the ED during the same time period.</p>
 <code class="sourceCode R"><span><span class="co"># Segment bootstrap</span></span>
 <span><span class="va">segment_bootstrap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_wte.html">calc_wte</a></span><span class="op">(</span><span class="va">data</span>,</span>
 <span>                            bootstrap <span class="op">=</span> <span class="st">"segment"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Using existing segments for bootstrap 2025-04-21 14:45:29.588823"</span></span>
-<span><span class="co">#&gt; [1] "Starting segment bootstrap with 9784 unit-segment pairs, 9784 samples per iteration, 2000 iterations 2025-04-21 14:45:29.590289"</span></span>
-<span><span class="co">#&gt; [1] "Segment bootstrap iterations done 2025-04-21 14:45:41.165363"</span></span>
+<span><span class="co">#&gt; [1] "Using existing segments for bootstrap 2025-06-12 12:42:01.276635"</span></span>
+<span><span class="co">#&gt; [1] "Starting segment bootstrap with 3091 unit-segment pairs, 3091 samples per iteration, 2000 iterations 2025-06-12 12:42:01.277588"</span></span>
+<span><span class="co">#&gt; [1] "Segment bootstrap iterations done 2025-06-12 12:42:20.555734"</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">segment_bootstrap</span><span class="op">)</span></span></code></pre></div>
 <p><img src="bootstrap_files/figure-html/segment-bootstrap-1.png" alt="Triage Effectiveness with confidence intervals calculated using segment bootstrap" width="960"></p>
@@ -325,13 +325,12 @@ reliable option.</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>difference <span class="op">=</span> <span class="va">ote_ci_width_segment</span> <span class="op">-</span> <span class="va">ote_ci_width_standard</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">comparison</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 4</span></span></span>
-<span><span class="co">#&gt;   unit        ote_ci_width_standard ote_ci_width_segment difference</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> overall                    0.060<span style="text-decoration: underline;">9</span>               0.068<span style="text-decoration: underline;">9</span>   0.008<span style="text-decoration: underline;">01</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> medical                    0.065<span style="text-decoration: underline;">9</span>               0.079<span style="text-decoration: underline;">9</span>   0.014<span style="text-decoration: underline;">0</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> orthopedics                0.314                0.314   -<span style="color: #BB0000;">0.000</span><span style="color: #BB0000; text-decoration: underline;">303</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> surgical                   0.128                0.132    0.004<span style="text-decoration: underline;">00</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 4</span></span></span>
+<span><span class="co">#&gt;   unit    ote_ci_width_standard ote_ci_width_segment difference</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> overall                0.069<span style="text-decoration: underline;">9</span>               0.069<span style="text-decoration: underline;">6</span>  -<span style="color: #BB0000;">0.000</span><span style="color: #BB0000; text-decoration: underline;">269</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> C                      0.071<span style="text-decoration: underline;">5</span>               0.071<span style="text-decoration: underline;">2</span>  -<span style="color: #BB0000;">0.000</span><span style="color: #BB0000; text-decoration: underline;">296</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> E                      0.139                0.130   -<span style="color: #BB0000;">0.009</span><span style="color: #BB0000; text-decoration: underline;">34</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="how-segment-bootstrap-works">How Segment Bootstrap Works<a class="anchor" aria-label="anchor" href="#how-segment-bootstrap-works"></a>
@@ -394,8 +393,8 @@ estimates</li>
 <span>                         bootstrap <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                         overall_only <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                         check_convergence <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-04-21 14:45:42.024575"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-04-21 14:46:01.353966"</span></span>
+<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-06-12 12:42:21.699323"</span></span>
+<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-06-12 12:42:37.25343"</span></span>
 <span></span>
 <span><span class="co"># View convergence plots</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">te_convergence</span><span class="op">$</span><span class="va">convergence</span><span class="op">)</span></span>
@@ -420,11 +419,17 @@ our experience. Let’s examine the different approaches:</p>
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Calculate RTE with bootstrap</span></span>
 <span><span class="va">rte_bootstrap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_rte.html">calc_rte</a></span><span class="op">(</span><span class="va">data</span>, bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting RTE bootstrap with 2000 iterations, sample size 124311 at 2025-04-21 14:46:07.359614"</span></span>
-<span><span class="co">#&gt; [1] "RTE bootstrap completed at 2025-04-21 14:46:21.532072"</span></span>
+<span><span class="co">#&gt; [1] "Processing 2 units with LOSET cases in parallel 2025-06-12 12:42:38.455676"</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: C 2025-06-12 12:42:39.355878"</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: E 2025-06-12 12:42:40.283046"</span></span>
+<span><span class="co">#&gt; [1] "Starting RTE bootstrap with 2000 iterations, sample size 3529 from 3529 valid time-critical patients at 2025-06-12 12:42:41.083263"</span></span>
+<span><span class="co">#&gt; [1] "RTE bootstrap completed at 2025-06-12 12:42:59.705387"</span></span>
 <span></span>
 <span><span class="co"># Calculate RTE with direct calculation (no bootstrap)</span></span>
 <span><span class="va">rte_direct</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_rte.html">calc_rte</a></span><span class="op">(</span><span class="va">data</span>, bootstrap <span class="op">=</span> <span class="cn">FALSE</span>, overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Processing 2 units with LOSET cases in parallel 2025-06-12 12:43:00.708675"</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: C 2025-06-12 12:43:01.681776"</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: E 2025-06-12 12:43:02.693575"</span></span>
 <span></span>
 <span><span class="co"># Create plots with different CI approaches</span></span>
 <span><span class="va">plot_bootstrap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">rte_bootstrap</span>, </span>
@@ -476,7 +481,7 @@ considerations when evaluating triage system performance.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
     </footer>

@@ -18,6 +18,8 @@
 #' @param show_tte Logical, whether to display TTE values. Default is NULL. Will show if there is TTE data.
 #' @param show_ote Logical, whether to display OTE values. Default is NULL. Will show if there is OTE data.
 #' @param show_var Logical, whether to display variability intervals. Default is null. Will show if there is variability data supplied.
+#' @param show_percent_tte Logical, whether to display the percentage of TE above the TTE dot or not.
+#' @param show_percent_ote Logical, whether to display the percentage of TE above the OTE dor or not.
 #' @param var_alpha Numeric between 0 and 1, specifying the transparency of variability interval lines. Default is 0.5.
 #' @param dumbell_width Numeric, specifying the width of the line connecting TTE and OTE points. Default is 1. Note that since the line is horizontal, the "width" represents its thickness.
 #' @param var_width Numeric, specifying the width of the main variability interval lines - that is the vertical line at the end of the variability span. Default is 1.5.
@@ -51,8 +53,11 @@
 #' }
 #' @export
 plot_te <- function(data, title = "Triage Effectiveness Plot",
-                    show_tte = NULL, show_ote = NULL,
+                    show_tte = NULL,
+                    show_ote = NULL,
                     show_var = NULL,
+                    show_percent_tte = TRUE,
+                    show_percent_ote = TRUE,
                     var_alpha = 0.5,
                     dumbell_width = 1,
                     var_width = 1.5,
@@ -201,9 +206,12 @@ plot_te <- function(data, title = "Triage Effectiveness Plot",
 
   # Add TTE points and variability if requested
   if (show_tte) {
-    p <- p + geom_point(aes(x = tte_te), size = 3, color = tte_color) +
-      geom_text(aes(x = tte_te, label = scales::percent(tte_te, accuracy = 0.1)),
-                hjust = 0.5, vjust = -0.7, color = tte_color, size = 3)
+    p <- p + geom_point(aes(x = tte_te), size = 3, color = tte_color)
+
+    if(show_percent_tte) {
+      p <- p + geom_text(aes(x = tte_te, label = scales::percent(tte_te, accuracy = 0.1)),
+                 hjust = 0.5, vjust = -0.7, color = tte_color, size = 3)
+    }
   }
 
   if (show_tte_var & show_tte) {
@@ -227,9 +235,12 @@ plot_te <- function(data, title = "Triage Effectiveness Plot",
 
   # Add OTE points and variability if requested
   if (show_ote) {
-    p <- p + geom_point(aes(x = ote_te), size = 3, color = ote_color) +
-      geom_text(aes(x = ote_te, label = scales::percent(ote_te, accuracy = 0.1)),
+    p <- p + geom_point(aes(x = ote_te), size = 3, color = ote_color)
+
+    if(show_percent_ote) {
+      p <- p + geom_text(aes(x = ote_te, label = scales::percent(ote_te, accuracy = 0.1)),
                 hjust = 0.5, vjust = -0.7, color = ote_color, size = 3)
+    }
   }
 
   if (show_ote_var & show_ote) {

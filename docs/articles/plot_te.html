@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">trieff</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,11 +78,8 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://AndreJohanssonLund.github.io/trieff/" class="external-link">trieff</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loaded trieff 1.1.0</span></span>
-<span><span class="co">#&gt; System capable of parallel processing with multisession backend</span></span>
-<span><span class="co">#&gt; Maximum available workers: 16</span></span>
-<span><span class="co">#&gt; Note: Individual functions will determine optimal core usage at runtime</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://andrejohanssonlund.github.io/TriEff/index.html">trieff</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loaded trieff 1.2.0</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
@@ -95,12 +92,13 @@
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Initialize and simulate data once at the start</span></span>
-<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/init.html">init</a></span><span class="op">(</span><span class="va">sem_malmo_synth</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/load_sem_synth.html">load_sem_synth</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="../reference/init.html">init</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/sim_te.html">sim_te</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Filtered to 1486 segments with LOSET cases"</span></span>
-<span><span class="co">#&gt; [1] "Total LOSET cases: 5491"</span></span>
-<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-04-21 14:52:52.99243"</span></span>
-<span><span class="co">#&gt; [1] "Simulations are done! 2025-04-21 14:52:57.862024"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Filtered to 1044 segments with LOSET cases"</span></span>
+<span><span class="co">#&gt; [1] "Total LOSET cases: 3843"</span></span>
+<span><span class="co">#&gt; [1] "Starting multisession with 1 cores. 2025-06-12 12:44:23.888303"</span></span>
+<span><span class="co">#&gt; [1] "Simulations are done! 2025-06-12 12:44:26.950253"</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
@@ -146,6 +144,9 @@ vignette.</p>
 <span></span>
 <span><span class="co"># Calculate RTE metrics </span></span>
 <span><span class="va">rte_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_rte.html">calc_rte</a></span><span class="op">(</span><span class="va">data</span>, overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Processing 2 units with LOSET cases in parallel 2025-06-12 12:44:27.678805"</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: C 2025-06-12 12:44:28.516703"</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: E 2025-06-12 12:44:29.352859"</span></span>
 <span></span>
 <span><span class="co"># Create basic plots</span></span>
 <span><span class="va">wte_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">wte_results</span>, title <span class="op">=</span> <span class="st">"Waiting Time-based TE (WTE)"</span><span class="op">)</span></span>
@@ -153,7 +154,7 @@ vignette.</p>
 <span></span>
 <span><span class="co"># Display plots</span></span>
 <span><span class="va">wte_plot</span> <span class="op">/</span> <span class="va">rte_plot</span></span></code></pre></div>
-<p><img src="plot_te_files/figure-html/basic-plots-1.png" width="960"></p>
+<p><img src="plot_te_files/figure-html/basic-plots-1.png" alt="Comparison of WTE and RTE plot visualizations" width="960"></p>
 <p>By default, the plots show both Theoretical TE (teal) and Observed TE
 (purple) values. The horizontal lines connecting these points represent
 the Observed-Theoretical Gap (OTG).</p>
@@ -182,8 +183,11 @@ distribution</li>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Calculate RTE with all CI types available</span></span>
 <span><span class="va">rte_boot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_rte.html">calc_rte</a></span><span class="op">(</span><span class="va">data</span>, bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting RTE bootstrap with 2000 iterations, sample size 124311 at 2025-04-21 14:53:09.417084"</span></span>
-<span><span class="co">#&gt; [1] "RTE bootstrap completed at 2025-04-21 14:53:24.491036"</span></span>
+<span><span class="co">#&gt; [1] "Processing 2 units with LOSET cases in parallel 2025-06-12 12:44:30.383885"</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: C 2025-06-12 12:44:31.22316"</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: E 2025-06-12 12:44:32.035701"</span></span>
+<span><span class="co">#&gt; [1] "Starting RTE bootstrap with 2000 iterations, sample size 3529 from 3529 valid time-critical patients at 2025-06-12 12:44:32.801385"</span></span>
+<span><span class="co">#&gt; [1] "RTE bootstrap completed at 2025-06-12 12:44:51.880389"</span></span>
 <span></span>
 <span><span class="co"># Create plots with different CI types</span></span>
 <span><span class="va">plot1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">rte_boot</span>, ci_vars_override <span class="op">=</span> <span class="st">"parametric"</span>, </span>
@@ -234,11 +238,14 @@ when calculated with the <code>bootstrap = TRUE</code> parameter:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Calculate TE with bootstrap for both methods</span></span>
 <span><span class="va">wte_bootstrap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_wte.html">calc_wte</a></span><span class="op">(</span><span class="va">data</span>, bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-04-21 14:53:25.496765"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-04-21 14:53:44.706691"</span></span>
+<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-06-12 12:44:53.138001"</span></span>
+<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-06-12 12:45:07.951511"</span></span>
 <span><span class="va">rte_bootstrap</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_rte.html">calc_rte</a></span><span class="op">(</span><span class="va">data</span>, bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting RTE bootstrap with 2000 iterations, sample size 124311 at 2025-04-21 14:53:50.304543"</span></span>
-<span><span class="co">#&gt; [1] "RTE bootstrap completed at 2025-04-21 14:54:04.430496"</span></span>
+<span><span class="co">#&gt; [1] "Processing 2 units with LOSET cases in parallel 2025-06-12 12:45:08.593876"</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: C 2025-06-12 12:45:09.502313"</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: E 2025-06-12 12:45:10.361449"</span></span>
+<span><span class="co">#&gt; [1] "Starting RTE bootstrap with 2000 iterations, sample size 3529 from 3529 valid time-critical patients at 2025-06-12 12:45:11.150205"</span></span>
+<span><span class="co">#&gt; [1] "RTE bootstrap completed at 2025-06-12 12:45:29.914938"</span></span>
 <span></span>
 <span><span class="co"># Plot with bootstrap confidence intervals</span></span>
 <span><span class="va">wte_boot_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">wte_bootstrap</span>, title <span class="op">=</span> <span class="st">"WTE with Bootstrap CI"</span><span class="op">)</span></span>
@@ -262,11 +269,14 @@ and visualize TE patterns:</p>
 <span></span>
 <span><span class="co"># Calculate and plot TE by age group</span></span>
 <span><span class="va">wte_age</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_wte.html">calc_wte</a></span><span class="op">(</span><span class="va">data</span>, var1 <span class="op">=</span> <span class="st">"age_group"</span>, bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-04-21 14:54:05.168835"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-04-21 14:54:24.849769"</span></span>
+<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-06-12 12:45:30.830229"</span></span>
+<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-06-12 12:45:46.327043"</span></span>
 <span><span class="va">rte_age</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_rte.html">calc_rte</a></span><span class="op">(</span><span class="va">data</span>, var1 <span class="op">=</span> <span class="st">"age_group"</span>, bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, overall_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting RTE bootstrap with 2000 iterations, sample size 124311 at 2025-04-21 14:54:30.634843"</span></span>
-<span><span class="co">#&gt; [1] "RTE bootstrap completed at 2025-04-21 14:54:50.27291"</span></span>
+<span><span class="co">#&gt; [1] "Processing 2 units with LOSET cases in parallel 2025-06-12 12:45:47.08898"</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: C 2025-06-12 12:45:47.979481"</span></span>
+<span><span class="co">#&gt; [1] "Processing unit: E 2025-06-12 12:45:48.865312"</span></span>
+<span><span class="co">#&gt; [1] "Starting RTE bootstrap with 2000 iterations, sample size 3529 from 3529 valid time-critical patients at 2025-06-12 12:45:49.713755"</span></span>
+<span><span class="co">#&gt; [1] "RTE bootstrap completed at 2025-06-12 12:46:09.612823"</span></span>
 <span></span>
 <span><span class="co"># Create plots</span></span>
 <span><span class="va">wte_age_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">wte_age</span>, title <span class="op">=</span> <span class="st">"WTE by Age Group"</span><span class="op">)</span></span>
@@ -277,49 +287,12 @@ and visualize TE patterns:</p>
 <p><img src="plot_te_files/figure-html/subgroup-plots-1.png" width="960"></p>
 </div>
 <div class="section level2">
-<h2 id="handling-negative-te-values">Handling Negative TE Values<a class="anchor" aria-label="anchor" href="#handling-negative-te-values"></a>
-</h2>
-<p>In some cases, particularly when analyzing specific units, we might
-encounter negative TE values. The <code>min_x</code> parameter allows
-standardization of the x-axis range across multiple plots for easier
-comparison:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Get data for different units</span></span>
-<span><span class="va">ortho_data</span> <span class="op">&lt;-</span> <span class="va">data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">unit</span> <span class="op">==</span> <span class="st">"orthopedics"</span><span class="op">)</span> </span>
-<span><span class="va">medical_data</span> <span class="op">&lt;-</span> <span class="va">data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">unit</span> <span class="op">==</span> <span class="st">"medical"</span><span class="op">)</span> </span>
-<span></span>
-<span><span class="co"># Calculate WTE for both units</span></span>
-<span><span class="va">wte_ortho</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_wte.html">calc_wte</a></span><span class="op">(</span><span class="va">ortho_data</span>, bootstrap <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-04-21 14:54:55.044274"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-04-21 14:55:02.682309"</span></span>
-<span><span class="va">wte_medical</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_wte.html">calc_wte</a></span><span class="op">(</span><span class="va">medical_data</span>, bootstrap <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting bootstrap iterations 2025-04-21 14:55:03.096863"</span></span>
-<span><span class="co">#&gt; [1] "Bootstrap iterations done 2025-04-21 14:55:14.183755"</span></span>
-<span></span>
-<span><span class="co"># Plot with default scaling - notice the different axes</span></span>
-<span><span class="va">plot1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">wte_ortho</span>, title <span class="op">=</span> <span class="st">"Orthopedics (default scaling)"</span><span class="op">)</span></span>
-<span><span class="va">plot2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">wte_medical</span>, title <span class="op">=</span> <span class="st">"Medical (default scaling)"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Plot with standardized x-axis</span></span>
-<span><span class="va">plot3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">wte_ortho</span>, min_x <span class="op">=</span> <span class="op">-</span><span class="fl">0.4</span>, title <span class="op">=</span> <span class="st">"Orthopedics (standardized x-axis)"</span><span class="op">)</span></span>
-<span><span class="va">plot4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">wte_medical</span>, min_x <span class="op">=</span> <span class="op">-</span><span class="fl">0.4</span>, title <span class="op">=</span> <span class="st">"Medical (standardized x-axis)"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Display plots showing the difference</span></span>
-<span><span class="op">(</span><span class="va">plot1</span> <span class="op">/</span> <span class="va">plot2</span><span class="op">)</span> <span class="op">|</span> <span class="op">(</span><span class="va">plot3</span> <span class="op">/</span> <span class="va">plot4</span><span class="op">)</span></span></code></pre></div>
-<p><img src="plot_te_files/figure-html/negative-te-1.png" width="960"></p>
-<p>Setting <code>min_x</code> ensures consistent scale and alignment
-between plots, making it easier to compare results across different
-units or groups.</p>
-</div>
-<div class="section level2">
 <h2 id="advanced-plot-customization">Advanced Plot Customization<a class="anchor" aria-label="anchor" href="#advanced-plot-customization"></a>
 </h2>
 <p>The <code><a href="../reference/plot_te.html">plot_te()</a></code> function offers several customization
 options to tailor visualizations to specific needs. Let’s explore how
 different parameters affect the appearance:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Base plot for comparison</span></span>
 <span><span class="va">base_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">wte_bootstrap</span>, title <span class="op">=</span> <span class="st">"Default label style ('half')"</span><span class="op">)</span></span>
 <span></span>
@@ -339,7 +312,7 @@ different parameters affect the appearance:</p>
 <span><span class="co"># Display label style variations</span></span>
 <span><span class="va">base_plot</span> <span class="op">/</span> <span class="va">small_labels</span> <span class="op">/</span> <span class="va">full_labels</span> <span class="op">/</span> <span class="va">no_labels</span></span></code></pre></div>
 <p><img src="plot_te_files/figure-html/customization-label-styles-1.png" width="960"></p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Variability display options</span></span>
 <span><span class="va">more_transparent</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">wte_bootstrap</span>, </span>
 <span>                          var_alpha <span class="op">=</span> <span class="fl">0.3</span>, </span>
@@ -352,7 +325,7 @@ different parameters affect the appearance:</p>
 <span><span class="co"># Display variability transparency variations</span></span>
 <span><span class="va">more_transparent</span> <span class="op">/</span> <span class="va">less_transparent</span></span></code></pre></div>
 <p><img src="plot_te_files/figure-html/customization-variability-1.png" width="960"></p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Line width options</span></span>
 <span><span class="va">thin_lines</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">wte_bootstrap</span>, </span>
 <span>                    dumbell_width <span class="op">=</span> <span class="fl">0.5</span>, </span>
@@ -369,7 +342,7 @@ different parameters affect the appearance:</p>
 <span><span class="co"># Display line width variations</span></span>
 <span><span class="va">thin_lines</span> <span class="op">/</span> <span class="va">thick_lines</span></span></code></pre></div>
 <p><img src="plot_te_files/figure-html/customization-line-widths-1.png" width="960"></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Selective display of metrics</span></span>
 <span><span class="va">tte_only</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_te.html">plot_te</a></span><span class="op">(</span><span class="va">wte_bootstrap</span>, </span>
 <span>                  show_tte <span class="op">=</span> <span class="cn">TRUE</span>, </span>
@@ -443,7 +416,7 @@ and <code>bootstrap</code> vignettes.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
     </footer>

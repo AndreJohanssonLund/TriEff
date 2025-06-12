@@ -1,5 +1,5 @@
-pandoc: '3.2'
-pkgdown: 2.1.1
+pandoc: '3.4'
+pkgdown: 2.1.2
 pkgdown_sha: ~
 articles:
   bootstrap: bootstrap.html
@@ -10,4 +10,7 @@ articles:
   plot_te: plot_te.html
   publications: publications.html
   sim_te: sim_te.html
-last_built: 2025-04-21T12:44Z
+last_built: 2025-06-12T10:41Z
+urls:
+  reference: https://andrejohanssonlund.github.io/TriEff/index.html/reference
+  article: https://andrejohanssonlund.github.io/TriEff/index.html/articles

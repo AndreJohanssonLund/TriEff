@@ -1,10 +1,8 @@
 # Helper functions for tests
 get_test_data <- function() {
   # Start with creating a smaller dataset for testing
-  data <- trieff::sem_malmo_synth[
-    trieff::sem_malmo_synth$arrival >= min(trieff::sem_malmo_synth$arrival) &
-      trieff::sem_malmo_synth$arrival <= min(trieff::sem_malmo_synth$arrival) + lubridate::days(2),
-  ]
+  data <- load_sem_synth() %>%
+    dplyr::filter(arrival <= min(arrival) + lubridate::days(7))
   return(data)
 }
 
@@ -162,11 +160,7 @@ test_that("sim_te_alt correctly handles btte parameter", {
 })
 
 test_that("segmentation produces identical results to unsegmented processing when done by unit", {
-  # Get one week of data from synthetic dataset
-  data <- trieff::sem_malmo_synth[
-    trieff::sem_malmo_synth$arrival >= min(trieff::sem_malmo_synth$arrival) &
-      trieff::sem_malmo_synth$arrival <= min(trieff::sem_malmo_synth$arrival) + lubridate::days(7),
-  ]
+  data <- setup_test_data()
 
   # Initialize the data
   data <- init(data)

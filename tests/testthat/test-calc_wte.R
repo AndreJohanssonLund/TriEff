@@ -1,10 +1,8 @@
 # Helper functions for tests
 get_test_data <- function() {
   # Start with creating a smaller dataset for testing
-  data <- trieff::sem_malmo_synth[
-    trieff::sem_malmo_synth$arrival >= min(trieff::sem_malmo_synth$arrival) &
-      trieff::sem_malmo_synth$arrival <= min(trieff::sem_malmo_synth$arrival) + lubridate::days(7),
-  ]
+  data <- load_sem_synth() %>%
+    dplyr::filter(arrival <= min(arrival) + lubridate::days(7))
   return(data)
 }
 

@@ -278,8 +278,8 @@ sim_heat_alt <- function(df, step_size, n_workers = detectCores() - 1,
 
             # Signed log transformation
             signed_log_transform <- function(x) sign(x) * log(1 + abs(x))
-            rte_log <- mean(signed_log_transform(valid_rte), na.rm = TRUE)
-            result$te_log <- rte_log
+            rte_signed_log <- mean(signed_log_transform(valid_rte), na.rm = TRUE)
+            result$te_signed_log <- rte_signed_log
 
             # Median-based RTE (without transformation)
             rte_median <- median(valid_rte, na.rm = TRUE)

@@ -1139,7 +1139,6 @@ plot.te_convergence <- function(x, ...) {
 
 
 
-####----------------------------------------- support function to print the result
 #' Print Method for Triage Effectiveness Results
 #'
 #' @description
@@ -1173,23 +1172,12 @@ plot.te_convergence <- function(x, ...) {
 #' @export
 print.calc_te <- function(x, ...) {
   # Helper function to format percentages with CI
-  format_metric_ci <- function(mean, lower, upper, lower_np = NA, upper_np = NA, shapiro_p = NA) {
+  format_metric_ci <- function(mean, lower, upper) {
     if (is.na(mean)) return("NA")
-
-    # Determine whether to use non-parametric CI based on normality test
-    use_nonparametric <- FALSE
-    if (!is.na(shapiro_p) && !is.na(lower_np) && !is.na(upper_np)) {
-      use_nonparametric <- shapiro_p < 0.05
-    }
 
     formatted_mean <- sprintf("%.1f%%", mean * 100)
 
-    if (use_nonparametric) {
-      # Use non-parametric CI
-      return(sprintf("%s (%.1f%% to %.1f%%) (non-parametric)",
-                     formatted_mean, lower_np * 100, upper_np * 100))
-    } else if (!is.na(lower) && !is.na(upper)) {
-      # Use parametric CI
+    if (!is.na(lower) && !is.na(upper)) {
       return(sprintf("%s (%.1f%% to %.1f%%)",
                      formatted_mean, lower * 100, upper * 100))
     }
@@ -1207,6 +1195,13 @@ print.calc_te <- function(x, ...) {
 
   # Determine if we're displaying RTE or WTE
   is_rte <- !is.null(metadata$calculation_method) && metadata$calculation_method == "rank-based"
+
+  # Determine which CI variables to use from metadata (same as plot_te)
+  ci_var_prefix <- if (!is.null(metadata$recommended_ci_vars) && metadata$recommended_ci_vars != "none") {
+    metadata$recommended_ci_vars
+  } else {
+    NULL  # No CI variables to use
+  }
 
   # Process rows in their original order
   for(i in 1:nrow(results_df)) {
@@ -1280,35 +1275,20 @@ print.calc_te <- function(x, ...) {
       cat(sprintf("  BTTE: %.1f%%\n", row$btte_te * 100))
     }
 
-    # Determine if we should show confidence intervals
-    show_ci <- !(is.null(metadata$recommended_ci_vars) || metadata$recommended_ci_vars == "none")
-
-    if (show_ci) {
+    # Show confidence intervals if we have a CI method and variables
+    if (!is.null(ci_var_prefix) && !is.null(metadata$ci_method) && metadata$ci_method != "none") {
       # Print confidence intervals
       cat("\nConfidence Intervals (95%):\n")
 
-      # Determine which CI variables to use based on metadata
-      ci_vars_prefix <- if (!is.null(metadata$recommended_ci_vars)) {
-        metadata$recommended_ci_vars
-      } else {
-        "parametric"  # Default fallback
-      }
-
-      # Determine parametric CI variables
-      par_lower_ote <- paste0(ci_vars_prefix, "_ote_var_lower")
-      par_upper_ote <- paste0(ci_vars_prefix, "_ote_var_upper")
-      par_lower_tte <- paste0(ci_vars_prefix, "_tte_var_lower")
-      par_upper_tte <- paste0(ci_vars_prefix, "_tte_var_upper")
-      par_lower_btte <- paste0(ci_vars_prefix, "_btte_var_lower")
-      par_upper_btte <- paste0(ci_vars_prefix, "_btte_var_upper")
-
-      # Default for non-parametric CI variables
-      np_lower_ote <- "nonparametric_ote_var_lower"
-      np_upper_ote <- "nonparametric_ote_var_upper"
-      np_lower_tte <- "nonparametric_tte_var_lower"
-      np_upper_tte <- "nonparametric_tte_var_upper"
-      np_lower_btte <- "nonparametric_btte_var_lower"
-      np_upper_btte <- "nonparametric_btte_var_upper"
+      # Generate actual variable names using the prefix from metadata
+      ote_lower_var <- paste0(ci_var_prefix, "_ote_var_lower")
+      ote_upper_var <- paste0(ci_var_prefix, "_ote_var_upper")
+      tte_lower_var <- paste0(ci_var_prefix, "_tte_var_lower")
+      tte_upper_var <- paste0(ci_var_prefix, "_tte_var_upper")
+      btte_lower_var <- paste0(ci_var_prefix, "_btte_var_lower")
+      btte_upper_var <- paste0(ci_var_prefix, "_btte_var_upper")
+      otg_lower_var <- paste0(ci_var_prefix, "_otg_var_lower")
+      otg_upper_var <- paste0(ci_var_prefix, "_otg_var_upper")
 
       # Get values or NA if not present
       get_value <- function(df, col) {
@@ -1318,28 +1298,23 @@ print.calc_te <- function(x, ...) {
       # Format OTE CI
       cat("  OTE: ", format_metric_ci(
         row$ote_te,
-        get_value(row, par_lower_ote),
-        get_value(row, par_upper_ote),
-        get_value(row, np_lower_ote),
-        get_value(row, np_upper_ote),
-        get_value(row, "ote_shapiro_p")
+        get_value(row, ote_lower_var),
+        get_value(row, ote_upper_var)
       ), "\n")
 
       # Format TTE CI if available
       if (!is.na(row$tte_te)) {
         cat("  TTE: ", format_metric_ci(
           row$tte_te,
-          get_value(row, par_lower_tte),
-          get_value(row, par_upper_tte),
-          get_value(row, np_lower_tte),
-          get_value(row, np_upper_tte),
-          get_value(row, "tte_shapiro_p")
+          get_value(row, tte_lower_var),
+          get_value(row, tte_upper_var)
         ), "\n")
 
-        # OTG has no direct non-parametric CI
+        # Format OTG CI
         cat("  OTG: ", format_metric_ci(
           row$otg_te,
-          NA, NA, NA, NA, NA  # No CIs for OTG
+          get_value(row, otg_lower_var),
+          get_value(row, otg_upper_var)
         ), "\n")
       }
 
@@ -1347,11 +1322,8 @@ print.calc_te <- function(x, ...) {
       if ("btte_te" %in% names(row) && !is.na(row$btte_te)) {
         cat("  BTTE: ", format_metric_ci(
           row$btte_te,
-          get_value(row, par_lower_btte),
-          get_value(row, par_upper_btte),
-          get_value(row, np_lower_btte),
-          get_value(row, np_upper_btte),
-          get_value(row, "btte_shapiro_p")
+          get_value(row, btte_lower_var),
+          get_value(row, btte_upper_var)
         ), "\n")
       }
     }
@@ -1378,6 +1350,12 @@ print.calc_te <- function(x, ...) {
                 metadata$bootstrap_params$distribution_span * 100))
   } else {
     cat("Method: Direct calculation (waiting-time-based)\n")
+  }
+
+  # Show which CI method is being displayed
+  if (!is.null(ci_var_prefix) && !is.null(metadata$ci_method) && metadata$ci_method != "none") {
+    cat(sprintf("Confidence intervals: %s method\n",
+                tools::toTitleCase(ci_var_prefix)))
   }
 
   cat(sprintf("Calculation time: %s\n", metadata$calculation_time))

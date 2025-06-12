@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">trieff</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,11 +78,8 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://AndreJohanssonLund.github.io/trieff/" class="external-link">trieff</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loaded trieff 1.1.0</span></span>
-<span><span class="co">#&gt; System capable of parallel processing with multisession backend</span></span>
-<span><span class="co">#&gt; Maximum available workers: 16</span></span>
-<span><span class="co">#&gt; Note: Individual functions will determine optimal core usage at runtime</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://andrejohanssonlund.github.io/TriEff/index.html">trieff</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loaded trieff 1.2.0</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
@@ -169,30 +166,26 @@ from 0 for WTE, but not RTE.</li>
 </ol>
 <p>Let’s compare WTE and RTE heatmaps with a small dataset:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Get a small sample (1 week) of data</span></span>
-<span><span class="va">small_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/init.html">init</a></span><span class="op">(</span><span class="va">sem_malmo_synth</span><span class="op">[</span></span>
-<span>  <span class="va">sem_malmo_synth</span><span class="op">$</span><span class="va">arrival</span> <span class="op">&gt;=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">sem_malmo_synth</span><span class="op">$</span><span class="va">arrival</span><span class="op">)</span> <span class="op">&amp;</span></span>
-<span>  <span class="va">sem_malmo_synth</span><span class="op">$</span><span class="va">arrival</span> <span class="op">&lt;=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">sem_malmo_synth</span><span class="op">$</span><span class="va">arrival</span><span class="op">)</span> <span class="op">+</span> <span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/period.html" class="external-link">days</a></span><span class="op">(</span><span class="fl">7</span><span class="op">)</span>,</span>
-<span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">sem_malmo_synth</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">unit</span> <span class="op">==</span> <span class="st">"medical"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="co"># Use only one unit per sim</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/load_sem_synth.html">load_sem_synth</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">unit</span> <span class="op">==</span> <span class="st">"C"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="co"># Use only one unit per sim</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">arrival</span> <span class="op">&lt;</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">arrival</span><span class="op">)</span> <span class="op">+</span> <span class="fu">lubridate</span><span class="fu">::</span><span class="fu"><a href="https://lubridate.tidyverse.org/reference/period.html" class="external-link">days</a></span><span class="op">(</span><span class="fl">30</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="co"># reducing data size for speed, don't do this for real analysis :)</span></span>
 <span>    <span class="fu"><a href="../reference/init.html">init</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Generate heatmap data using both calculation methods</span></span>
 <span><span class="co"># WARNING: Even with this small dataset, this may take several minutes</span></span>
 <span><span class="va">wte_heatmap</span> <span class="op">&lt;-</span> <span class="va">data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/sim_heat.html">sim_heat</a></span><span class="op">(</span>n_workers <span class="op">=</span> <span class="fl">4</span>, step_size <span class="op">=</span> <span class="fl">10</span>, calc_method <span class="op">=</span> <span class="st">"wte"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Processing 527 segments with LOSET cases"</span></span>
-<span><span class="co">#&gt; [1] "Starting simulations with 121 combinations 2025-04-21 14:48:40.576104"</span></span>
-<span><span class="co">#&gt; [1] "Simulations complete 2025-04-21 14:50:06.508623"</span></span>
+<span><span class="co">#&gt; [1] "Processing 27 segments with LOSET cases"</span></span>
+<span><span class="co">#&gt; [1] "Starting simulations with 121 combinations 2025-06-12 12:44:03.925079"</span></span>
+<span><span class="co">#&gt; [1] "Simulations complete 2025-06-12 12:44:10.456844"</span></span>
 <span><span class="co">#&gt; [1] "Calculation method used: wte"</span></span>
 <span></span>
 <span><span class="va">rte_heatmap</span> <span class="op">&lt;-</span> <span class="va">data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/sim_heat.html">sim_heat</a></span><span class="op">(</span>n_workers <span class="op">=</span> <span class="fl">4</span>, step_size <span class="op">=</span> <span class="fl">10</span>, calc_method <span class="op">=</span> <span class="st">"rte"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Processing 527 segments with LOSET cases"</span></span>
-<span><span class="co">#&gt; [1] "Starting simulations with 121 combinations 2025-04-21 14:50:06.698093"</span></span>
-<span><span class="co">#&gt; [1] "Simulations complete 2025-04-21 14:52:21.904291"</span></span>
+<span><span class="co">#&gt; [1] "Processing 27 segments with LOSET cases"</span></span>
+<span><span class="co">#&gt; [1] "Starting simulations with 121 combinations 2025-06-12 12:44:10.698673"</span></span>
+<span><span class="co">#&gt; [1] "Simulations complete 2025-06-12 12:44:18.502882"</span></span>
 <span><span class="co">#&gt; [1] "Calculation method used: rte"</span></span>
 <span></span>
 <span><span class="co"># Create and combine heatmaps</span></span>
@@ -232,36 +225,6 @@ than random) through 0 (equivalent to random) to 1 (perfect
 prioritization).</p>
 </div>
 <div class="section level2">
-<h2 id="alternative-calculations">Alternative Calculations<a class="anchor" aria-label="anchor" href="#alternative-calculations"></a>
-</h2>
-<p>The package includes several alternative TE calculations (cube root,
-log, median-based) primarily for research validation. These are
-currently only available for WTE and can be accessed using
-<code><a href="../reference/sim_heat_alt.html">sim_heat_alt()</a></code>:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Example of alternative calculations with WTE</span></span>
-<span><span class="va">alt_calc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_heat_alt.html">sim_heat_alt</a></span><span class="op">(</span><span class="va">data</span>, alt_calc <span class="op">=</span> <span class="cn">TRUE</span>, step_size <span class="op">=</span> <span class="fl">25</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="../reference/plot_te_heatmap.html">plot_te_heatmap</a></span><span class="op">(</span>show_alt_calc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Starting simulations with 25 combinations 2025-04-21 14:52:22.731448"</span></span>
-<span><span class="co">#&gt; [1] "Simulations complete 2025-04-21 14:52:46.359577"</span></span>
-<span><span class="co">#&gt; [1] "Calculation method used: rte"</span></span>
-<span></span>
-<span><span class="va">alt_calc</span><span class="op">$</span><span class="va">te_batch</span> <span class="co"># The first possible alternative heat map</span></span></code></pre></div>
-<p><img src="heatmap_files/figure-html/example_alt_calc_1-1.png" alt="The first of three heatmaps from the alternative calculations - TE calculated based on different normalization techniques" width="960"></p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">alt_calc</span><span class="op">$</span><span class="va">normalized_te_batch</span> <span class="co"># The second possible alternative heat map</span></span></code></pre></div>
-<p><img src="heatmap_files/figure-html/example_alt_calc_2-1.png" alt="The second of three heatmaps from the alternative calculations - normalized TE where TE is calculated based on different normalization techniques" width="960"></p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">alt_calc</span><span class="op">$</span><span class="va">all_batch</span> <span class="co"># The third possible alternative heat map</span></span>
-<span><span class="co">#&gt; NULL</span></span></code></pre></div>
-<p>These alternatives help validate that the patterns we observe aren’t
-artifacts of our calculation method. Note that these alternative
-calculations are primarily applicable to WTE and not necessary for RTE
-due to its already normalized nature.</p>
-</div>
-<div class="section level2">
 <h2 id="color-scheme-options">Color Scheme Options<a class="anchor" aria-label="anchor" href="#color-scheme-options"></a>
 </h2>
 <p>The <code>plot_te_heatmap</code> function supports different color
@@ -271,7 +234,7 @@ different audiences, including options that are colorblind-friendly.</p>
 <div class="section level3">
 <h3 id="available-color-schemes">Available Color Schemes<a class="anchor" aria-label="anchor" href="#available-color-schemes"></a>
 </h3>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create a 2x2 grid of heatmaps with different color schemes</span></span>
 <span><span class="va">color_schemes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"oceansky"</span>, <span class="st">"blueorange"</span>, <span class="st">"thermalsafe"</span>, <span class="st">"triage"</span><span class="op">)</span></span>
 <span></span>
@@ -344,7 +307,7 @@ demonstrated in other vignettes.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
     </footer>

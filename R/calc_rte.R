@@ -17,21 +17,21 @@
 #'     \item distribution_span (default: 0.95) What is the confidence interval used?
 #'   }
 #' @param n_workers Number of workers for parallel processing (default: detectCores() - 1)
-#' @param verbose Logical. If TRUE, returns detailed results with intermediate calculation
+#' @param verbose Logical. If TRUE, returns patient-level RTE values for further analysis including  intermediate calculation
 #'   fields from calculate_queue_metrics. Default is FALSE.
 #' @param overall_only Logical. If TRUE, only overall metrics are returned (default: FALSE)
 #' @param min_loset_warning Numerical, when should the function warn for low loset prevalence? (default: 5)
-#' @param include_distributions Logical. If TRUE, returns patient-level RTE values for
-#'   further analysis and bootstrap distrobutions. Default is FALSE.
+#' @param include_distributions Logical. If TRUE, returns bootstrap distributions. Default is FALSE.
 #' @param check_convergence Logical, Default is TRUE. Will check convergence and produce convergence plots if true + bootstrap == TRUE.
 #' @param seed Seed for reproducible bootstrapping (default: NULL - no seed)
-#' @param quite Logical. Default is TRUE. If false outputs the recommended/used confidence interval choice.
+#' @param quiet Logical. Default is TRUE. If false outputs the recommended/used confidence interval choice.
 #'
 #' @return A list containing:
 #'   \itemize{
 #'     \item results: Tibble with RTE metrics
 #'     \item metadata: List containing calculation parameters
-#'     \item distributions: (If include_distributions=TRUE) Patient-level RTE values
+#'     \item verbose_df: (If verbose) Patient-level RTE values
+#'     \item bootstrap_distributions: (If bootstrap & include_distribution) bootstrap distributions from bootstrapping.
 #'   }
 #'
 #' @importFrom dplyr filter select mutate arrange left_join bind_rows group_by
@@ -62,7 +62,7 @@ calc_rte <- function(df,
                      include_distributions = TRUE,
                      check_convergence = TRUE,
                      seed = NULL,
-                     quite = TRUE) {
+                     quiet = TRUE) {
 
   # Validate input data
   validate_te_data(df, subgroup, var1, var2)  # Reuse from calc_wte
@@ -77,11 +77,14 @@ calc_rte <- function(df,
     message(sprintf("Only one unit ('%s') detected. Setting overall_only=FALSE as overall statistics are equivalent to unit statistics.", unit_name))
   }
 
+  # Store original dataframe
+  original_df <- df
+
 
   # Check if RTE metrics already exist
   if (!any(c("observed_RTE") %in% names(df))) {
     # Calculate RTE metrics
-    df <- calculate_queue_metrics(df, verbose = verbose)
+    df <- parallelize_queue_metrics(df, n_workers = n_workers, verbose = verbose)
   }
 
   # Create grouping and aggregate results
@@ -104,7 +107,7 @@ calc_rte <- function(df,
     ungroup()
 
   # Determine if non-normal distributions detected from direct calculation
-  non_normal_detected <- validate_rte_results(results, min_loset_warning, quite)
+  non_normal_detected <- validate_rte_results(results, min_loset_warning, quiet)
 
   # Perform bootstrap calculations if requested
   bootstrap_results <- NULL
@@ -117,35 +120,22 @@ calc_rte <- function(df,
   }
 
   # Create patient-level distributions if requested
-  distributions_data <- NULL
-  if (include_distributions) {
-    # Create a base selection of columns that always exist
-    select_cols <- c("unit", "id", "observed_RTE", "valid", "loset")
+  if (verbose) {
 
-    # Add grouping variables if they exist
-    if (!is.null(var1)) select_cols <- c(select_cols, var1)
-    if (!is.null(var2)) select_cols <- c(select_cols, var2)
+    # Select only columns from df that don't exist in verbose_df, plus the id column
+    df_extra <- df %>%
+      select(id, setdiff(names(df), names(original_df)))
 
-    # Add theoretical RTE columns only if they exist
-    if ("theoretical_RTE" %in% names(df)) select_cols <- c(select_cols, "theoretical_RTE")
-    if ("binary_theoretical_RTE" %in% names(df)) select_cols <- c(select_cols, "binary_theoretical_RTE")
+    # Left join to verbose_df to add the extra columns
+    verbose_df <- original_df %>%
+      left_join(df_extra, by = "id")
 
-    # Now perform the selection with only columns that exist
-    distributions_data <- df %>%
-      filter(loset == TRUE, valid == TRUE) %>%
-      select(all_of(select_cols))
   }
 
   # Filter results for overall_only if requested
   if (overall_only) {
     results <- results %>%
       filter(unit == "overall")
-
-    # ALSO filter the distributions to only include overall
-    if (!is.null(distributions_data)) {
-      distributions_data <- distributions_data %>%
-        filter(unit == "overall")
-    }
 
     if (!is.null(bootstrap_results) && !is.null(bootstrap_results$distributions)) {
       bootstrap_results$distributions <- bootstrap_results$distributions %>%
@@ -186,8 +176,8 @@ calc_rte <- function(df,
   }
 
   # Add individual patient distribution data if requested
-  if (include_distributions && !is.null(distributions_data)) {
-    output$distributions <- distributions_data
+  if (verbose) {
+    output$verbose_df <- verbose_df
   }
 
   # Add convergence analysis if requested and bootstrap was performed
@@ -576,8 +566,7 @@ calculate_single_overall <- function(df) {
     )
   }
 }
-
-#' Calculate RTE Bootstrap Metrics
+#' Calculate RTE Bootstrap Metrics (Optimized)
 #'
 #' @param df Data frame containing patient data
 #' @param subgroup Optional list for subgroup analysis
@@ -590,9 +579,9 @@ calculate_single_overall <- function(df) {
 #' @return List containing bootstrap metrics and distributions
 #'
 #' @details
-#' Performs bootstrap resampling of patients and recalculates RTE metrics for each
-#' bootstrap sample. This approach mirrors the WTE bootstrap method by capturing
-#' uncertainty in the overall metric rather than just patient-level values.
+#' Performs bootstrap resampling of only valid time-critical patients and their RTE values.
+#' This optimized version doesn't recalculate queue metrics for each bootstrap sample,
+#' instead working directly with pre-calculated RTE values.
 #'
 #' @keywords internal
 calculate_rte_bootstrap <- function(df, subgroup = NULL, var1 = NULL, var2 = NULL,
@@ -602,8 +591,12 @@ calculate_rte_bootstrap <- function(df, subgroup = NULL, var1 = NULL, var2 = NUL
     set.seed(seed)
   }
 
-  # Calculate sample size based on percentage
-  sample_size <- floor(nrow(df) * bootstrap_params$sample_percentage)
+  # Filter to only include valid time-critical patients
+  filtered_df <- df %>%
+    filter(loset == TRUE, valid == TRUE)
+
+  # Calculate sample size based on percentage (of valid LOSET cases)
+  sample_size <- floor(nrow(filtered_df) * bootstrap_params$sample_percentage)
 
   # Ensure sample size is at least 1
   sample_size <- max(1, sample_size)
@@ -616,21 +609,17 @@ calculate_rte_bootstrap <- function(df, subgroup = NULL, var1 = NULL, var2 = NUL
   init_progressr()
 
   print(paste("Starting RTE bootstrap with", bootstrap_params$n_iterations,
-              "iterations, sample size", sample_size, "at", Sys.time()))
+              "iterations, sample size", sample_size, "from", nrow(filtered_df),
+              "valid time-critical patients at", Sys.time()))
 
   # Perform bootstrap iterations with progress bar
   bootstrap_results <- with_progress({
     p <- progressor(steps = bootstrap_params$n_iterations)
 
     future_map(1:bootstrap_params$n_iterations, function(i) {
-      # Sample with replacement
-      boot_indices <- sample(nrow(df), size = sample_size, replace = TRUE)
-      boot_sample <- df[boot_indices, ]
-
-      # Recalculate queue metrics for this bootstrap sample if they don't exist
-      if (!any(c("observed_RTE") %in% names(boot_sample))) {
-        boot_sample <- calculate_queue_metrics(boot_sample, verbose = FALSE)
-      }
+      # Sample with replacement from valid time-critical patients only
+      boot_indices <- sample(nrow(filtered_df), size = sample_size, replace = TRUE)
+      boot_sample <- filtered_df[boot_indices, ]
 
       # Create grouping and calculate RTE metrics for this bootstrap iteration
       boot_grouping <- create_grouping(boot_sample, subgroup, var1, var2)
@@ -643,8 +632,9 @@ calculate_rte_bootstrap <- function(df, subgroup = NULL, var1 = NULL, var2 = NUL
         result <- bind_rows(overall_result, result)
       }
 
-      # Add iteration number
+      # Add iteration number and sample size information
       result$iteration <- i
+      result$boot_sample_size <- nrow(boot_sample)
 
       p()
       result
@@ -656,14 +646,14 @@ calculate_rte_bootstrap <- function(df, subgroup = NULL, var1 = NULL, var2 = NUL
   # Combine results into a single data frame
   bootstrap_df <- bind_rows(bootstrap_results)
 
-  # Get all grouping variables - THIS IS THE FIX
+  # Get all grouping variables
   group_vars <- c("unit")
   if (!is.null(var1)) group_vars <- c(group_vars, var1)
   if (!is.null(var2)) group_vars <- c(group_vars, var2)
 
   # Calculate bootstrap metrics with proper grouping
   bootstrap_metrics <- bootstrap_df %>%
-    group_by(across(all_of(group_vars))) %>%  # Use all grouping variables
+    group_by(across(all_of(group_vars))) %>%
     summarise(
       # OTE metrics
       boot_ote_mean = mean(ote_te, na.rm = TRUE),
@@ -706,9 +696,9 @@ calculate_rte_bootstrap <- function(df, subgroup = NULL, var1 = NULL, var2 = NUL
       boot_otg_var_upper = if("tte_te" %in% names(.))
         quantile(ote_te - tte_te, probs = 1 - (1 - bootstrap_params$distribution_span) / 2, na.rm = TRUE) else NA_real_,
 
-      # Sample information
-      boot_mean_n_patients = mean(n_patients, na.rm = TRUE),
-      boot_mean_n_loset = mean(n_patients_loset, na.rm = TRUE),
+      # Sample information - use mean of boot_sample_size
+      boot_mean_n_patients = mean(boot_sample_size, na.rm = TRUE),
+      boot_mean_n_loset = boot_mean_n_patients, # All are LOSET since we filtered
 
       .groups = 'drop'
     )
@@ -718,166 +708,6 @@ calculate_rte_bootstrap <- function(df, subgroup = NULL, var1 = NULL, var2 = NUL
     metrics = bootstrap_metrics,
     distributions = bootstrap_df,
     params = bootstrap_params
-  ))
-}
-
-#' Calculate RTE with Segment Bootstrap
-#'
-#' @param df Data frame containing patient data
-#' @param subgroup Optional list for subgroup analysis
-#' @param var1 Optional string for first comparison variable
-#' @param var2 Optional string for second comparison variable
-#' @param bootstrap_params List of bootstrap parameters
-#' @param n_workers Number of workers for parallel processing
-#' @param seed Seed for reproducible bootstrapping
-#'
-#' @return List containing bootstrap metrics and distributions
-#'
-#' @details
-#' Performs segment-based bootstrap for RTE calculations, where entire queue
-#' segments are resampled rather than individual patients. This preserves the
-#' queue dynamics while estimating the uncertainty in the RTE metrics.
-#'
-#' @keywords internal
-calculate_rte_segment_bootstrap <- function(df, subgroup = NULL, var1 = NULL, var2 = NULL,
-                                            bootstrap_params, n_workers, seed = NULL) {
-  # Set seed if provided
-  if (!is.null(seed)) {
-    set.seed(seed)
-  }
-
-  # Check if segment column exists; if not, create segments
-  if (!"segment" %in% names(df)) {
-    print(paste("Creating segments for segment bootstrap", Sys.time()))
-    df <- create_segments(df, n_workers)
-  } else {
-    print(paste("Using existing segments for bootstrap", Sys.time()))
-  }
-
-  # Get unit-segment combinations to preserve unit separation during sampling
-  # This ensures we maintain queue independence between units
-  unit_segment_pairs <- df %>%
-    select(unit, segment) %>%
-    distinct()
-
-  n_segments <- nrow(unit_segment_pairs)
-  n_samples <- floor(n_segments * bootstrap_params$sample_percentage)
-
-  print(paste("Starting RTE segment bootstrap with", n_segments, "unit-segment pairs,",
-              n_samples, "samples per iteration,",
-              bootstrap_params$n_iterations, "iterations", Sys.time()))
-
-  # Set up parallel processing
-  setup_parallel(n_workers = n_workers)
-  on.exit(cleanup_parallel())
-
-  # Initialize progress reporting
-  init_progressr()
-
-  # Perform bootstrap iterations with progress bar
-  bootstrap_results <- with_progress({
-    p <- progressor(steps = bootstrap_params$n_iterations)
-    future_map(1:bootstrap_params$n_iterations, function(i) {
-      # Sample unit-segment pairs with replacement
-      sample_indices <- sample(n_segments, size = n_samples, replace = TRUE)
-      sampled_pairs <- unit_segment_pairs[sample_indices, ]
-
-      # Create bootstrap sample by filtering rows matching sampled unit-segment combinations
-      boot_sample <- df %>%
-        dplyr::inner_join(sampled_pairs, by = c("unit", "segment"), relationship = "many-to-many")
-
-      # Recalculate queue metrics for this bootstrap sample if they don't exist
-      if (!any(c("observed_RTE") %in% names(boot_sample))) {
-        boot_sample <- calculate_queue_metrics(boot_sample, verbose = FALSE)
-      }
-
-      # Create grouping and calculate RTE metrics for this bootstrap iteration
-      boot_grouping <- create_grouping(boot_sample, subgroup, var1, var2)
-      result <- calculate_rte_unit_metrics(boot_grouping)
-
-      # Add overall metrics if more than one unit
-      if (length(unique(result$unit)) > 1 & is.null(subgroup)) {
-        overall_grouping <- create_overall_grouping(result, subgroup, var1, var2)
-        overall_result <- calculate_rte_overall_metrics(result, boot_sample, overall_grouping)
-        result <- bind_rows(overall_result, result)
-      }
-
-      # Add iteration number
-      result$iteration <- i
-
-      p()
-      result
-    }, .options = furrr_options(seed = TRUE))
-  })
-
-  print(paste("RTE segment bootstrap completed at", Sys.time()))
-
-  # Combine results into a single data frame
-  bootstrap_df <- bind_rows(bootstrap_results)
-
-  # Get all grouping variables - THIS IS THE FIX
-  group_vars <- c("unit")
-  if (!is.null(var1)) group_vars <- c(group_vars, var1)
-  if (!is.null(var2)) group_vars <- c(group_vars, var2)
-
-  # Calculate bootstrap metrics using weighted means for overall calculations with proper grouping
-  bootstrap_metrics <- bootstrap_df %>%
-    group_by(across(all_of(group_vars))) %>%  # Use all grouping variables
-    summarise(
-      # OTE metrics
-      boot_ote_mean = mean(ote_te, na.rm = TRUE),
-      boot_ote_sd = sd(ote_te, na.rm = TRUE),
-      boot_ote_sd_q = (quantile(ote_te, 0.75, na.rm = TRUE) -
-                         quantile(ote_te, 0.25, na.rm = TRUE)) / 1.349,
-      boot_ote_var_lower = quantile(ote_te, probs = (1 - bootstrap_params$distribution_span) / 2, na.rm = TRUE),
-      boot_ote_var_upper = quantile(ote_te, probs = 1 - (1 - bootstrap_params$distribution_span) / 2, na.rm = TRUE),
-
-      # TTE metrics if available
-      boot_tte_mean = if("tte_te" %in% names(.)) mean(tte_te, na.rm = TRUE) else NA_real_,
-      boot_tte_sd = if("tte_te" %in% names(.)) sd(tte_te, na.rm = TRUE) else NA_real_,
-      boot_tte_sd_q = if("tte_te" %in% names(.))
-        (quantile(tte_te, 0.75, na.rm = TRUE) -
-           quantile(tte_te, 0.25, na.rm = TRUE)) / 1.349 else NA_real_,
-      boot_tte_var_lower = if("tte_te" %in% names(.))
-        quantile(tte_te, probs = (1 - bootstrap_params$distribution_span) / 2, na.rm = TRUE) else NA_real_,
-      boot_tte_var_upper = if("tte_te" %in% names(.))
-        quantile(tte_te, probs = 1 - (1 - bootstrap_params$distribution_span) / 2, na.rm = TRUE) else NA_real_,
-
-      # BTTE metrics if available
-      boot_btte_mean = if("btte_te" %in% names(.)) mean(btte_te, na.rm = TRUE) else NA_real_,
-      boot_btte_sd = if("btte_te" %in% names(.)) sd(btte_te, na.rm = TRUE) else NA_real_,
-      boot_btte_sd_q = if("btte_te" %in% names(.))
-        (quantile(btte_te, 0.75, na.rm = TRUE) -
-           quantile(btte_te, 0.25, na.rm = TRUE)) / 1.349 else NA_real_,
-      boot_btte_var_lower = if("btte_te" %in% names(.))
-        quantile(btte_te, probs = (1 - bootstrap_params$distribution_span) / 2, na.rm = TRUE) else NA_real_,
-      boot_btte_var_upper = if("btte_te" %in% names(.))
-        quantile(btte_te, probs = 1 - (1 - bootstrap_params$distribution_span) / 2, na.rm = TRUE) else NA_real_,
-
-      # OTG metrics if we have both OTE and TTE
-      boot_otg_mean = if("tte_te" %in% names(.)) mean(ote_te - tte_te, na.rm = TRUE) else NA_real_,
-      boot_otg_sd = if("tte_te" %in% names(.)) sd(ote_te - tte_te, na.rm = TRUE) else NA_real_,
-      boot_otg_sd_q = if("tte_te" %in% names(.))
-        (quantile(ote_te - tte_te, 0.75, na.rm = TRUE) -
-           quantile(ote_te - tte_te, 0.25, na.rm = TRUE)) / 1.349 else NA_real_,
-      boot_otg_var_lower = if("tte_te" %in% names(.))
-        quantile(ote_te - tte_te, probs = (1 - bootstrap_params$distribution_span) / 2, na.rm = TRUE) else NA_real_,
-      boot_otg_var_upper = if("tte_te" %in% names(.))
-        quantile(ote_te - tte_te, probs = 1 - (1 - bootstrap_params$distribution_span) / 2, na.rm = TRUE) else NA_real_,
-
-      # Sample information
-      boot_mean_n_patients = mean(n_patients, na.rm = TRUE),
-      boot_mean_n_loset = mean(n_patients_loset, na.rm = TRUE),
-
-      .groups = 'drop'
-    )
-
-  # Return both the metrics and full distribution
-  return(list(
-    metrics = bootstrap_metrics,
-    distributions = bootstrap_df,
-    params = bootstrap_params,
-    method = "segment"
   ))
 }
 
@@ -896,7 +726,7 @@ calculate_rte_segment_bootstrap <- function(df, subgroup = NULL, var1 = NULL, va
 #' - Potential non-normal distributions
 #'
 #' @keywords internal
-validate_rte_results <- function(results, min_loset_warning, quite) {
+validate_rte_results <- function(results, min_loset_warning, quiet) {
   # Check for low loset counts
   low_loset <- results %>%
     filter(unit != "overall", n_patients_loset < min_loset_warning)
@@ -929,7 +759,7 @@ validate_rte_results <- function(results, min_loset_warning, quite) {
     normality_issues_tte %>% select(unit)
   ) %>% distinct()
 
-  if (nrow(all_normality_issues) > 0 & !quite) {
+  if (nrow(all_normality_issues) > 0 & !quiet) {
     warning("Non-normal RTE distributions detected in: ",
             paste(all_normality_issues$unit, collapse = ", "),
             ". Using non-parametric confidence intervals.")
@@ -975,141 +805,6 @@ combine_rte_results <- function(base_results, bootstrap_metrics) {
 
   return(combined_metrics)
 }
-
-#' Plot RTE Distribution
-#'
-#' @description
-#' Creates a histogram visualization of RTE values with statistical annotations.
-#' The function filters to valid time-critical patients, removes extreme outliers,
-#' and can display normality test results and basic statistics.
-#'
-#' @param data Data frame containing RTE values
-#' @param metric Character. Which RTE metric to plot: "observed_RTE", "theoretical_RTE",
-#'   or "binary_theoretical_RTE". Default is "observed_RTE".
-#' @param cutoff_percentile Numeric. Percentile cutoff for removing extreme outliers.
-#'   Default is 0.01 (removes the lowest 1%).
-#' @param bin_width Numeric. Width of histogram bins. Default is 0.1.
-#' @param include_stats Logical. Whether to display statistical annotations. Default is TRUE.
-#' @param color Character. Color for histogram bars. Default is "#D4AF37" (gold).
-#' @param facet_by_unit Logical. Default is FALSE. If TRUE, creates separate facet panels for each unit, allowing comparison of RTE distributions across different units.
-#'
-#' @return A ggplot object
-#'
-#' @importFrom dplyr filter
-#' @importFrom ggplot2 ggplot aes geom_histogram geom_vline labs theme_minimal annotate
-#' @importFrom stats sd median shapiro.test quantile
-#' @importFrom rlang sym !!
-#'
-#' @export
-plot_rte_distribution <- function(data, metric = "observed_RTE",
-                                  cutoff_percentile = 0.01, bin_width = 0.1,
-                                  include_stats = TRUE, color = "#D4AF37",
-                                  facet_by_unit = FALSE) {
-  # Handle both data frame and calc_te inputs
-  if (inherits(data, "calc_te")) {
-    if (is.null(data$distributions)) {
-      stop("No distribution data available. Re-run calc_rte with include_distributions = TRUE")
-    }
-    filtered_data <- data$distributions
-  } else {
-    filtered_data <- data
-  }
-
-  # Filter valid RTE values
-  filtered_data <- filtered_data %>%
-    filter(valid == TRUE, !is.na(!!sym(metric)))
-
-  # Apply outlier trimming
-  if (nrow(filtered_data) > 0) {
-    min_threshold <- quantile(filtered_data[[metric]], cutoff_percentile, na.rm = TRUE)
-    max_threshold <- quantile(filtered_data[[metric]], 1 - cutoff_percentile, na.rm = TRUE)
-    filtered_data <- filtered_data %>%
-      filter(!!sym(metric) >= min_threshold & !!sym(metric) <= max_threshold)
-  }
-
-  # Create base plot
-  p <- ggplot(filtered_data, aes(x = !!sym(metric))) +
-    geom_histogram(binwidth = bin_width, fill = color, alpha = 0.7) +
-    geom_vline(xintercept = 0, linetype = "dashed", color = "darkgray") +
-    geom_vline(xintercept = 1, linetype = "dotted", color = "darkgray") +
-    labs(title = paste("Distribution of", gsub("_", " ", metric)),
-         x = "Value", y = "Count") +
-    theme_minimal()
-
-  # Add faceting by unit if requested
-  if (facet_by_unit && "unit" %in% names(filtered_data)) {
-    p <- p + facet_wrap(~unit, scales = "free_y")
-  }
-
-  # Add statistics
-  if (include_stats && nrow(filtered_data) > 2) {
-    # Calculate statistics by unit or overall
-    if (facet_by_unit && "unit" %in% names(filtered_data)) {
-      stats_data <- filtered_data %>%
-        group_by(unit) %>%
-        summarize(
-          n = n(),
-          mean_val = mean(!!sym(metric), na.rm = TRUE),
-          median_val = median(!!sym(metric), na.rm = TRUE),
-          sd_val = sd(!!sym(metric), na.rm = TRUE),
-          shapiro_p = if(n() > 2 && n() <= 5000) {
-            tryCatch(shapiro.test(!!sym(metric))$p.value,
-                     error = function(e) NA_real_)
-          } else NA_real_
-        )
-
-      # Add text annotations to each facet
-      for (u in unique(filtered_data$unit)) {
-        unit_stats <- stats_data %>% filter(unit == u)
-        stats_text <- sprintf("n = %d\nMean: %.2f\nMedian: %.2f\nSD: %.2f",
-                              unit_stats$n, unit_stats$mean_val,
-                              unit_stats$median_val, unit_stats$sd_val)
-
-        if (!is.na(unit_stats$shapiro_p)) {
-          stats_text <- paste0(stats_text,
-                               sprintf("\nShapiro-Wilk p: %.4g %s",
-                                       unit_stats$shapiro_p,
-                                       ifelse(unit_stats$shapiro_p < 0.05,
-                                              "(non-normal)", "(normal)")))
-        }
-
-        p <- p + annotate("text", x = Inf, y = Inf, label = stats_text,
-                          hjust = 1.1, vjust = 1.1, size = 3.5,
-                          data = data.frame(unit = u))
-      }
-    } else {
-      # Overall statistics
-      mean_val <- mean(filtered_data[[metric]], na.rm = TRUE)
-      median_val <- median(filtered_data[[metric]], na.rm = TRUE)
-      sd_val <- sd(filtered_data[[metric]], na.rm = TRUE)
-      n_val <- nrow(filtered_data)
-
-      shapiro_result <- if(n_val > 2 && n_val <= 5000) {
-        tryCatch(shapiro.test(filtered_data[[metric]])$p.value,
-                 error = function(e) NA_real_)
-      } else {
-        NA_real_
-      }
-
-      stats_text <- sprintf("n = %d\nMean: %.2f\nMedian: %.2f\nSD: %.2f",
-                            n_val, mean_val, median_val, sd_val)
-
-      if (!is.na(shapiro_result)) {
-        stats_text <- paste0(stats_text,
-                             sprintf("\nShapiro-Wilk p: %.4g %s",
-                                     shapiro_result,
-                                     ifelse(shapiro_result < 0.05,
-                                            "(non-normal)", "(normal)")))
-      }
-
-      p <- p + annotate("text", x = Inf, y = Inf, label = stats_text,
-                        hjust = 1.1, vjust = 1.1, size = 3.5)
-    }
-  }
-
-  return(p)
-}
-
 
 
 #' Calculate Queue Metrics for Rank-based Triage Effectiveness (RTE) Analysis
@@ -1356,6 +1051,8 @@ calculate_queue_metrics <- function(data, verbose = TRUE, ambiguity_invalid = TR
     )
   }
 
+
+
   # Check data columns and prepare the data
   has_observed <- "priority" %in% names(data)
   has_theoretical <- "theoretical_wait_time" %in% names(data)
@@ -1488,181 +1185,193 @@ calculate_queue_metrics <- function(data, verbose = TRUE, ambiguity_invalid = TR
   )]
 
 
-  # Calculate observed_p
-  if (has_observed) {
-    # Process each segment separately
-    dt[, observed_p := {
-      result <- integer(.N)
 
-      # For each patient in this segment
-      for (i in 1:.N) {
-        # Skip single-patient queues
-        if (L[i] <= 1) {
-          result[i] <- 1
-          next
-        }
-
-        arrival_t <- arrival_minute[i]
-        resolve_t <- resolve_minute[i]
-
-        # Find candidates resolved during this wait
-        candidates <- which(
-          resolve_minute >= arrival_t &
-            resolve_minute <= resolve_t
-        )
-
-        # If no eligible patients or only me, position is 1
-        if (length(candidates) <= 1) {
-          result[i] <- 1
-          next
-        }
-
-        # Get candidate values for sorting
-        candidate_times <- resolve_minute[candidates]
-        candidate_priorities <- priority[candidates]
-        candidate_arrivals <- arrival_minute[candidates]
-
-        # Create ordering based on resolve time, priority, arrival
-        order_index <- order(
-          candidate_times,
-          candidate_priorities,
-          candidate_arrivals
-        )
-
-        # Find position in ordered list
-        my_pos <- which(candidates[order_index] == i)
-
-        # Set result
-        result[i] <- if (length(my_pos) == 0) 1 else my_pos
-      }
-
-      result
-    }, by = segment]
-  }
-
-
-  # Calculate theoretical_p
-  if (has_theoretical) {
-    # Process each segment separately
-    dt[, theoretical_p := {
-      result <- integer(.N)
-
-      # For each patient in this segment
-      for (i in 1:.N) {
-        # Skip single-patient queues
-        if (L[i] <= 1) {
-          result[i] <- 1
-          next
-        }
-
-        arrival_t <- arrival_minute[i]
-        resolve_t <- theoretical_resolve_time[i]
-
-        # Find candidates resolved during this wait
-        candidates <- which(
-          theoretical_resolve_time >= arrival_t &
-            theoretical_resolve_time <= resolve_t
-        )
-
-        # If no eligible patients or only me, position is 1
-        if (length(candidates) <= 1) {
-          result[i] <- 1
-          next
-        }
-
-        # Get candidate values for sorting
-        candidate_times <- theoretical_resolve_time[candidates]
-        candidate_priorities <- priority[candidates]
-        candidate_arrivals <- arrival_minute[candidates]
-
-        # Create ordering based on resolve time, priority, arrival
-        order_index <- order(
-          candidate_times,
-          candidate_priorities,
-          candidate_arrivals
-        )
-
-        # Find position in ordered list
-        my_pos <- which(candidates[order_index] == i)
-
-        # Set result
-        result[i] <- if (length(my_pos) == 0) 1 else my_pos
-      }
-
-      result
-    }, by = segment]
-  }
-
-  # Calculate binary_theoretical_p
-  if (has_binary_theoretical) {
-    # Process each segment separately
-    dt[, binary_theoretical_p := {
-      result <- integer(.N)
-
-      # For each patient in this segment
-      for (i in 1:.N) {
-        # Skip single-patient queues
-        if (L[i] <= 1) {
-          result[i] <- 1
-          next
-        }
-
-        arrival_t <- arrival_minute[i]
-        resolve_t <- binary_theoretical_resolve_time[i]
-
-        # Find candidates resolved during this wait
-        candidates <- which(
-          binary_theoretical_resolve_time >= arrival_t &
-            binary_theoretical_resolve_time <= resolve_t
-        )
-
-        # If no eligible patients or only me, position is 1
-        if (length(candidates) <= 1) {
-          result[i] <- 1
-          next
-        }
-
-        # Get candidate values for sorting
-        candidate_times <- binary_theoretical_resolve_time[candidates]
-        candidate_priorities <- priority_binary[candidates]
-        candidate_arrivals <- arrival_minute[candidates]
-
-        # Create ordering based on resolve time, priority, arrival
-        order_index <- order(
-          candidate_times,
-          candidate_priorities,
-          candidate_arrivals
-        )
-
-        # Find position in ordered list
-        my_pos <- which(candidates[order_index] == i)
-
-        # Set result
-        result[i] <- if (length(my_pos) == 0) 1 else my_pos
-      }
-
-      result
-    }, by = segment]
-  }
-
-
-  # Calculate valid flag
+  # First calculate validity flags (as in the original code)
   dt[, `:=`(
     segment_has_non_loset = {
       any(!loset)
     },
-    # Only time-critical patients need the valid flag to be meaningful
     valid = TRUE
   ), by = segment]
 
-  # Update valid flag with segment_has_non_loset info
+  # Update valid flag
   dt[, valid := ifelse(!loset, TRUE, segment_has_non_loset)]
-
-  # Apply ambiguity invalidation
   dt[n_tc >= L, valid := !ambiguity_invalid]
 
   # Clean up
   dt[, segment_has_non_loset := NULL]
+
+  # Now identify segments that have at least one valid time-critical patient
+  valid_segments <- dt[loset == TRUE & valid == TRUE, unique(segment)]
+
+
+
+  # Calculate observed_p only for valid time-critical patients in valid segments
+  if (has_observed) {
+    # Process only segments with valid time-critical patients
+    dt[segment %in% valid_segments, observed_p := {
+      result <- integer(.N)
+
+      # Only process valid time-critical patients
+      loset_valid_indices <- which(loset == TRUE & valid == TRUE)
+
+      if (length(loset_valid_indices) > 0) {
+        for (i in loset_valid_indices) {
+          # Skip single-patient queues
+          if (L[i] <= 1) {
+            result[i] <- 1
+            next
+          }
+
+          arrival_t <- arrival_minute[i]
+          resolve_t <- resolve_minute[i]
+
+          # Find candidates resolved during this wait (still need ALL patients here)
+          candidates <- which(
+            resolve_minute >= arrival_t &
+              resolve_minute <= resolve_t
+          )
+
+          # If no eligible patients or only me, position is 1
+          if (length(candidates) <= 1) {
+            result[i] <- 1
+            next
+          }
+
+          # Get candidate values for sorting
+          candidate_times <- resolve_minute[candidates]
+          candidate_priorities <- priority[candidates]
+          candidate_arrivals <- arrival_minute[candidates]
+
+          # Create ordering based on resolve time, priority, arrival
+          order_index <- order(
+            candidate_times,
+            candidate_priorities,
+            candidate_arrivals
+          )
+
+          # Find position in ordered list
+          my_pos <- which(candidates[order_index] == i)
+
+          # Set result
+          result[i] <- if (length(my_pos) == 0) 1 else my_pos
+        }
+      }
+
+      result
+    }, by = segment]
+  }
+
+  if (has_theoretical) {
+    dt[segment %in% valid_segments, theoretical_p := {
+      result <- integer(.N)
+
+      # Only process valid time-critical patients
+      loset_valid_indices <- which(loset == TRUE & valid == TRUE)
+
+      if (length(loset_valid_indices) > 0) {
+        for (i in loset_valid_indices) {
+          # Skip single-patient queues
+          if (L[i] <= 1) {
+            result[i] <- 1
+            next
+          }
+
+          arrival_t <- arrival_minute[i]
+          resolve_t <- theoretical_resolve_time[i]
+
+          # Find candidates resolved during this wait
+          candidates <- which(
+            theoretical_resolve_time >= arrival_t &
+              theoretical_resolve_time <= resolve_t
+          )
+
+          # If no eligible patients or only me, position is 1
+          if (length(candidates) <= 1) {
+            result[i] <- 1
+            next
+          }
+
+          # Get candidate values for sorting
+          candidate_times <- theoretical_resolve_time[candidates]
+          candidate_priorities <- priority[candidates]
+          candidate_arrivals <- arrival_minute[candidates]
+
+          # Create ordering based on resolve time, priority, arrival
+          order_index <- order(
+            candidate_times,
+            candidate_priorities,
+            candidate_arrivals
+          )
+
+          # Find position in ordered list
+          my_pos <- which(candidates[order_index] == i)
+
+          # Set result
+          result[i] <- if (length(my_pos) == 0) 1 else my_pos
+        }
+      }
+
+      result
+    }, by = segment]
+  }
+
+
+  if (has_binary_theoretical) {
+    dt[segment %in% valid_segments, binary_theoretical_p := {
+      result <- integer(.N)
+
+      # Only process valid time-critical patients
+      loset_valid_indices <- which(loset == TRUE & valid == TRUE)
+
+      if (length(loset_valid_indices) > 0) {
+        for (i in loset_valid_indices) {
+          # Skip single-patient queues
+          if (L[i] <= 1) {
+            result[i] <- 1
+            next
+          }
+
+          arrival_t <- arrival_minute[i]
+          resolve_t <- binary_theoretical_resolve_time[i]
+
+          # Find candidates resolved during this wait
+          candidates <- which(
+            binary_theoretical_resolve_time >= arrival_t &
+              binary_theoretical_resolve_time <= resolve_t
+          )
+
+          # If no eligible patients or only me, position is 1
+          if (length(candidates) <= 1) {
+            result[i] <- 1
+            next
+          }
+
+          # Get candidate values for sorting
+          candidate_times <- binary_theoretical_resolve_time[candidates]
+          candidate_priorities <- priority_binary[candidates]
+          candidate_arrivals <- arrival_minute[candidates]
+
+          # Create ordering based on resolve time, priority, arrival
+          order_index <- order(
+            candidate_times,
+            candidate_priorities,
+            candidate_arrivals
+          )
+
+          # Find position in ordered list
+          my_pos <- which(candidates[order_index] == i)
+
+          # Set result
+          result[i] <- if (length(my_pos) == 0) 1 else my_pos
+        }
+      }
+
+      result
+    }, by = segment]
+  }
+
+
 
 
   if (has_observed) {
@@ -1698,36 +1407,92 @@ calculate_queue_metrics <- function(data, verbose = TRUE, ambiguity_invalid = TR
     )]
   }
 
-  # If verbose is FALSE, remove intermediate calculation columns
-  if (!verbose) {
-    # Identify intermediate calculation columns to exclude
-    intermediate_cols <- c("arrivals_up_to_now", "observed_resolves_before", "L",
-                           "n_tc", "last_resolve_before", "first_resolve_after")
-
-    # Add observed columns only if they exist
-    if (has_observed) {
-      intermediate_cols <- c(intermediate_cols, "observed_p", "observed_RTE_case")
-    }
-
-    # Add theoretical columns if they exist
-    if (has_theoretical) {
-      intermediate_cols <- c(intermediate_cols, "theoretical_p",
-                             "theoretical_resolve_time", "theoretical_RTE_case")
-    }
-
-    # Add binary theoretical columns if they exist
-    if (has_binary_theoretical) {
-      intermediate_cols <- c(intermediate_cols, "binary_theoretical_p",
-                             "binary_theoretical_resolve_time", "binary_theoretical_RTE_case")
-    }
-
-    # Only try to remove columns that actually exist in the data
-    cols_to_remove <- intersect(intermediate_cols, names(dt))
-    if (length(cols_to_remove) > 0) {
-      dt[, (cols_to_remove) := NULL]
-    }
-  }
-
   # Convert back to tibble for consistent output format
   return(as_tibble(dt))
+}
+
+#' Process Queue Metrics By Unit (Parallel)
+#'
+#' @description
+#' A robust implementation that processes units in parallel, filtering to only
+#' process segments with LOSET cases for efficiency. Only segments containing
+#' time-critical patients are processed through the RTE calculations.
+#'
+#' @param df Data frame containing patient data
+#' @param n_workers Number of workers for parallelization at the unit level
+#' @param verbose Logical. Whether to include intermediate calculation columns in output
+#'
+#' @return Data frame with original data plus RTE metrics columns
+#'
+#' @keywords internal
+parallelize_queue_metrics <- function(df, n_workers, verbose) {
+  # Setup parallel processing
+  setup_parallel(n_workers)
+  on.exit(cleanup_parallel())
+
+  # First identify units with LOSET cases
+  units_with_loset <- df %>%
+    dplyr::group_by(unit) %>%
+    dplyr::summarize(has_loset = any(loset)) %>%
+    dplyr::filter(has_loset) %>%
+    dplyr::pull(unit)
+
+  print(paste("Processing", length(units_with_loset), "units with LOSET cases in parallel", Sys.time()))
+
+  # Define all possible RTE columns
+  all_rte_cols <- c("observed_RTE", "theoretical_RTE", "binary_theoretical_RTE", "valid")
+
+  # Process units in parallel
+  results <- furrr::future_map(units_with_loset, function(unit_name) {
+    print(paste("Processing unit:", unit_name, Sys.time()))
+
+    # Get data for this unit
+    unit_data <- df %>%
+      dplyr::filter(unit == unit_name)
+
+    # Calculate queue metrics for the entire unit
+    tryCatch({
+      result <- calculate_queue_metrics(unit_data, verbose = verbose)
+
+      # Make sure id column exists
+      if (!"id" %in% names(result)) {
+        print(paste("WARNING: id column missing in results for unit", unit_name))
+        return(NULL)
+      }
+
+      # Return the full result with all columns
+      return(result)
+
+    }, error = function(e) {
+      print(paste("ERROR processing unit", unit_name, ":", e$message))
+      return(NULL)
+    })
+  }, .options = furrr::furrr_options(seed = TRUE))
+
+  # Remove NULL results (failed units)
+  results <- results[!sapply(results, is.null)]
+
+  # Combine results
+  if (length(results) > 0) {
+    # Combine all results
+    all_results <- dplyr::bind_rows(results)
+
+    # Join back to original data, making sure to use a full join to keep all data
+    # We drop the original columns that will be replaced by the new calculated ones
+    # First identify which columns from the original df are also in all_results
+    df_cols <- names(df)
+    result_cols <- names(all_results)
+
+    # Columns to drop from df before joining (except id which is needed for joining)
+    overlap_cols <- setdiff(intersect(df_cols, result_cols), "id")
+
+    final_results <- df %>%
+      dplyr::select(-dplyr::any_of(overlap_cols)) %>%
+      dplyr::left_join(all_results, by = "id")
+
+    return(final_results)
+  } else {
+    print("WARNING: No units were successfully processed")
+    return(df)  # Return original data if no units processed
+  }
 }

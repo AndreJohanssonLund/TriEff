@@ -10,6 +10,8 @@ plot_te(
   show_tte = NULL,
   show_ote = NULL,
   show_var = NULL,
+  show_percent_tte = TRUE,
+  show_percent_ote = TRUE,
   var_alpha = 0.5,
   dumbell_width = 1,
   var_width = 1.5,
@@ -39,6 +41,10 @@ plot_te(
 \item{show_ote}{Logical, whether to display OTE values. Default is NULL. Will show if there is OTE data.}
 
 \item{show_var}{Logical, whether to display variability intervals. Default is null. Will show if there is variability data supplied.}
+
+\item{show_percent_tte}{Logical, whether to display the percentage of TE above the TTE dot or not.}
+
+\item{show_percent_ote}{Logical, whether to display the percentage of TE above the OTE dor or not.}
 
 \item{var_alpha}{Numeric between 0 and 1, specifying the transparency of variability interval lines. Default is 0.5.}
 

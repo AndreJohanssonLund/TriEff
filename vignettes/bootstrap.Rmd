@@ -21,7 +21,8 @@ library(trieff)
 library(dplyr)
 
 # Initialize data once at the start
-data <- init(sem_malmo_synth) %>% 
+data <- load_sem_synth() %>% 
+  init() %>% 
   sim_te()
 ```
 

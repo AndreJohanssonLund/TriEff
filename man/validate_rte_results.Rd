@@ -4,7 +4,7 @@
 \alias{validate_rte_results}
 \title{Validate RTE Results and Generate Warnings}
 \usage{
-validate_rte_results(results, min_loset_warning, quite)
+validate_rte_results(results, min_loset_warning, quiet)
 }
 \arguments{
 \item{results}{Combined unit and overall results}

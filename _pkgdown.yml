@@ -1,4 +1,4 @@
-url: ~
+url: https://andrejohanssonlund.github.io/TriEff/index.html
 home:
   title: TriEff - Triage Effectiveness Framework
   destination: articles/getting_started.html
@@ -54,20 +54,23 @@ reference:
   desc: "Functions for visualizing results"
   contents:
   - plot_te
+  - print.te_convergence
   - plot_te_heatmap
+  - plot_transferability
+  - plot_transferability_convergence
 - title: "Methodological Research"
   desc: "Functions for theoretical analysis and framework validation"
   contents:
   - sim_heat
   - sim_heat_alt
   - calculate_queue_metrics
+  - assess_transferability
 - title: "Convergence Analysis"
   desc: "Functions for analyzing bootstrap convergence and variance"
   contents:
   - plot.te_convergence
   - print.te_convergence
-  - plot_rte_distribution
 - title: "Data"
   desc: "Included datasets"
   contents:
-  - sem_malmo_synth
+  - load_sem_synth

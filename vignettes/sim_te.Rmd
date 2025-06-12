@@ -52,7 +52,8 @@ Let's start with a basic example:
 
 ```{r basic-example}
 # Initialize data
-data <- init(sem_malmo_synth)
+data <- load_sem_synth() %>% 
+  init()
 
 # Run simulation
 simulated_data <- sim_te(data)

@@ -42,7 +42,8 @@ Let's start by initializing our data and running the simulation to get theoretic
 
 ```{r basic-setup}
 # Initialize the data
-data <- init(sem_malmo_synth)
+data <- load_sem_synth() %>% 
+  init()
 
 # Run simulation to get theoretical wait times
 data <- sim_te(data)
@@ -93,7 +94,7 @@ Note that we are overriding confidence intervals to not be show with the argumen
 
 Both methods support subgroup analysis. Let's compare them using age groups:
 
-```{r subgroup-analysis fig.alt="Comparison of WTE and RTE plot visualizations for subgroups"}
+```{r subgroup-analysis, fig.alt="Comparison of WTE and RTE plot visualizations for subgroups"}
 # Create age groups
 data <- data %>%
   mutate(age_group = cut(age_at_arrival, 

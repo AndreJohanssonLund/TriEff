@@ -198,6 +198,20 @@ init <- function(Df, start = NULL, stop = NULL, Logg_level = 0, time_critical_pr
       tn = ifelse((!(priority %in% time_critical_prio) & loset == FALSE), TRUE, FALSE)
     )
 
+  long_waits_2days <- sum(Df$observed_wait_time > 2880, na.rm = TRUE)
+  long_waits_1week <- sum(Df$observed_wait_time > 10080, na.rm = TRUE)
+
+  if (long_waits_2days > 0) {
+    warning(sprintf("Found %d patients with waiting times exceeding 2 days (2880 minutes).",
+                    long_waits_2days))
+  }
+
+  if (long_waits_1week > 0) {
+    warning(sprintf("Found %d patients with waiting times exceeding 1 week (10080 minutes). These are likely errors.",
+                    long_waits_1week))
+  }
+
+
   # Log successes if Logg_level is 1
   if (Logg_level == 1) {
     message("Data frame columns validated and cast successfully.")

@@ -15,6 +15,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
+library(dplyr)
 library(trieff)
 ```
 
@@ -32,15 +33,14 @@ From these reference points, we calculate Triage Effectiveness (TE), which creat
 
 - 0% indicates no improvement over first-come, first-served
 
-- 100% indicates perfect prioritization where time-critical patients experience no waiting
+- 100% indicates perfect prioritization where time-critical patients experience no waiting (WTE) or perfect queue (RTE)
 
 - Negative values indicate longer waiting times than a system without triage
 
-Triage Effectiveness is calculated: 1 - (mean waiting time for time critical patients/mean waiting time for all patients)
 
 ## Basic Workflow
 
-Let's walk through a basic workflow using the included synthetic dataset `sem_malmo_synth`, which is based on emergency department visits at Malmö Hospital (See `?sem_malmo_synth`).
+Let's walk through a basic workflow using the included synthetic dataset `sem_synth`, which is based on emergency department visits at Malmö Hospital (See `?sem_synth`).
 
 ### 1. Initialize Data
 
@@ -48,7 +48,8 @@ First, we need to initialize our data, which prepares it for analysis by calcula
 
 ```{r init}
 # Initialize the data
-data <- init(sem_malmo_synth)
+data <- load_sem_synth() %>% 
+  init()
 ```
 
 ### 2. Simulate Theoretical Wait Times
@@ -117,6 +118,6 @@ To use trieff, your data needs:
 ## Common Issues
 - Missing or incorrect column names -> Use init() to validate data structure
 
-See `?sem_malmo_synth` for an example of how to structure your data.
+See `?load_sem_synth` for an example of how to structure your data.
 
 For more detailed information about specific functions, see their respective vignettes or help pages.

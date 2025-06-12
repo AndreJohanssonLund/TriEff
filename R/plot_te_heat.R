@@ -131,55 +131,59 @@ plot_te_heatmap <- function(data,
       color_scheme <- "oceansky"
     }
 
-    # Determine color scale based on data range and selected scheme
-    if (color_scheme == "triage") {
-      # Original triage scheme (not colorblind safe)
-      if (min_value < -1) {
-        colors <- c("red", "orange", "yellow", "green")
-        values <- scales::rescale(c(min_value, -1, 0, max_value))
-      } else if (min_value < 0) {
-        colors <- c("orange", "yellow", "green")
-        values <- scales::rescale(c(min_value, 0, max_value))
-      } else {
-        colors <- c("yellow", "green")
-        values <- scales::rescale(c(0, max_value))
-      }
-    } else if (color_scheme == "oceansky") {
-      # OceanSky scheme - completely colorblind safe
-      if (min_value < -1) {
-        colors <- c("#2c7bb6", "lightblue", "lightyellow", "gold")
-        values <- scales::rescale(c(min_value, -1, 0, max_value))
-      } else if (min_value < 0) {
-        colors <- c("lightblue", "lightyellow", "gold")
-        values <- scales::rescale(c(min_value, 0, max_value))
-      } else {
-        colors <- c("lightyellow", "gold")
-        values <- scales::rescale(c(0, max_value))
-      }
-    } else if (color_scheme == "blueorange") {
-      # BlueOrange scheme - colorblind safe
-      if (min_value < -1) {
-        colors <- c("#2c7bb6", "#abd9e9", "#fdae61", "#d7191c")
-        values <- scales::rescale(c(min_value, -1, 0, max_value))
-      } else if (min_value < 0) {
-        colors <- c("#abd9e9", "#fdae61", "#d7191c")
-        values <- scales::rescale(c(min_value, 0, max_value))
-      } else {
-        colors <- c("#fdae61", "#d7191c")
-        values <- scales::rescale(c(0, max_value))
-      }
-    } else if (color_scheme == "thermalsafe") {
-      # ThermalSafe scheme - colorblind safe
-      if (min_value < -1) {
-        colors <- c("purple", "lightblue", "yellow", "orange")
-        values <- scales::rescale(c(min_value, -1, 0, max_value))
-      } else if (min_value < 0) {
-        colors <- c("lightblue", "yellow", "orange")
-        values <- scales::rescale(c(min_value, 0, max_value))
-      } else {
-        colors <- c("yellow", "orange")
-        values <- scales::rescale(c(0, max_value))
-      }
+    # Define color palettes
+    color_palettes <- list(
+      oceansky = list(
+        extreme_neg = "#2c7bb6",
+        neg = "lightblue",
+        neutral = "white",
+        pos = "gold"
+      ),
+      thermalsafe = list(
+        extreme_neg = "purple",
+        neg = "lightblue",
+        neutral = "white",
+        pos = "orange"
+      ),
+      blueorange = list(
+        extreme_neg = "#2c7bb6",
+        neg = "#abd9e9",
+        neutral = "white",
+        pos = "#d7191c"
+      ),
+      triage = list(
+        extreme_neg = "red",
+        neg = "orange",
+        neutral = "yellow",
+        pos = "green"
+      )
+    )
+
+    palette <- color_palettes[[color_scheme]]
+
+
+    # Determine color configuration based on data range
+    if (min_value < -1 && max_value > 0) {
+      colors <- c(palette$extreme_neg, palette$neg, palette$neutral, palette$pos)
+      values <- scales::rescale(c(min_value, -1, 0, max_value))
+    } else if (min_value < -1 && max_value > 0) {
+      colors <- c(palette$extreme_neg, palette$neg, palette$neutral)
+      values <- scales::rescale(c(min_value, -1, max_value))
+    } else if (min_value < 0 && max_value > 0) {
+      colors <- c(palette$neg, palette$neutral, palette$pos)
+      values <- scales::rescale(c(min_value, 0, max_value))
+    } else if (min_value < -1) {
+      colors <- c(palette$extreme_neg, palette$neg)
+      values <- scales::rescale(c(min_value, -1))
+    } else if (min_value < 0) {
+      colors <- c(palette$neg, palette$neutral)
+      values <- scales::rescale(c(min_value, 0))
+    } else if (max_value > 0) {
+      colors <- c(palette$neutral, palette$pos)
+      values <- scales::rescale(c(0, max_value))
+    } else {
+      colors <- c(palette$neutral, palette$pos)
+      values <- scales::rescale(c(0, max_value))
     }
 
 
@@ -266,10 +270,15 @@ plot_te_heatmap <- function(data,
     if("te_cube" %in% names(results_data))
       te_plots[["te_cube"]] <- create_single_heatmap(results_data, "te_cube", show_labels,
                                                      paste("Cube Root", method_label), axis_step_size)
+    # For WTE log transformation (standard log)
     if("te_log" %in% names(results_data))
       te_plots[["te_log"]] <- create_single_heatmap(results_data, "te_log", show_labels,
-                                                    paste("Signed Log", method_label), axis_step_size)
+                                                    paste("Log", method_label), axis_step_size)
 
+    # For RTE signed log transformation
+    if("te_signed_log" %in% names(results_data))
+      te_plots[["te_signed_log"]] <- create_single_heatmap(results_data, "te_signed_log", show_labels,
+                                                           paste("Signed Log", method_label), axis_step_size)
     # Add WTE-specific metrics
     if (calc_method == "wte") {
       if("te_median_local" %in% names(results_data))
@@ -450,3 +459,5 @@ plot_te_heatmap <- function(data,
     return(create_single_heatmap(results_data, "te", show_labels, title, axis_step_size))
   }
 }
+
+

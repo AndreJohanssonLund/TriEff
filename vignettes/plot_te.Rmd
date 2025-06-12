@@ -22,7 +22,8 @@ library(dplyr)
 library(patchwork)
 
 # Initialize and simulate data once at the start
-data <- init(sem_malmo_synth) %>% 
+data <- load_sem_synth() %>% 
+  init() %>% 
   sim_te()
 ```
 
@@ -154,34 +155,6 @@ rte_age_plot <- plot_te(rte_age, title = "RTE by Age Group")
 wte_age_plot / rte_age_plot
 ```
 
-## Handling Negative TE Values
-
-In some cases, particularly when analyzing specific units, we might encounter negative TE values. The `min_x` parameter allows standardization of the x-axis range across multiple plots for easier comparison:
-
-```{r negative-te, fig.width=10, fig.height=6}
-# Get data for different units
-ortho_data <- data %>% 
-  filter(unit == "orthopedics") 
-medical_data <- data %>% 
-  filter(unit == "medical") 
-
-# Calculate WTE for both units
-wte_ortho <- calc_wte(ortho_data, bootstrap = TRUE)
-wte_medical <- calc_wte(medical_data, bootstrap = TRUE)
-
-# Plot with default scaling - notice the different axes
-plot1 <- plot_te(wte_ortho, title = "Orthopedics (default scaling)")
-plot2 <- plot_te(wte_medical, title = "Medical (default scaling)")
-
-# Plot with standardized x-axis
-plot3 <- plot_te(wte_ortho, min_x = -0.4, title = "Orthopedics (standardized x-axis)")
-plot4 <- plot_te(wte_medical, min_x = -0.4, title = "Medical (standardized x-axis)")
-
-# Display plots showing the difference
-(plot1 / plot2) | (plot3 / plot4)
-```
-
-Setting `min_x` ensures consistent scale and alignment between plots, making it easier to compare results across different units or groups.
 
 ## Advanced Plot Customization
 

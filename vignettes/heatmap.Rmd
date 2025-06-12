@@ -56,14 +56,10 @@ A TE heatmap visualizes how different combinations of sensitivity and specificit
 Let's compare WTE and RTE heatmaps with a small dataset:
 
 ```{r example_of_heatmaps, fig.width=12, fig.height=6, fig.alt="Comparison of WTE and RTE heatmaps showing TE over sensitivity/specificity combinations"}
-# Get a small sample (1 week) of data
-small_data <- init(sem_malmo_synth[
-  sem_malmo_synth$arrival >= min(sem_malmo_synth$arrival) &
-  sem_malmo_synth$arrival <= min(sem_malmo_synth$arrival) + lubridate::days(7),
-])
 
-data <- sem_malmo_synth %>%
-    filter(unit == "medical") %>% # Use only one unit per sim
+data <- load_sem_synth() %>%
+    filter(unit == "C") %>% # Use only one unit per sim
+    filter(arrival < min(arrival) + lubridate::days(30)) %>% # reducing data size for speed, don't do this for real analysis :)
     init()
 
 # Generate heatmap data using both calculation methods
@@ -102,30 +98,6 @@ wte_norm_plot | rte_norm_plot
 ```
 
 Normalization in WTE scales values to make them more visually comparable. For RTE, normalization is less necessary since the values are already on a scale that naturally runs from negative values (worse than random) through 0 (equivalent to random) to 1 (perfect prioritization).
-
-## Alternative Calculations
-
-The package includes several alternative TE calculations (cube root, log, median-based) primarily for research validation. These are currently only available for WTE and can be accessed using `sim_heat_alt()`:
-
-```{r example_alt_calc_1, fig.width=10, fig.height=5, fig.alt="The first of three heatmaps from the alternative calculations - TE calculated based on different normalization techniques"}
-# Example of alternative calculations with WTE
-alt_calc <- sim_heat_alt(data, alt_calc = TRUE, step_size = 25) %>% 
-  plot_te_heatmap(show_alt_calc = TRUE)
-
-alt_calc$te_batch # The first possible alternative heat map
-```
-
-```{r example_alt_calc_2, fig.width=10, fig.height=5, fig.alt="The second of three heatmaps from the alternative calculations - normalized TE where TE is calculated based on different normalization techniques"}
-
-alt_calc$normalized_te_batch # The second possible alternative heat map
-```
-
-```{r example_alt_calc_3, fig.width=10, fig.height=5, fig.alt="The third of three heatmaps from the alternative calculations - TE where TE is calculated based on different normalization techniques"}
-
-alt_calc$all_batch # The third possible alternative heat map
-```
-
-These alternatives help validate that the patterns we observe aren't artifacts of our calculation method. Note that these alternative calculations are primarily applicable to WTE and not necessary for RTE due to its already normalized nature.
 
 ## Color Scheme Options
 

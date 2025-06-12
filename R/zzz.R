@@ -44,10 +44,11 @@ utils::globalVariables(c(
   "boot_tte_mean", "boot_tte_sd", "boot_tte_sd_q", "boot_tte_var_lower", "boot_tte_var_upper",
   "boot_btte_mean", "boot_btte_sd", "boot_btte_sd_q", "boot_btte_var_lower", "boot_btte_var_upper",
   "boot_mean_n_patients", "boot_mean_n_loset", "iteration", "n_iterations", "include_distributions",
+  "boot_sample_size",
 
   # RTE specific variables
   "observed_RTE", "theoretical_RTE", "binary_theoretical_RTE", "valid", "n_distinct",
-  "n_valid_rte", "observed_p", "theoretical_p", "binary_theoretical_p", "n_tc",
+  "n_valid_rte", "observed_p", "theoretical_p", "binary_theoretical_p", "n_tc", "original_df",
 
   # RTE calculation components
   "arrivals_up_to_now", "observed_resolves_before", "L", "is_cluster", "cluster_id",
@@ -82,6 +83,11 @@ utils::globalVariables(c(
 
   # Plotting related
   "x", "y", "y_pos", "te", "label", "color", "group_label", "random_value",
+
+  # Transferability-related variables
+  "applied_unit", "original_unit", "combination", "diff_from_original",
+  "loset_count", "non_loset_count", "mean_rte", "mean_diff", "lower_ci", "upper_ci",
+  "running_mean", "running_var", "running_se", "ci_width",
 
   # Heat map related
   "te_label", "normalized_te", "un_normalized_te", "target_100_100", "original_100_100"
@@ -233,9 +239,7 @@ init_progressr <- function() {
   # System capability info
   backend <- get_optimal_backend()
   max_workers <- parallel::detectCores()
-  packageStartupMessage(sprintf("System capable of parallel processing with %s backend", backend))
-  packageStartupMessage(sprintf("Maximum available workers: %d", max_workers))
-  packageStartupMessage("Note: Individual functions will determine optimal core usage at runtime")
+
 }
 
 #' Package Unload Hook
@@ -253,3 +257,59 @@ init_progressr <- function() {
   # Clear package environment
   rm(list = ls(.trieff_env), envir = .trieff_env)
 }
+
+
+
+
+
+#' Synthetic Emergency Department Data from Skåne Emergency Medicine (SEM) Cohort
+#'
+#' A synthetic dataset generated based on statistical properties of ED visits across all eight
+#' hospitals in the Skåne Emergency Medicine (SEM) database from 2017-2018. Generated using
+#' synthpop methodology with complaint-based grouping, this dataset mimics real patterns while
+#' containing no actual patient data.
+#'
+#' @format A data frame with 460,986 observations and 15 variables:
+#' \describe{
+#'   \item{priority}{Factor with 5 levels (1-5) representing triage priority (RETTS system), where 1 is highest priority}
+#'   \item{ambulance}{Logical indicating if patient arrived by ambulance}
+#'   \item{unit}{Factor with 8 levels representing the treating hospital: "Helsingborg", "Hässleholm", "Kristianstad", "Landskrona", "Lund", "Malmö", "Trelleborg", "Ystad"}
+#'   \item{chief_complaint}{Factor representing the main reason for ED visit (translated to English and grouped into clinical categories)}
+#'   \item{age_at_arrival}{Numeric age of patient at time of arrival}
+#'   \item{gender}{Factor with 2 levels: "F" (female), "M" (male)}
+#'   \item{discharged_to}{Factor with 5 levels: "Admitted", "Died", "Home", "Moved to other hospital", indicating ED visit outcome}
+#'   \item{admitted_to_hospital}{Logical indicating if patient was admitted to hospital}
+#'   \item{ward}{Factor indicating type of ward for admitted patients (e.g., "ICU", "Cardiology", "MedSurg", etc.)}
+#'   \item{loset}{Logical indicating if case was time-critical according to LOSET criteria}
+#'   \item{arrival_at_hospital}{POSIXct timestamp of arrival at hospital}
+#'   \item{exit_ed}{POSIXct timestamp of exit from ED}
+#'   \item{resolve}{POSIXct timestamp of first physician contact}
+#'   \item{arrival}{POSIXct timestamp of triage assessment}
+#'   \item{chief_complaint_category}{Factor grouping chief complaints into broader clinical categories}
+#' }
+#'
+#' @details
+#' This synthetic dataset is based on ED visits from 2017 across two hospitals in
+#' the Skåne region of Sweden. It preserves the statistical relationships and patterns of the
+#' original SEM cohort while containing no real patient information. The dataset includes adult
+#' patients (age >= 18) with medical, surgical, or orthopedic complaints.
+#'
+#' While the synthetic data maintains similar priority distributions and demographic patterns
+#' as the original, triage effectiveness values are consistently lower (e.g., overall Observed
+#' TE: 39.1% vs 45.8% in original). However, relative performance patterns across hospitals
+#' are preserved, making it suitable for testing the TriEff statistical package.
+#'
+#' Time variables follow this sequence:
+#' arrival_at_hospital <= arrival (triage) <= resolve (physician) <= exit_ed
+#'
+#' @source Based on statistical properties of the Skåne Emergency Medicine (SEM) database.
+#' Reference: Ekelund, U., et al. (2024). The Skåne Emergency Medicine (SEM) cohort.
+#' Scandinavian Journal of Trauma Resuscitation and Emergency Medicine, 32(1).
+#' doi: https://doi.org/10.1186/s13049-024-01206-0
+#'
+#' @export
+load_sem_synth <- function() {
+  path <- system.file("extdata", "sem_synth.rds", package = "trieff")
+  readRDS(path)
+}
+

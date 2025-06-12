@@ -11,7 +11,7 @@ for different units, with optional grouping variables and variability intervals.
 
     <a class="navbar-brand me-2" href="../index.html">trieff</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,6 +65,8 @@ for different units, with optional grouping variables and variability intervals.
 <span>  show_tte <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  show_ote <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  show_var <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  show_percent_tte <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  show_percent_ote <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  var_alpha <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  dumbell_width <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  var_width <span class="op">=</span> <span class="fl">1.5</span>,</span>
@@ -105,6 +107,14 @@ for different units, with optional grouping variables and variability intervals.
 
 <dt id="arg-show-var">show_var<a class="anchor" aria-label="anchor" href="#arg-show-var"></a></dt>
 <dd><p>Logical, whether to display variability intervals. Default is null. Will show if there is variability data supplied.</p></dd>
+
+
+<dt id="arg-show-percent-tte">show_percent_tte<a class="anchor" aria-label="anchor" href="#arg-show-percent-tte"></a></dt>
+<dd><p>Logical, whether to display the percentage of TE above the TTE dot or not.</p></dd>
+
+
+<dt id="arg-show-percent-ote">show_percent_ote<a class="anchor" aria-label="anchor" href="#arg-show-percent-ote"></a></dt>
+<dd><p>Logical, whether to display the percentage of TE above the OTE dor or not.</p></dd>
 
 
 <dt id="arg-var-alpha">var_alpha<a class="anchor" aria-label="anchor" href="#arg-var-alpha"></a></dt>
@@ -171,7 +181,7 @@ from metadata based on calculation method and normality tests.</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
     </footer></div>

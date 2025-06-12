@@ -19,7 +19,7 @@ calc_rte(
   include_distributions = TRUE,
   check_convergence = TRUE,
   seed = NULL,
-  quite = TRUE
+  quiet = TRUE
 )
 }
 \arguments{
@@ -42,28 +42,28 @@ calc_rte(
 
 \item{n_workers}{Number of workers for parallel processing (default: detectCores() - 1)}
 
-\item{verbose}{Logical. If TRUE, returns detailed results with intermediate calculation
+\item{verbose}{Logical. If TRUE, returns patient-level RTE values for further analysis including  intermediate calculation
 fields from calculate_queue_metrics. Default is FALSE.}
 
 \item{overall_only}{Logical. If TRUE, only overall metrics are returned (default: FALSE)}
 
 \item{min_loset_warning}{Numerical, when should the function warn for low loset prevalence? (default: 5)}
 
-\item{include_distributions}{Logical. If TRUE, returns patient-level RTE values for
-further analysis and bootstrap distrobutions. Default is FALSE.}
+\item{include_distributions}{Logical. If TRUE, returns bootstrap distributions. Default is FALSE.}
 
 \item{check_convergence}{Logical, Default is TRUE. Will check convergence and produce convergence plots if true + bootstrap == TRUE.}
 
 \item{seed}{Seed for reproducible bootstrapping (default: NULL - no seed)}
 
-\item{quite}{Logical. Default is TRUE. If false outputs the recommended/used confidence interval choice.}
+\item{quiet}{Logical. Default is TRUE. If false outputs the recommended/used confidence interval choice.}
 }
 \value{
 A list containing:
 \itemize{
 \item results: Tibble with RTE metrics
 \item metadata: List containing calculation parameters
-\item distributions: (If include_distributions=TRUE) Patient-level RTE values
+\item verbose_df: (If verbose) Patient-level RTE values
+\item bootstrap_distributions: (If bootstrap & include_distribution) bootstrap distributions from bootstrapping.
 }
 }
 \description{

@@ -1,5 +1,10 @@
 # NEWS
 
+## v 1.2.0 - 2025-06-12
+
+* Added transferability assessment 
+
+
 ## v 1.1.0 - 2025-04-21
 
 * Added RTE as metric. 
