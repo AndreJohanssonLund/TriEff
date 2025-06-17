@@ -11,7 +11,7 @@ A comprehensive toolkit for analyzing and evaluating triage effectiveness in eme
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://AndreJohanssonLund.github.io/trieff/}
+  \item \url{https://andrejohanssonlund.github.io/TriEff/index.html}
   \item Report bugs at \url{https://github.com/AndreJohanssonLund/trieff/issues}
 }
 

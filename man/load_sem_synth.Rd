@@ -8,7 +8,7 @@ A data frame with 460,986 observations and 15 variables:
 \describe{
 \item{priority}{Factor with 5 levels (1-5) representing triage priority (RETTS system), where 1 is highest priority}
 \item{ambulance}{Logical indicating if patient arrived by ambulance}
-\item{unit}{Factor with 8 levels representing the treating hospital: "Helsingborg", "Hässleholm", "Kristianstad", "Landskrona", "Lund", "Malmö", "Trelleborg", "Ystad"}
+\item{unit}{Factor with 2 levels representing the treating hospital. "C" that is a larger ED and "E" That is a smaller one.}
 \item{chief_complaint}{Factor representing the main reason for ED visit (translated to English and grouped into clinical categories)}
 \item{age_at_arrival}{Numeric age of patient at time of arrival}
 \item{gender}{Factor with 2 levels: "F" (female), "M" (male)}
